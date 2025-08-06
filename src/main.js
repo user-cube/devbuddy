@@ -1,5 +1,7 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
 const ConfigService = require('./services/config.js');
 const RedirectorService = require('./services/redirector.js');
 const GitHubService = require('./services/github.js');
@@ -1075,4 +1077,106 @@ ipcMain.handle('get-redirector-status', () => {
 
 ipcMain.handle('update-redirector-port', async (event, newPort) => {
   return redirectorService.updatePort(newPort);
+});
+
+// Configuration import/export
+ipcMain.handle('export-config', async () => {
+  try {
+    const config = configService.loadConfig();
+    const shortcuts = configService.loadShortcuts();
+    const redirects = redirectorService.getRedirects();
+    
+    const exportData = {
+      version: '1.0.0',
+      exportedAt: new Date().toISOString(),
+      config,
+      shortcuts,
+      redirects
+    };
+
+    // Get desktop path for default save location
+    const desktopPath = path.join(os.homedir(), 'Desktop');
+    const defaultFileName = `devbuddy-config-${new Date().toISOString().split('T')[0]}.json`;
+
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: 'Export DevBuddy Configuration',
+      defaultPath: path.join(desktopPath, defaultFileName),
+      filters: [
+        { name: 'JSON Files', extensions: ['json'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    });
+
+    if (!result.canceled && result.filePath) {
+      fs.writeFileSync(result.filePath, JSON.stringify(exportData, null, 2));
+      return { success: true, filePath: result.filePath };
+    } else {
+      return { success: false, message: 'Export cancelled' };
+    }
+  } catch (error) {
+    console.error('Error exporting config:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('import-config', async () => {
+  try {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: 'Import DevBuddy Configuration',
+      filters: [
+        { name: 'JSON Files', extensions: ['json'] },
+        { name: 'All Files', extensions: ['*'] }
+      ],
+      properties: ['openFile']
+    });
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return { success: false, message: 'Import cancelled' };
+    }
+
+    const filePath = result.filePaths[0];
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const importData = JSON.parse(fileContent);
+
+    // Validate import data structure
+    if (!importData.config || !importData.shortcuts || !importData.redirects) {
+      return { success: false, error: 'Invalid configuration file format' };
+    }
+
+    // Validate version compatibility
+    if (importData.version && importData.version !== '1.0.0') {
+      console.warn('Importing configuration from different version:', importData.version);
+    }
+
+    // Backup current configuration
+    const backupDir = path.join(os.homedir(), '.devbuddy', 'backups');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    const backupFileName = `backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    const backupPath = path.join(backupDir, backupFileName);
+
+    const currentConfig = {
+      config: configService.loadConfig(),
+      shortcuts: configService.loadShortcuts(),
+      redirects: redirectorService.getRedirects()
+    };
+
+    fs.writeFileSync(backupPath, JSON.stringify(currentConfig, null, 2));
+
+    // Import new configuration
+    configService.saveConfig(importData.config);
+    configService.saveShortcuts(importData.shortcuts);
+    redirectorService.updateRedirects(importData.redirects);
+
+    return { 
+      success: true, 
+      message: 'Configuration imported successfully',
+      backupPath
+    };
+  } catch (error) {
+    console.error('Error importing config:', error);
+    return { success: false, error: error.message };
+  }
 });

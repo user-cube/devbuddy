@@ -104,10 +104,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Cache management
   clearCache: () => ipcRenderer.invoke('clear-cache'),
   clearGithubCache: () => ipcRenderer.invoke('clear-github-cache'),
-  clearGitlabCache: () => ipcRenderer.invoke('clear-gitlab-cache'),
-  clearJiraCache: () => ipcRenderer.invoke('clear-jira-cache'),
-  openJiraStatusConfig: () => ipcRenderer.invoke('open-jira-status-config'),
-  getCacheStats: () => ipcRenderer.invoke('get-cache-stats'),
+      clearGitlabCache: () => ipcRenderer.invoke('clear-gitlab-cache'),
+    clearJiraCache: () => ipcRenderer.invoke('clear-jira-cache'),
+    openJiraStatusConfig: () => ipcRenderer.invoke('open-jira-status-config'),
+    getCacheStats: () => ipcRenderer.invoke('get-cache-stats'),
+    exportConfig: () => ipcRenderer.invoke('export-config'),
+    importConfig: () => ipcRenderer.invoke('import-config'),
   
   // Open external links
   openExternal: (url) => ipcRenderer.invoke('open-external', url),

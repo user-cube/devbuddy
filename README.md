@@ -22,6 +22,7 @@ A modern desktop application to streamline your development workflow. Built with
 - **Dynamic Navigation**: Sidebar and shortcuts update automatically based on enabled integrations
 - **Enhanced Dashboard**: Rich homepage with integration status, activity summary, and recent items
 - **Real-time Updates**: Configuration changes apply immediately across the application
+- **Configuration Import/Export**: Backup and share configurations with automatic backup protection
 
 ## Installation
 
@@ -115,6 +116,13 @@ On first run, DevBuddy will automatically redirect you to the configuration page
 - **Protected Routes**: Automatic redirection when accessing disabled integration pages
 - **Status Indicators**: Visual feedback for unsaved changes and integration status
 
+### 📁 **Configuration Import/Export**
+- **Export Configuration**: Save all settings to JSON file with timestamp
+- **Import Configuration**: Load settings from file with automatic backup
+- **Backup Protection**: Automatic backup before each import operation
+- **Version Compatibility**: Support for future configuration format updates
+- **Validation**: Robust error checking and format validation
+
 ## Development
 
 ### Project Structure
@@ -142,7 +150,7 @@ devbuddy/
 │   │       │   ├── Toast.jsx             # Toast notification system
 │   │       │   └── ProtectedRoute.jsx    # Route protection for disabled integrations
 │   │       ├── configuration/            # Configuration pages
-│   │       │   ├── Configuration.jsx     # Main configuration with sticky footer and toast
+│   │       │   ├── Configuration.jsx     # Main configuration with import/export and toast
 │   │       │   └── JiraStatusConfig.jsx  # Jira status filtering with dark mode support
 │   │       ├── jira/                     # Jira page components
 │   │       │   └── Jira.jsx              # Jira issues with status filter navigation
@@ -179,6 +187,45 @@ devbuddy/
 - `npm run preview`: Preview the built React app
 - `python scripts/generate-icons-python.py`: Generate app icons for all platforms
 
+### Configuration Management
+
+DevBuddy supports importing and exporting configurations for backup and sharing:
+
+**Export Configuration:**
+- Exports all settings to a JSON file
+- Includes: integrations, shortcuts, redirects, app preferences
+- Default save location: Desktop with timestamp
+- File format: `devbuddy-config-YYYY-MM-DD.json`
+
+**Import Configuration:**
+- Imports settings from JSON file
+- Automatic backup of current configuration
+- Validation of file format and structure
+- Real-time updates after import
+- Backup location: `~/.devbuddy/backups/`
+
+**Backup Protection:**
+- Automatic backup before each import
+- Unique backup files with timestamps
+- Safe rollback capability
+- Version compatibility checking
+
+**Export File Format:**
+```json
+{
+  "version": "1.0.0",
+  "exportedAt": "2024-01-15T10:30:00.000Z",
+  "config": {
+    "jira": { /* Jira integration settings */ },
+    "github": { /* GitHub integration settings */ },
+    "gitlab": { /* GitLab integration settings */ },
+    "app": { /* Application preferences */ }
+  },
+  "shortcuts": [ /* Local shortcuts configuration */ ],
+  "redirects": { /* Local redirect rules */ }
+}
+```
+
 ### Keyboard Shortcuts
 
 Keyboard shortcuts are dynamic and update automatically based on enabled integrations:
@@ -208,6 +255,7 @@ Configuration files are stored in `~/.devbuddy/` and are automatically created o
 - `config.yaml` - Main configuration (Jira, GitHub, GitLab, App settings)
 - `shortcuts.yaml` - Local shortcuts configuration
 - `redirects.yaml` - Local redirects configuration
+- `backups/` - Automatic backup directory for import operations
 
 ### Configuration Structure
 
@@ -401,11 +449,8 @@ This creates icons for:
 - [x] Real-time configuration updates
 - [x] Protected routes for disabled integrations
 - [x] Dark mode compatibility for all components
+- [x] Configuration import/export with backup protection
 - [ ] System tray integration
 - [ ] Desktop notifications
-- [ ] Auto-updates
-- [ ] Configuration import/export
 - [ ] Advanced theme customization
-- [ ] Data export/backup
 - [ ] Keyboard shortcuts customization
-- [ ] Plugin system for custom integrations

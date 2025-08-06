@@ -8,7 +8,9 @@ import {
   Save, 
   CheckCircle, 
   AlertCircle,
-  Filter
+  Filter,
+  Download,
+  Upload
 } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
 import JiraStatusConfig from './JiraStatusConfig'
@@ -95,6 +97,41 @@ const Configuration = () => {
     }
   }
 
+  const exportConfig = async () => {
+    try {
+      if (window.electronAPI) {
+        const exportData = await window.electronAPI.exportConfig()
+        setMessage({ type: 'success', text: `Configuration exported to: ${exportData.filePath}` })
+      }
+    } catch (error) {
+      console.error('Error exporting config:', error)
+      setMessage({ type: 'error', text: 'Error exporting configuration' })
+    }
+  }
+
+  const importConfig = async () => {
+    try {
+      if (window.electronAPI) {
+        const importData = await window.electronAPI.importConfig()
+        if (importData.success) {
+          setMessage({ 
+            type: 'success', 
+            text: `Configuration imported successfully! Backup saved to: ${importData.backupPath}` 
+          })
+          // Reload config to show imported data
+          await loadConfig()
+          // Dispatch event to notify other components about config changes
+          window.dispatchEvent(new CustomEvent('config-changed'))
+        } else {
+          setMessage({ type: 'error', text: importData.error || 'Error importing configuration' })
+        }
+      }
+    } catch (error) {
+      console.error('Error importing config:', error)
+      setMessage({ type: 'error', text: 'Error importing configuration' })
+    }
+  }
+
   const updateConfig = (section, key, value) => {
     setConfig(prev => ({
       ...prev,
@@ -165,6 +202,41 @@ const Configuration = () => {
 
 
             <div className="space-y-8">
+              {/* Import/Export Information */}
+              <div className="card">
+                <div className="flex items-center gap-3 mb-4">
+                  <Download className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+                  <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Import & Export Configuration
+                  </h2>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    Export your configuration to backup or share with your team. Import configuration files to quickly set up DevBuddy on a new machine.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <div>
+                      <strong style={{ color: 'var(--text-primary)' }}>Export includes:</strong>
+                      <ul className="mt-1 space-y-1">
+                        <li>• All integration settings (Jira, GitHub, GitLab)</li>
+                        <li>• Local shortcuts configuration</li>
+                        <li>• Redirect rules</li>
+                        <li>• App preferences</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <strong style={{ color: 'var(--text-primary)' }}>Import features:</strong>
+                      <ul className="mt-1 space-y-1">
+                        <li>• Automatic backup of current config</li>
+                        <li>• Version compatibility check</li>
+                        <li>• Validation of file format</li>
+                        <li>• Real-time updates after import</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
           {/* Jira Configuration */}
           <div className="card">
             <div className="flex items-center gap-3 mb-6 pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
@@ -757,17 +829,43 @@ const Configuration = () => {
       }}>
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center">
-            <button
-              onClick={clearCache}
-              className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
-              style={{
-                backgroundColor: 'rgba(107, 114, 128, 0.2)',
-                border: '1px solid rgba(107, 114, 128, 0.3)',
-                color: 'var(--text-secondary)'
-              }}
-            >
-              Clear Cache
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={clearCache}
+                className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                style={{
+                  backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                  border: '1px solid rgba(107, 114, 128, 0.3)',
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                Clear Cache
+              </button>
+              <button
+                onClick={exportConfig}
+                className="px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2"
+                style={{
+                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  color: 'var(--success)'
+                }}
+              >
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+              <button
+                onClick={importConfig}
+                className="px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2"
+                style={{
+                  backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  color: 'var(--accent-primary)'
+                }}
+              >
+                <Upload className="w-4 h-4" />
+                Import
+              </button>
+            </div>
             <button
               onClick={saveConfig}
               disabled={saving}
