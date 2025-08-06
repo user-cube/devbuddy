@@ -55,6 +55,7 @@
       "dist-renderer/**/*"
     ],
     "publish": null,
+    "icon": "src/assets/devbuddy.icns",
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [

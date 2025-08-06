@@ -1,0 +1,15 @@
+cairocffi==1.7.1
+CairoSVG==2.8.2
+cffi==1.17.1
+cssselect2==0.8.0
+defusedxml==0.7.1
+numpy==2.3.2
+pandas==2.3.1
+pillow==11.3.0
+pycparser==2.22
+python-dateutil==2.9.0.post0
+pytz==2025.2
+six==1.17.0
+tinycss2==1.4.0
+tzdata==2025.2
+webencodings==0.5.1

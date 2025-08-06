@@ -71,3 +71,5 @@ packages/
 # Temporary folders
 tmp/
 temp/
+
+venv/**

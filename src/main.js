@@ -27,7 +27,7 @@ function createWindow() {
       contextIsolation: true,
       preload: preloadPath
     },
-    icon: path.join(__dirname, 'assets/icon.png'),
+    icon: path.join(__dirname, 'assets/devbuddy.icns'),
     titleBarStyle: 'default',
     show: false
   });
