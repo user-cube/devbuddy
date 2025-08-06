@@ -3,7 +3,6 @@ import React from 'react'
 const BookmarkCard = ({ bookmark, onClick }) => {
   const getBookmarkIcon = (bookmark) => {
     if (bookmark.filePath) {
-      // Get file extension and return appropriate icon
       const fileExtension = bookmark.filePath.split('.').pop()?.toLowerCase()
       const fileIconMap = {
         pdf: 'fas fa-file-pdf',
@@ -47,18 +46,13 @@ const BookmarkCard = ({ bookmark, onClick }) => {
       }
       return fileIconMap[fileExtension] || 'fas fa-file'
     }
-    
-    // For URLs, use globe icon
     return 'fas fa-globe'
   }
-
-
 
   const truncateText = (text, maxLength = 50) => {
     if (!text) return ''
     if (text.length <= maxLength) return text
     
-    // For URLs, try to keep the domain part
     if (text.startsWith('http')) {
       try {
         const url = new URL(text)
@@ -73,12 +67,10 @@ const BookmarkCard = ({ bookmark, onClick }) => {
           return `${domain.substring(0, maxLength - 3)}...`
         }
       } catch {
-        // If URL parsing fails, just truncate normally
         return text.substring(0, maxLength - 3) + '...'
       }
     }
     
-    // For file paths, try to keep the filename
     if (text.includes('/') || text.includes('\\')) {
       const fileName = text.split(/[/\\]/).pop()
       if (fileName && fileName.length <= maxLength) {
@@ -91,12 +83,10 @@ const BookmarkCard = ({ bookmark, onClick }) => {
     return text.substring(0, maxLength - 3) + '...'
   }
 
-
-
   return (
     <button
       onClick={onClick}
-      className="group rounded-lg p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg relative h-32 flex flex-col justify-between"
+      className="group relative w-full h-32 rounded-xl p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col"
       style={{
         background: 'linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary))',
         border: '1px solid var(--border-primary)'
@@ -123,31 +113,37 @@ const BookmarkCard = ({ bookmark, onClick }) => {
         </div>
       )}
       
-      <div className="flex flex-col items-center gap-2 text-center flex-1 justify-center">
-        <i 
-          className={`${getBookmarkIcon(bookmark)} text-xl transition-colors flex-shrink-0`}
-          style={{ 
-            color: bookmark.filePath ? 'var(--success)' : 'var(--accent-primary)'
-          }}
-        />
-        <div className="w-full min-w-0">
-          <span 
-            className="text-sm font-medium transition-colors block truncate"
+      {/* Content */}
+      <div className="flex items-start gap-3 h-full">
+        {/* Icon */}
+        <div className="flex-shrink-0 mt-1">
+          <i 
+            className={`${getBookmarkIcon(bookmark)} text-lg`}
+            style={{ 
+              color: bookmark.filePath ? 'var(--success)' : 'var(--accent-primary)'
+            }}
+          />
+        </div>
+        
+        {/* Text Content */}
+        <div className="flex-1 min-w-0 text-left">
+          <div 
+            className="text-sm font-medium mb-1 line-clamp-2"
             style={{ color: 'var(--text-primary)' }}
             title={bookmark.name}
           >
-            {truncateText(bookmark.name, 30)}
-          </span>
+            {bookmark.name}
+          </div>
+          
           {(bookmark.description || bookmark.url || bookmark.filePath) && (
-            <span 
-              className="text-xs transition-colors block truncate mt-1"
+            <div 
+              className="text-xs line-clamp-2"
               style={{ color: 'var(--text-muted)' }}
               title={bookmark.description || bookmark.url || bookmark.filePath}
             >
-              {truncateText(bookmark.description || bookmark.url || bookmark.filePath, 40)}
-            </span>
+              {truncateText(bookmark.description || bookmark.url || bookmark.filePath, 45)}
+            </div>
           )}
-
         </div>
       </div>
     </button>

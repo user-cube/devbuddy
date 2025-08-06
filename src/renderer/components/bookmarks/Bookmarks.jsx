@@ -495,7 +495,7 @@ const Bookmarks = () => {
           boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)'
         }}>
           <div className="max-w-6xl mx-auto">
-            <div className="flex justify-center">
+            <div className="flex justify-end">
               <button
                 onClick={() => setShowAddCategory(true)}
                 className="btn-primary flex items-center gap-2 px-6 py-3 text-lg"
