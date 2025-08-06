@@ -86,6 +86,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Cache management
   clearCache: () => ipcRenderer.invoke('clear-cache'),
+  clearGithubCache: () => ipcRenderer.invoke('clear-github-cache'),
+  clearGitlabCache: () => ipcRenderer.invoke('clear-gitlab-cache'),
+  clearJiraCache: () => ipcRenderer.invoke('clear-jira-cache'),
   getCacheStats: () => ipcRenderer.invoke('get-cache-stats'),
   
   // Open external links

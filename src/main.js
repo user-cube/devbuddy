@@ -648,6 +648,36 @@ ipcMain.handle('clear-cache', async () => {
   }
 });
 
+ipcMain.handle('clear-github-cache', async () => {
+  try {
+    githubService.cacheService.clear();
+    return { success: true, message: 'GitHub cache cleared successfully' };
+  } catch (error) {
+    console.error('Error clearing GitHub cache:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('clear-gitlab-cache', async () => {
+  try {
+    gitlabService.cacheService.clear();
+    return { success: true, message: 'GitLab cache cleared successfully' };
+  } catch (error) {
+    console.error('Error clearing GitLab cache:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('clear-jira-cache', async () => {
+  try {
+    jiraService.cacheService.clear();
+    return { success: true, message: 'Jira cache cleared successfully' };
+  } catch (error) {
+    console.error('Error clearing Jira cache:', error);
+    throw error;
+  }
+});
+
 ipcMain.handle('get-cache-stats', async () => {
   try {
     return {

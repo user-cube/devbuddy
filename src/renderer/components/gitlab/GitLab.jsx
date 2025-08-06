@@ -42,10 +42,20 @@ const GitLab = () => {
     loadMergeRequests()
   }, [])
 
-  const loadMergeRequests = async () => {
+  const loadMergeRequests = async (forceReload = false) => {
     try {
       setLoading(true)
       setError(null)
+      
+      // Clear cache if force reload is requested
+      if (forceReload) {
+        try {
+          await window.electronAPI.clearGitlabCache()
+          console.log('GitLab cache cleared for force reload')
+        } catch (error) {
+          console.error('Error clearing GitLab cache:', error)
+        }
+      }
       
       const mrs = await window.electronAPI.getGitlabMRs()
       setMergeRequests(mrs)
@@ -188,7 +198,7 @@ const GitLab = () => {
           <h3 className="text-2xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Error Loading Merge Requests</h3>
           <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <button
-            onClick={loadMergeRequests}
+            onClick={() => loadMergeRequests(false)}
             className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
             style={{
               backgroundColor: 'rgba(245, 101, 101, 0.2)',
@@ -358,7 +368,7 @@ const GitLab = () => {
         </select>
 
         <button
-          onClick={loadMergeRequests}
+          onClick={() => loadMergeRequests(false)}
           className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
           style={{
             backgroundColor: 'rgba(245, 101, 101, 0.2)',
@@ -373,8 +383,31 @@ const GitLab = () => {
             e.target.style.backgroundColor = 'rgba(245, 101, 101, 0.2)'
             e.target.style.transform = 'translateY(0)'
           }}
+          title="Refresh (use cache if available)"
         >
           <RefreshCw className="w-4 h-4" />
+        </button>
+        
+        <button
+          onClick={() => loadMergeRequests(true)}
+          className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: 'var(--error)'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
+            e.target.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
+            e.target.style.transform = 'translateY(0)'
+          }}
+          title="Force reload (clear cache)"
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span className="ml-1 text-xs">Force</span>
         </button>
         
         <button

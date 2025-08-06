@@ -44,10 +44,20 @@ const Jira = () => {
     loadIssues()
   }, [])
 
-  const loadIssues = async () => {
+  const loadIssues = async (forceReload = false) => {
     try {
       setLoading(true)
       setError(null)
+      
+      // Clear cache if force reload is requested
+      if (forceReload) {
+        try {
+          await window.electronAPI.clearJiraCache()
+          console.log('Jira cache cleared for force reload')
+        } catch (error) {
+          console.error('Error clearing Jira cache:', error)
+        }
+      }
       
       const jiraIssues = await window.electronAPI.getJiraIssues()
       setIssues(jiraIssues)
@@ -222,7 +232,7 @@ const Jira = () => {
           <h3 className="text-2xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Error Loading Issues</h3>
           <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <button
-            onClick={loadIssues}
+            onClick={() => loadIssues(false)}
             className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
             style={{
               backgroundColor: 'rgba(59, 130, 246, 0.2)',
@@ -392,7 +402,7 @@ const Jira = () => {
         </select>
 
         <button
-          onClick={loadIssues}
+          onClick={() => loadIssues(false)}
           className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
           style={{
             backgroundColor: 'rgba(59, 130, 246, 0.2)',
@@ -407,8 +417,31 @@ const Jira = () => {
             e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
             e.target.style.transform = 'translateY(0)'
           }}
+          title="Refresh (use cache if available)"
         >
           <RefreshCw className="w-4 h-4" />
+        </button>
+        
+        <button
+          onClick={() => loadIssues(true)}
+          className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: 'var(--error)'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
+            e.target.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
+            e.target.style.transform = 'translateY(0)'
+          }}
+          title="Force reload (clear cache)"
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span className="ml-1 text-xs">Force</span>
         </button>
         
         <button
