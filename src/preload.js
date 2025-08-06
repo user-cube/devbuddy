@@ -49,7 +49,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getGithubPRsByRepo: (repo, state) => ipcRenderer.invoke('get-github-prs-by-repo', repo, state),
   getGithubPRsByOrg: (org, state) => ipcRenderer.invoke('get-github-prs-by-org', org, state),
   
-  getGitlabPRs: () => ipcRenderer.invoke('get-gitlab-prs'),
+  // GitLab service
+  getGitlabMRs: () => ipcRenderer.invoke('get-gitlab-mrs'),
+  getGitlabMRDetails: (mrId, projectId) => ipcRenderer.invoke('get-gitlab-mr-details', mrId, projectId),
+  getGitlabMRReviews: (mrId, projectId) => ipcRenderer.invoke('get-gitlab-mr-reviews', mrId, projectId),
+  getGitlabMRComments: (mrId, projectId) => ipcRenderer.invoke('get-gitlab-mr-comments', mrId, projectId),
+  getGitlabMRCommits: (mrId, projectId) => ipcRenderer.invoke('get-gitlab-mr-commits', mrId, projectId),
+  getGitlabMRChanges: (mrId, projectId) => ipcRenderer.invoke('get-gitlab-mr-changes', mrId, projectId),
+  approveGitlabMR: (mrId, projectId) => ipcRenderer.invoke('approve-gitlab-mr', mrId, projectId),
+  mergeGitlabMR: (mrId, projectId, mergeMethod) => ipcRenderer.invoke('merge-gitlab-mr', mrId, projectId, mergeMethod),
+  closeGitlabMR: (mrId, projectId) => ipcRenderer.invoke('close-gitlab-mr', mrId, projectId),
+  getGitlabUserInfo: () => ipcRenderer.invoke('get-gitlab-user-info'),
+  getGitlabGroups: () => ipcRenderer.invoke('get-gitlab-groups'),
+  getGitlabProjects: (groupId) => ipcRenderer.invoke('get-gitlab-projects', groupId),
+  searchGitlabMRs: (query) => ipcRenderer.invoke('search-gitlab-mrs', query),
+  getGitlabMRsByProject: (projectId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-project', projectId, state),
+  getGitlabMRsByGroup: (groupId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-group', groupId, state),
   
   // Open external links
   openExternal: (url) => ipcRenderer.invoke('open-external', url),

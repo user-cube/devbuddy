@@ -35,7 +35,12 @@ class ConfigService {
         enabled: false,
         baseUrl: 'https://gitlab.com',
         apiToken: '',
-        username: ''
+        username: '',
+        defaultGroup: '',
+        refreshInterval: 300, // 5 minutes
+        showDrafts: true,
+        showClosed: false,
+        maxResults: 50
       },
       app: {
         theme: 'dark',
@@ -217,7 +222,22 @@ class ConfigService {
 
   getGitlabConfig() {
     const config = this.loadConfig()
-    return config.gitlab || {}
+    const gitlabConfig = config.gitlab || {}
+    
+    // Ensure all required fields exist with defaults
+    const completeConfig = {
+      enabled: gitlabConfig.enabled || false,
+      baseUrl: gitlabConfig.baseUrl || 'https://gitlab.com',
+      apiToken: gitlabConfig.apiToken || '',
+      username: gitlabConfig.username || '',
+      defaultGroup: gitlabConfig.defaultGroup || '',
+      refreshInterval: gitlabConfig.refreshInterval || 300,
+      showDrafts: gitlabConfig.showDrafts !== undefined ? gitlabConfig.showDrafts : true,
+      showClosed: gitlabConfig.showClosed || false,
+      maxResults: gitlabConfig.maxResults || 50
+    }
+    
+    return completeConfig
   }
 
   updateGitlabConfig(gitlabConfig) {

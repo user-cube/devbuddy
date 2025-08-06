@@ -383,6 +383,47 @@ const Configuration = () => {
                 onChange={(e) => updateConfig('gitlab', 'apiToken', e.target.value)}
                 className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
               />
+              <input
+                type="text"
+                placeholder="Default Group (optional)"
+                value={config?.gitlab?.defaultGroup || ''}
+                onChange={(e) => updateConfig('gitlab', 'defaultGroup', e.target.value)}
+                className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+              />
+              <input
+                type="number"
+                placeholder="Refresh Interval (seconds)"
+                value={config?.gitlab?.refreshInterval || 300}
+                onChange={(e) => updateConfig('gitlab', 'refreshInterval', parseInt(e.target.value) || 300)}
+                className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+              />
+              <input
+                type="number"
+                placeholder="Max Results"
+                value={config?.gitlab?.maxResults || 50}
+                onChange={(e) => updateConfig('gitlab', 'maxResults', parseInt(e.target.value) || 50)}
+                className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+              />
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={config?.gitlab?.showDrafts !== false}
+                    onChange={(e) => updateConfig('gitlab', 'showDrafts', e.target.checked)}
+                    className="w-4 h-4 text-primary-500 bg-dark-700 border-dark-600 rounded focus:ring-primary-500"
+                  />
+                  <span className="text-sm">Show Drafts</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={config?.gitlab?.showClosed || false}
+                    onChange={(e) => updateConfig('gitlab', 'showClosed', e.target.checked)}
+                    className="w-4 h-4 text-primary-500 bg-dark-700 border-dark-600 rounded focus:ring-primary-500"
+                  />
+                  <span className="text-sm">Show Closed</span>
+                </label>
+              </div>
             </div>
           )}
         </div>

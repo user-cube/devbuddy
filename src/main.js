@@ -3,11 +3,13 @@ const path = require('path');
 const ConfigService = require('./services/config.js');
 const RedirectorService = require('./services/redirector.js');
 const GitHubService = require('./services/github.js');
+const GitLabService = require('./services/gitlab.js');
 
 let mainWindow;
 const configService = new ConfigService();
 const redirectorService = new RedirectorService();
 const githubService = new GitHubService();
+const gitlabService = new GitLabService();
 
 function createWindow() {
   // Create the browser window
@@ -328,9 +330,140 @@ ipcMain.handle('get-github-prs-by-org', async (event, org, state) => {
   }
 });
 
-ipcMain.handle('get-gitlab-prs', async () => {
-  // This will be implemented in services/gitlab.js
-  return [];
+// GitLab service
+ipcMain.handle('get-gitlab-mrs', async () => {
+  try {
+    return await gitlabService.getMergeRequests();
+  } catch (error) {
+    console.error('Error fetching GitLab MRs:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-mr-details', async (event, mrId, projectId) => {
+  try {
+    return await gitlabService.getMergeRequestDetails(mrId, projectId);
+  } catch (error) {
+    console.error('Error fetching GitLab MR details:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-mr-reviews', async (event, mrId, projectId) => {
+  try {
+    return await gitlabService.getMergeRequestReviews(mrId, projectId);
+  } catch (error) {
+    console.error('Error fetching GitLab MR reviews:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-mr-comments', async (event, mrId, projectId) => {
+  try {
+    return await gitlabService.getMergeRequestComments(mrId, projectId);
+  } catch (error) {
+    console.error('Error fetching GitLab MR comments:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-mr-commits', async (event, mrId, projectId) => {
+  try {
+    return await gitlabService.getMergeRequestCommits(mrId, projectId);
+  } catch (error) {
+    console.error('Error fetching GitLab MR commits:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-mr-changes', async (event, mrId, projectId) => {
+  try {
+    return await gitlabService.getMergeRequestChanges(mrId, projectId);
+  } catch (error) {
+    console.error('Error fetching GitLab MR changes:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('approve-gitlab-mr', async (event, mrId, projectId) => {
+  try {
+    return await gitlabService.approveMergeRequest(mrId, projectId);
+  } catch (error) {
+    console.error('Error approving GitLab MR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('merge-gitlab-mr', async (event, mrId, projectId, mergeMethod) => {
+  try {
+    return await gitlabService.mergeMergeRequest(mrId, projectId, mergeMethod);
+  } catch (error) {
+    console.error('Error merging GitLab MR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('close-gitlab-mr', async (event, mrId, projectId) => {
+  try {
+    return await gitlabService.closeMergeRequest(mrId, projectId);
+  } catch (error) {
+    console.error('Error closing GitLab MR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-user-info', async () => {
+  try {
+    return await gitlabService.getUserInfo();
+  } catch (error) {
+    console.error('Error fetching GitLab user info:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-groups', async () => {
+  try {
+    return await gitlabService.getGroups();
+  } catch (error) {
+    console.error('Error fetching GitLab groups:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-projects', async (event, groupId) => {
+  try {
+    return await gitlabService.getProjects(groupId);
+  } catch (error) {
+    console.error('Error fetching GitLab projects:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('search-gitlab-mrs', async (event, query) => {
+  try {
+    return await gitlabService.searchMergeRequests(query);
+  } catch (error) {
+    console.error('Error searching GitLab MRs:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-mrs-by-project', async (event, projectId, state) => {
+  try {
+    return await gitlabService.getMergeRequestsByProject(projectId, state);
+  } catch (error) {
+    console.error('Error fetching GitLab MRs by project:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-gitlab-mrs-by-group', async (event, groupId, state) => {
+  try {
+    return await gitlabService.getMergeRequestsByGroup(groupId, state);
+  } catch (error) {
+    console.error('Error fetching GitLab MRs by group:', error);
+    throw error;
+  }
 });
 
 // Redirector service
