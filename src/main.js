@@ -1,0 +1,227 @@
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const path = require('path');
+const ConfigService = require('./services/config.js');
+const RedirectorService = require('./services/redirector.js');
+
+let mainWindow;
+const configService = new ConfigService();
+const redirectorService = new RedirectorService();
+
+function createWindow() {
+  // Create the browser window
+  const preloadPath = path.join(__dirname, './preload.js')
+  
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minWidth: 800,
+    minHeight: 600,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: preloadPath
+    },
+    icon: path.join(__dirname, 'assets/icon.png'),
+    titleBarStyle: 'default',
+    show: false
+  });
+
+  // Load the app
+  const isDev = !app.isPackaged;
+  
+  if (isDev) {
+    // In development, load from Vite dev server
+    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.webContents.openDevTools();
+  } else {
+    // In production, load the built files
+    mainWindow.loadFile(path.join(__dirname, '../dist-renderer/index.html'));
+  }
+
+  // Show window when ready to prevent visual flash
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
+
+  // Handle window closed
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+}
+
+// This method will be called when Electron has finished initialization
+app.whenReady().then(async () => {
+  createWindow();
+  
+  // Start the redirector server automatically
+  try {
+    console.log('Attempting to start redirector server automatically...');
+    await redirectorService.startServer();
+    console.log('Redirector server started automatically');
+  } catch (error) {
+    console.error('Failed to start redirector server automatically:', error);
+  }
+});
+
+// Quit when all windows are closed
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    // Stop the redirector server before quitting
+    redirectorService.stopServer().then(() => {
+      console.log('Redirector server stopped');
+      app.quit();
+    }).catch((error) => {
+      console.error('Error stopping redirector server:', error);
+      app.quit();
+    });
+  }
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+
+// Handle app quit to ensure redirector server is stopped
+app.on('before-quit', () => {
+  redirectorService.stopServer().then(() => {
+    console.log('Redirector server stopped on app quit');
+  }).catch((error) => {
+    console.error('Error stopping redirector server on quit:', error);
+  });
+});
+
+// IPC handlers for communication between main and renderer processes
+
+// Time and utilities
+ipcMain.handle('get-current-time', () => {
+  return new Date().toLocaleString();
+});
+
+// Configuration management
+ipcMain.handle('get-config', () => {
+  return configService.loadConfig();
+});
+
+ipcMain.handle('save-config', async (event, config) => {
+  const validation = configService.validateConfig(config);
+  if (!validation.isValid) {
+    throw new Error(`Configuration validation failed: ${validation.errors.join(', ')}`);
+  }
+  return configService.saveConfig(config);
+});
+
+ipcMain.handle('is-configured', () => {
+  return configService.isConfigured();
+});
+
+// Shortcuts
+ipcMain.handle('get-shortcuts', () => {
+  return configService.getShortcuts();
+});
+
+ipcMain.handle('update-shortcuts', async (event, shortcuts) => {
+  return configService.updateShortcuts(shortcuts);
+});
+
+ipcMain.handle('open-shortcut', async (event, shortcutName) => {
+  try {
+    const shortcuts = configService.getShortcuts();
+    const shortcut = shortcuts.find(s => s.name === shortcutName);
+    
+    if (shortcut) {
+      await shell.openExternal(shortcut.url);
+      return { success: true, message: `Opened ${shortcut.name}` };
+    } else {
+      return { success: false, message: `Shortcut ${shortcutName} not found` };
+    }
+  } catch (error) {
+    console.error('Error opening shortcut:', error);
+    return { success: false, message: 'Error opening shortcut' };
+  }
+});
+
+// Service configurations
+ipcMain.handle('get-jira-config', () => {
+  return configService.getJiraConfig();
+});
+
+ipcMain.handle('update-jira-config', async (event, jiraConfig) => {
+  return configService.updateJiraConfig(jiraConfig);
+});
+
+ipcMain.handle('get-github-config', () => {
+  return configService.getGithubConfig();
+});
+
+ipcMain.handle('update-github-config', async (event, githubConfig) => {
+  return configService.updateGithubConfig(githubConfig);
+});
+
+ipcMain.handle('get-gitlab-config', () => {
+  return configService.getGitlabConfig();
+});
+
+ipcMain.handle('update-gitlab-config', async (event, gitlabConfig) => {
+  return configService.updateGitlabConfig(gitlabConfig);
+});
+
+ipcMain.handle('get-app-config', () => {
+  return configService.getAppConfig();
+});
+
+ipcMain.handle('update-app-config', async (event, appConfig) => {
+  return configService.updateAppConfig(appConfig);
+});
+
+// Service data (future implementation)
+ipcMain.handle('get-jira-tasks', async () => {
+  // This will be implemented in services/jira.js
+  return [];
+});
+
+ipcMain.handle('get-github-prs', async () => {
+  // This will be implemented in services/github.js
+  return [];
+});
+
+ipcMain.handle('get-gitlab-prs', async () => {
+  // This will be implemented in services/gitlab.js
+  return [];
+});
+
+// Redirector service
+ipcMain.handle('get-redirects', () => {
+  return redirectorService.getRedirects();
+});
+
+ipcMain.handle('update-redirects', async (event, redirects) => {
+  return redirectorService.updateRedirects(redirects);
+});
+
+ipcMain.handle('add-redirect', async (event, domain, path, targetUrl) => {
+  return redirectorService.addRedirect(domain, path, targetUrl);
+});
+
+ipcMain.handle('remove-redirect', async (event, domain, path) => {
+  return redirectorService.removeRedirect(domain, path);
+});
+
+ipcMain.handle('start-redirector-server', () => {
+  redirectorService.startServer();
+  return redirectorService.getServerStatus();
+});
+
+ipcMain.handle('stop-redirector-server', () => {
+  redirectorService.stopServer();
+  return redirectorService.getServerStatus();
+});
+
+ipcMain.handle('get-redirector-status', () => {
+  return redirectorService.getServerStatus();
+});
+
+ipcMain.handle('update-redirector-port', async (event, newPort) => {
+  return redirectorService.updatePort(newPort);
+});
