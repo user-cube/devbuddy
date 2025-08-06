@@ -178,10 +178,42 @@ const Configuration = () => {
                   placeholder="Project Keys (comma-separated)"
                   value={config?.jira?.projectKeys?.join(', ') || ''}
                   onChange={(e) => updateConfig('jira', 'projectKeys', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
-              />
-            </div>
-          )}
+                  className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                />
+                <input
+                  type="text"
+                  placeholder="Default Project Key"
+                  value={config?.jira?.defaultProject || ''}
+                  onChange={(e) => updateConfig('jira', 'defaultProject', e.target.value)}
+                  className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Refresh Interval (seconds)"
+                  value={config?.jira?.refreshInterval || 300}
+                  onChange={(e) => updateConfig('jira', 'refreshInterval', parseInt(e.target.value) || 300)}
+                  className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Max Results"
+                  value={config?.jira?.maxResults || 50}
+                  onChange={(e) => updateConfig('jira', 'maxResults', parseInt(e.target.value) || 50)}
+                  className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                />
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={config?.jira?.showClosed || false}
+                      onChange={(e) => updateConfig('jira', 'showClosed', e.target.checked)}
+                      className="w-4 h-4 text-primary-500 bg-dark-700 border-dark-600 rounded focus:ring-primary-500"
+                    />
+                    <span className="text-sm">Show Closed Issues</span>
+                  </label>
+                </div>
+              </div>
+            )}
         </div>
 
         {/* GitHub Configuration */}

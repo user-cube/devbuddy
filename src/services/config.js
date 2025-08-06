@@ -18,7 +18,11 @@ class ConfigService {
         baseUrl: '',
         apiToken: '',
         username: '',
-        projectKeys: []
+        projectKeys: [],
+        refreshInterval: 300, // 5 minutes
+        showClosed: false,
+        maxResults: 50,
+        defaultProject: ''
       },
       github: {
         enabled: false,
@@ -189,7 +193,22 @@ class ConfigService {
 
   getJiraConfig() {
     const config = this.loadConfig()
-    return config.jira || {}
+    const jiraConfig = config.jira || {}
+    
+    // Ensure all required fields exist with defaults
+    const completeConfig = {
+      enabled: jiraConfig.enabled || false,
+      baseUrl: jiraConfig.baseUrl || '',
+      apiToken: jiraConfig.apiToken || '',
+      username: jiraConfig.username || '',
+      projectKeys: jiraConfig.projectKeys || [],
+      refreshInterval: jiraConfig.refreshInterval || 300,
+      showClosed: jiraConfig.showClosed || false,
+      maxResults: jiraConfig.maxResults || 50,
+      defaultProject: jiraConfig.defaultProject || ''
+    }
+    
+    return completeConfig
   }
 
   updateJiraConfig(jiraConfig) {

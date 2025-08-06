@@ -4,12 +4,14 @@ const ConfigService = require('./services/config.js');
 const RedirectorService = require('./services/redirector.js');
 const GitHubService = require('./services/github.js');
 const GitLabService = require('./services/gitlab.js');
+const JiraService = require('./services/jira.js');
 
 let mainWindow;
 const configService = new ConfigService();
 const redirectorService = new RedirectorService();
 const githubService = new GitHubService();
 const gitlabService = new GitLabService();
+const jiraService = new JiraService();
 
 function createWindow() {
   // Create the browser window
@@ -190,9 +192,176 @@ ipcMain.handle('update-app-config', async (event, appConfig) => {
 });
 
 // Service data (future implementation)
-ipcMain.handle('get-jira-tasks', async () => {
-  // This will be implemented in services/jira.js
-  return [];
+// Jira service
+ipcMain.handle('get-jira-issues', async () => {
+  try {
+    return await jiraService.getIssues();
+  } catch (error) {
+    console.error('Error fetching Jira issues:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-issue-details', async (event, issueKey) => {
+  try {
+    return await jiraService.getIssueDetails(issueKey);
+  } catch (error) {
+    console.error('Error fetching Jira issue details:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-issue-comments', async (event, issueKey) => {
+  try {
+    return await jiraService.getIssueComments(issueKey);
+  } catch (error) {
+    console.error('Error fetching Jira issue comments:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-issue-worklog', async (event, issueKey) => {
+  try {
+    return await jiraService.getIssueWorklog(issueKey);
+  } catch (error) {
+    console.error('Error fetching Jira issue worklog:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-issue-transitions', async (event, issueKey) => {
+  try {
+    return await jiraService.getIssueTransitions(issueKey);
+  } catch (error) {
+    console.error('Error fetching Jira issue transitions:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-jira-issue-status', async (event, issueKey, transitionId) => {
+  try {
+    return await jiraService.updateIssueStatus(issueKey, transitionId);
+  } catch (error) {
+    console.error('Error updating Jira issue status:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('add-jira-comment', async (event, issueKey, comment) => {
+  try {
+    return await jiraService.addComment(issueKey, comment);
+  } catch (error) {
+    console.error('Error adding Jira comment:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('log-jira-work', async (event, issueKey, timeSpent, comment) => {
+  try {
+    return await jiraService.logWork(issueKey, timeSpent, comment);
+  } catch (error) {
+    console.error('Error logging Jira work:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-user-info', async () => {
+  try {
+    return await jiraService.getUserInfo();
+  } catch (error) {
+    console.error('Error fetching Jira user info:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-projects', async () => {
+  try {
+    return await jiraService.getProjects();
+  } catch (error) {
+    console.error('Error fetching Jira projects:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-project-details', async (event, projectKey) => {
+  try {
+    return await jiraService.getProjectDetails(projectKey);
+  } catch (error) {
+    console.error('Error fetching Jira project details:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('search-jira-issues', async (event, jql, maxResults) => {
+  try {
+    return await jiraService.searchIssues(jql, maxResults);
+  } catch (error) {
+    console.error('Error searching Jira issues:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-issues-by-project', async (event, projectKey, status) => {
+  try {
+    return await jiraService.getIssuesByProject(projectKey, status);
+  } catch (error) {
+    console.error('Error fetching Jira issues by project:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-issues-by-status', async (event, status) => {
+  try {
+    return await jiraService.getIssuesByStatus(status);
+  } catch (error) {
+    console.error('Error fetching Jira issues by status:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-issues-by-priority', async (event, priority) => {
+  try {
+    return await jiraService.getIssuesByPriority(priority);
+  } catch (error) {
+    console.error('Error fetching Jira issues by priority:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-issue-types', async () => {
+  try {
+    return await jiraService.getIssueTypes();
+  } catch (error) {
+    console.error('Error fetching Jira issue types:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-statuses', async () => {
+  try {
+    return await jiraService.getStatuses();
+  } catch (error) {
+    console.error('Error fetching Jira statuses:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-priorities', async () => {
+  try {
+    return await jiraService.getPriorities();
+  } catch (error) {
+    console.error('Error fetching Jira priorities:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('create-jira-issue', async (event, projectKey, summary, description, issueType) => {
+  try {
+    return await jiraService.createIssue(projectKey, summary, description, issueType);
+  } catch (error) {
+    console.error('Error creating Jira issue:', error);
+    throw error;
+  }
 });
 
 ipcMain.handle('get-github-prs', async () => {

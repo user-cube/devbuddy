@@ -29,8 +29,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAppConfig: () => ipcRenderer.invoke('get-app-config'),
   updateAppConfig: (config) => ipcRenderer.invoke('update-app-config', config),
   
-  // Services
-  getJiraTasks: () => ipcRenderer.invoke('get-jira-tasks'),
+  // Jira service
+  getJiraIssues: () => ipcRenderer.invoke('get-jira-issues'),
+  getJiraIssueDetails: (issueKey) => ipcRenderer.invoke('get-jira-issue-details', issueKey),
+  getJiraIssueComments: (issueKey) => ipcRenderer.invoke('get-jira-issue-comments', issueKey),
+  getJiraIssueWorklog: (issueKey) => ipcRenderer.invoke('get-jira-issue-worklog', issueKey),
+  getJiraIssueTransitions: (issueKey) => ipcRenderer.invoke('get-jira-issue-transitions', issueKey),
+  updateJiraIssueStatus: (issueKey, transitionId) => ipcRenderer.invoke('update-jira-issue-status', issueKey, transitionId),
+  addJiraComment: (issueKey, comment) => ipcRenderer.invoke('add-jira-comment', issueKey, comment),
+  logJiraWork: (issueKey, timeSpent, comment) => ipcRenderer.invoke('log-jira-work', issueKey, timeSpent, comment),
+  getJiraUserInfo: () => ipcRenderer.invoke('get-jira-user-info'),
+  getJiraProjects: () => ipcRenderer.invoke('get-jira-projects'),
+  getJiraProjectDetails: (projectKey) => ipcRenderer.invoke('get-jira-project-details', projectKey),
+  searchJiraIssues: (jql, maxResults) => ipcRenderer.invoke('search-jira-issues', jql, maxResults),
+  getJiraIssuesByProject: (projectKey, status) => ipcRenderer.invoke('get-jira-issues-by-project', projectKey, status),
+  getJiraIssuesByStatus: (status) => ipcRenderer.invoke('get-jira-issues-by-status', status),
+  getJiraIssuesByPriority: (priority) => ipcRenderer.invoke('get-jira-issues-by-priority', priority),
+  getJiraIssueTypes: () => ipcRenderer.invoke('get-jira-issue-types'),
+  getJiraStatuses: () => ipcRenderer.invoke('get-jira-statuses'),
+  getJiraPriorities: () => ipcRenderer.invoke('get-jira-priorities'),
+  createJiraIssue: (projectKey, summary, description, issueType) => ipcRenderer.invoke('create-jira-issue', projectKey, summary, description, issueType),
   
   // GitHub service
   getGithubPRs: () => ipcRenderer.invoke('get-github-prs'),
