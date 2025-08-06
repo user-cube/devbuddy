@@ -58,6 +58,9 @@ const Configuration = () => {
       if (window.electronAPI) {
         await window.electronAPI.saveConfig(config)
         setMessage({ type: 'success', text: 'Configuration saved successfully!' })
+        
+        // Dispatch event to notify other components about config changes
+        window.dispatchEvent(new CustomEvent('config-changed'))
       }
     } catch (error) {
       console.error('Error saving config:', error)
@@ -103,6 +106,15 @@ const Configuration = () => {
     // If updating theme, also update the theme context
     if (section === 'app' && key === 'theme') {
       setThemeValue(value)
+    }
+
+    // Dispatch event to notify other components about integration enable/disable changes
+    // Use debounce to avoid too many events
+    if ((section === 'jira' || section === 'github' || section === 'gitlab') && key === 'enabled') {
+      clearTimeout(window.configChangeTimeout)
+      window.configChangeTimeout = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('config-unsaved'))
+      }, 100)
     }
   }
 

@@ -44,6 +44,9 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
       if (window.electronAPI) {
         await window.electronAPI.saveConfig(config)
         setMessage({ type: 'success', text: 'Status configuration saved successfully!' })
+        
+        // Dispatch event to notify other components about config changes
+        window.dispatchEvent(new CustomEvent('config-changed'))
       }
     } catch (error) {
       console.error('Error saving status config:', error)

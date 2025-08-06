@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { NavigationProvider } from './contexts/NavigationContext'
 import Sidebar from './components/layout/Sidebar'
+import ProtectedRoute from './components/layout/ProtectedRoute'
 import Home from './components/home/Home'
 import Jira from './components/jira/Jira'
 import GitHub from './components/github/GitHub'
@@ -15,16 +16,21 @@ function App() {
   const [currentTime, setCurrentTime] = useState('')
   const [isConfigured, setIsConfigured] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [config, setConfig] = useState(null)
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
-    // Check if app is configured
+    // Check if app is configured and load config
     const checkConfiguration = async () => {
       try {
         if (window.electronAPI) {
           const configured = await window.electronAPI.isConfigured()
           setIsConfigured(configured)
+          
+          // Load configuration for dynamic navigation
+          const configData = await window.electronAPI.getConfig()
+          setConfig(configData)
           
           // Only redirect to config if we're on the home page and not configured
           if (!configured && location.pathname === '/') {
@@ -40,6 +46,36 @@ function App() {
 
     checkConfiguration()
 
+    // Listen for configuration changes
+    const handleConfigChange = async () => {
+      try {
+        if (window.electronAPI) {
+          const configData = await window.electronAPI.getConfig()
+          setConfig(configData)
+          
+          // Redirect if user is on a disabled integration page
+          const currentPath = location.pathname
+          if (currentPath === '/jira' && !configData?.jira?.enabled) {
+            navigate('/')
+          } else if (currentPath === '/github' && !configData?.github?.enabled) {
+            navigate('/')
+          } else if (currentPath === '/gitlab' && !configData?.gitlab?.enabled) {
+            navigate('/')
+          }
+        }
+      } catch (error) {
+        console.error('Error updating config after change:', error)
+      }
+    }
+
+    window.addEventListener('config-changed', handleConfigChange)
+
+    return () => {
+      window.removeEventListener('config-changed', handleConfigChange)
+    }
+  }, [navigate, location.pathname])
+
+  useEffect(() => {
     // Listen for app initialization events
     const handleAppInitialized = (event, data) => {
       console.log('App initialization completed:', data)
@@ -55,7 +91,7 @@ function App() {
         window.electronAPI.removeAppInitializedListener(handleAppInitialized)
       }
     }
-  }, [navigate, location.pathname])
+  }, [])
 
   useEffect(() => {
     // Update time every second
@@ -77,14 +113,26 @@ function App() {
     return () => clearInterval(interval)
   }, [])
 
-  // Keyboard shortcuts
+  // Dynamic keyboard shortcuts based on enabled integrations
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '7') {
         e.preventDefault()
-        const routes = ['/', '/shortcuts', '/redirects', '/jira', '/github', '/gitlab', '/config']
+        
+        // Build dynamic routes array based on enabled integrations
+        const baseRoutes = ['/', '/shortcuts', '/redirects']
+        const integrationRoutes = []
+        
+        if (config?.jira?.enabled) integrationRoutes.push('/jira')
+        if (config?.github?.enabled) integrationRoutes.push('/github')
+        if (config?.gitlab?.enabled) integrationRoutes.push('/gitlab')
+        
+        const routes = [...baseRoutes, ...integrationRoutes, '/config']
         const index = parseInt(e.key) - 1
-        navigate(routes[index])
+        
+        if (index < routes.length) {
+          navigate(routes[index])
+        }
       }
       
       if (e.key === 'Escape') {
@@ -94,7 +142,7 @@ function App() {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [navigate])
+  }, [navigate, config])
 
   if (loading) {
     return (
@@ -120,9 +168,21 @@ function App() {
               <Route path="/" element={<Home currentTime={currentTime} />} />
               <Route path="/shortcuts" element={<Shortcuts />} />
               <Route path="/redirects" element={<Redirects />} />
-              <Route path="/jira" element={<Jira />} />
-              <Route path="/github" element={<GitHub />} />
-              <Route path="/gitlab" element={<GitLab />} />
+              <Route path="/jira" element={
+                <ProtectedRoute integration="jira">
+                  <Jira />
+                </ProtectedRoute>
+              } />
+              <Route path="/github" element={
+                <ProtectedRoute integration="github">
+                  <GitHub />
+                </ProtectedRoute>
+              } />
+              <Route path="/gitlab" element={
+                <ProtectedRoute integration="gitlab">
+                  <GitLab />
+                </ProtectedRoute>
+              } />
               <Route path="/config" element={<Configuration />} />
             </Routes>
           </main>

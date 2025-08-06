@@ -101,50 +101,50 @@ On first run, DevBuddy will automatically redirect you to the configuration page
 ```
 devbuddy/
 ├── src/
-│   ├── main.js                         # Main Electron process with background refresh
-│   ├── preload.js                      # Preload script for secure IPC
-│   ├── background.js                   # Background tasks and services
-│   ├── renderer/                       # React application
-│   │   ├── main.jsx                    # React entry point
-│   │   ├── App.jsx                     # Main App component with navigation context
-│   │   ├── index.html                  # HTML template
-│   │   ├── index.css                   # Tailwind CSS imports
-│   │   ├── contexts/                   # React contexts
-│   │   │   ├── ThemeContext.jsx        # Theme management
-│   │   │   └── NavigationContext.jsx   # Navigation state management
-│   │   └── components/                 # React components (organized by feature)
-│   │       ├── home/                   # Home page components
-│   │       │   ├── Home.jsx            # Dashboard with background refresh
+│   ├── main.js                           # Main Electron process with background refresh
+│   ├── preload.js                        # Preload script for secure IPC
+│   ├── background.js                     # Background tasks and services
+│   ├── renderer/                         # React application
+│   │   ├── main.jsx                      # React entry point
+│   │   ├── App.jsx                       # Main App component with navigation context
+│   │   ├── index.html                    # HTML template
+│   │   ├── index.css                     # Tailwind CSS imports
+│   │   ├── contexts/                     # React contexts
+│   │   │   ├── ThemeContext.jsx          # Theme management
+│   │   │   └── NavigationContext.jsx     # Navigation state management
+│   │   └── components/                   # React components (organized by feature)
+│   │       ├── home/                     # Home page components
+│   │       │   ├── Home.jsx              # Dashboard with background refresh
 │   │       │   ├── ShortcutCard.jsx
 │   │       │   └── StatsCard.jsx
-│   │       ├── layout/                 # Layout components
+│   │       ├── layout/                   # Layout components
 │   │       │   ├── Sidebar.jsx
 │   │       │   └── ThemeToggle.jsx
-│   │       ├── configuration/          # Configuration pages
-│   │       │   ├── Configuration.jsx   # Main configuration with sticky footer
-│   │       │   └── JiraStatusConfig.jsx # Jira status filtering interface
-│   │       ├── jira/                   # Jira page components
-│   │       │   └── Jira.jsx            # Jira issues with status filter button
-│   │       ├── github/                 # GitHub page components
+│   │       ├── configuration/            # Configuration pages
+│   │       │   ├── Configuration.jsx     # Main configuration with sticky footer
+│   │       │   └── JiraStatusConfig.jsx  # Jira status filtering interface
+│   │       ├── jira/                     # Jira page components
+│   │       │   └── Jira.jsx              # Jira issues with status filter button
+│   │       ├── github/                   # GitHub page components
 │   │       │   └── GitHub.jsx
-│   │       └── gitlab/                 # GitLab page components
+│   │       └── gitlab/                   # GitLab page components
 │   │           └── GitLab.jsx
-│   ├── services/                       # API services with caching
-│   │   ├── config.js                   # Configuration management
-│   │   ├── cache.js                    # Cache service with TTL
-│   │   ├── jira.js                     # Jira service with status filtering
-│   │   ├── github.js                   # GitHub service
-│   │   ├── gitlab.js                   # GitLab service
-│   │   └── redirector.js               # Local redirect service
-│   └── assets/                         # App assets
-├── scripts/                            # Build and utility scripts
-│   └── generate-icons-python.py        # Icon generation for all platforms
-├── assets/                             # Root assets directory
-├── package.json                        # Project configuration
-├── vite.config.js                      # Vite configuration
-├── tailwind.config.js                  # Tailwind CSS configuration
-├── postcss.config.cjs                  # PostCSS configuration
-└── README.md                           # This file
+│   ├── services/                         # API services with caching
+│   │   ├── config.js                     # Configuration management
+│   │   ├── cache.js                      # Cache service with TTL
+│   │   ├── jira.js                       # Jira service with status filtering
+│   │   ├── github.js                     # GitHub service
+│   │   ├── gitlab.js                     # GitLab service
+│   │   └── redirector.js                 # Local redirect service
+│   └── assets/                           # App assets
+├── scripts/                              # Build and utility scripts
+│   └── generate-icons-python.py          # Icon generation for all platforms
+├── assets/                               # Root assets directory
+├── package.json                          # Project configuration
+├── vite.config.js                        # Vite configuration
+├── tailwind.config.js                    # Tailwind CSS configuration
+├── postcss.config.cjs                    # PostCSS configuration
+└── README.md                             # This file
 ```
 
 ### Available Scripts
