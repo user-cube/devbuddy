@@ -293,8 +293,10 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
   } else {
-    // In production, load the built files
-    mainWindow.loadFile(path.join(__dirname, '../dist-renderer/index.html'));
+    // In production, load the built files with hash route to ensure home page loads
+    mainWindow.loadFile(path.join(__dirname, '../dist-renderer/index.html'), {
+      hash: '/'
+    });
   }
 
   // Show window when ready to prevent visual flash
