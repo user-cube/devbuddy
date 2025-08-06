@@ -1,9 +1,11 @@
 const https = require('https')
 const ConfigService = require('./config.js')
+const CacheService = require('./cache.js')
 
 class JiraService {
   constructor() {
     this.configService = new ConfigService()
+    this.cacheService = new CacheService()
   }
 
   getConfig() {
@@ -80,6 +82,14 @@ class JiraService {
         return []
       }
 
+      // Check cache first
+      const cacheKey = `jira_issues_${config.username}`
+      const cachedData = this.cacheService.get(cacheKey)
+      if (cachedData) {
+        console.log('Jira: Returning cached issues data')
+        return cachedData
+      }
+
       // Build JQL query
       let jql = 'assignee = currentUser() AND status != Done AND status != Closed ORDER BY updated DESC'
       
@@ -92,7 +102,12 @@ class JiraService {
       const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${config.maxResults || 50}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog`
       
       const response = await this.makeRequest(endpoint)
-      return response.issues || []
+      const issues = response.issues || []
+      
+      // Cache the result
+      this.cacheService.set(cacheKey, issues, config.refreshInterval * 1000)
+      
+      return issues
     } catch (error) {
       console.error('Error fetching Jira issues:', error)
       return []

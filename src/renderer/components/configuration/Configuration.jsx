@@ -54,6 +54,18 @@ const Configuration = () => {
     }
   }
 
+  const clearCache = async () => {
+    try {
+      if (window.electronAPI) {
+        const result = await window.electronAPI.clearCache()
+        setMessage({ type: 'success', text: 'Cache cleared successfully!' })
+      }
+    } catch (error) {
+      console.error('Error clearing cache:', error)
+      setMessage({ type: 'error', text: 'Error clearing cache' })
+    }
+  }
+
   const updateConfig = (section, key, value) => {
     setConfig(prev => ({
       ...prev,
@@ -551,8 +563,14 @@ const Configuration = () => {
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="flex justify-center">
+        {/* Action Buttons */}
+        <div className="flex justify-between items-center">
+          <button
+            onClick={clearCache}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
+          >
+            Clear Cache
+          </button>
           <button
             onClick={saveConfig}
             disabled={saving}

@@ -1,9 +1,11 @@
 const https = require('https')
 const ConfigService = require('./config.js')
+const CacheService = require('./cache.js')
 
 class GitHubService {
   constructor() {
     this.configService = new ConfigService()
+    this.cacheService = new CacheService()
     this.baseUrl = 'https://api.github.com'
   }
 
@@ -82,6 +84,14 @@ class GitHubService {
       if (!config.apiToken) {
         return []
       }
+
+      // Check cache first
+      const cacheKey = `github_prs_${config.username}`
+      const cachedData = this.cacheService.get(cacheKey)
+      if (cachedData) {
+        console.log('GitHub: Returning cached PRs data')
+        return cachedData
+      }
       
       // Try different queries to find PRs
       let prs = []
@@ -140,6 +150,9 @@ class GitHubService {
           console.log('Query 4 failed:', error.message)
         }
       }
+      
+      // Cache the result
+      this.cacheService.set(cacheKey, prs, config.refreshInterval * 1000)
       
       return prs
     } catch (error) {

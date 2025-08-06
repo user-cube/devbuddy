@@ -84,6 +84,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getGitlabMRsByProject: (projectId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-project', projectId, state),
   getGitlabMRsByGroup: (groupId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-group', groupId, state),
   
+  // Cache management
+  clearCache: () => ipcRenderer.invoke('clear-cache'),
+  getCacheStats: () => ipcRenderer.invoke('get-cache-stats'),
+  
   // Open external links
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
   

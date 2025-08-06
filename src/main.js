@@ -635,6 +635,32 @@ ipcMain.handle('get-gitlab-mrs-by-group', async (event, groupId, state) => {
   }
 });
 
+// Cache management
+ipcMain.handle('clear-cache', async () => {
+  try {
+    githubService.cacheService.clear();
+    gitlabService.cacheService.clear();
+    jiraService.cacheService.clear();
+    return { success: true, message: 'Cache cleared successfully' };
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-cache-stats', async () => {
+  try {
+    return {
+      github: githubService.cacheService.getStats(),
+      gitlab: gitlabService.cacheService.getStats(),
+      jira: jiraService.cacheService.getStats()
+    };
+  } catch (error) {
+    console.error('Error getting cache stats:', error);
+    throw error;
+  }
+});
+
 // Redirector service
 ipcMain.handle('get-redirects', () => {
   return redirectorService.getRedirects();

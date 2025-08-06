@@ -1,9 +1,11 @@
 const https = require('https')
 const ConfigService = require('./config.js')
+const CacheService = require('./cache.js')
 
 class GitLabService {
   constructor() {
     this.configService = new ConfigService()
+    this.cacheService = new CacheService()
   }
 
   getConfig() {
@@ -84,6 +86,14 @@ class GitLabService {
         return []
       }
 
+      // Check cache first
+      const cacheKey = `gitlab_mrs_${config.username}`
+      const cachedData = this.cacheService.get(cacheKey)
+      if (cachedData) {
+        console.log('GitLab: Returning cached MRs data')
+        return cachedData
+      }
+
       let mrs = []
 
       if (config.username) {
@@ -140,6 +150,9 @@ class GitLabService {
         }
       }
 
+      // Cache the result
+      this.cacheService.set(cacheKey, mrs, config.refreshInterval * 1000)
+      
       return mrs
     } catch (error) {
       console.error('Error fetching merge requests:', error)

@@ -60,20 +60,45 @@ const Home = ({ currentTime }) => {
       setLoading(true)
       setError(null)
       
-      // Load shortcuts
+      // Load shortcuts first (fast, local data)
       const shortcutsData = await window.electronAPI.getShortcuts()
       setShortcuts(shortcutsData || [])
       
-      // Load data from all integrations
-      await Promise.all([
-        loadJiraData(),
-        loadGitHubData(),
-        loadGitLabData()
+      // Load data from all integrations in parallel with timeout
+      const timeout = 10000 // 10 seconds timeout
+      
+      const loadPromises = [
+        loadJiraData().catch(err => {
+          console.error('Jira load failed:', err)
+          return null
+        }),
+        loadGitHubData().catch(err => {
+          console.error('GitHub load failed:', err)
+          return null
+        }),
+        loadGitLabData().catch(err => {
+          console.error('GitLab load failed:', err)
+          return null
+        })
+      ]
+      
+      // Use Promise.race to implement timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Load timeout')), timeout)
+      })
+      
+      await Promise.race([
+        Promise.all(loadPromises),
+        timeoutPromise
       ])
       
     } catch (error) {
       console.error('Error loading dashboard data:', error)
-      setError('Failed to load dashboard data')
+      if (error.message === 'Load timeout') {
+        setError('Some data took too long to load. Please try refreshing.')
+      } else {
+        setError('Failed to load dashboard data')
+      }
     } finally {
       setLoading(false)
     }
