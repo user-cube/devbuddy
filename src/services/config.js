@@ -22,7 +22,16 @@ class ConfigService {
         refreshInterval: 300, // 5 minutes
         showClosed: false,
         maxResults: 50,
-        defaultProject: ''
+        defaultProject: '',
+        // Custom status filtering
+        excludedStatuses: ['Done', 'Closed', 'Resolved', 'Cancelled'],
+        includedStatuses: [], // Empty means include all non-excluded
+        statusCategories: {
+          todo: ['To Do', 'Open', 'New'],
+          inProgress: ['In Progress', 'Active', 'Working'],
+          review: ['Review', 'Testing', 'QA'],
+          blocked: ['Blocked', 'On Hold', 'Waiting']
+        }
       },
       github: {
         enabled: false,
@@ -51,6 +60,7 @@ class ConfigService {
         autoStart: false,
         notifications: true,
         updateInterval: 300, // 5 minutes
+        backgroundRefresh: true, // Enable background refresh by default
         redirectorPort: 10000 // Port for local redirector server
       }
     }
@@ -205,7 +215,15 @@ class ConfigService {
       refreshInterval: jiraConfig.refreshInterval || 300,
       showClosed: jiraConfig.showClosed || false,
       maxResults: jiraConfig.maxResults || 50,
-      defaultProject: jiraConfig.defaultProject || ''
+      defaultProject: jiraConfig.defaultProject || '',
+      excludedStatuses: jiraConfig.excludedStatuses || ['Done', 'Closed', 'Resolved', 'Cancelled'],
+      includedStatuses: jiraConfig.includedStatuses || [],
+      statusCategories: jiraConfig.statusCategories || {
+        todo: ['To Do', 'Open', 'New'],
+        inProgress: ['In Progress', 'Active', 'Working'],
+        review: ['Review', 'Testing', 'QA'],
+        blocked: ['Blocked', 'On Hold', 'Waiting']
+      }
     }
     
     return completeConfig

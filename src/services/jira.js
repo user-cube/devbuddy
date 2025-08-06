@@ -90,8 +90,28 @@ class JiraService {
         return cachedData
       }
 
-      // Build JQL query
-      let jql = 'assignee = currentUser() AND status != Done AND status != Closed ORDER BY updated DESC'
+      // Build JQL query with custom status filtering
+      let jql = 'assignee = currentUser() ORDER BY updated DESC'
+      
+      // Add status filters
+      const statusConditions = []
+      
+      // Add excluded statuses
+      if (config.excludedStatuses && config.excludedStatuses.length > 0) {
+        const excludedConditions = config.excludedStatuses.map(status => `status != "${status}"`)
+        statusConditions.push(`(${excludedConditions.join(' AND ')})`)
+      }
+      
+      // Add included statuses (if specified)
+      if (config.includedStatuses && config.includedStatuses.length > 0) {
+        const includedConditions = config.includedStatuses.map(status => `status = "${status}"`)
+        statusConditions.push(`(${includedConditions.join(' OR ')})`)
+      }
+      
+      // Combine status conditions
+      if (statusConditions.length > 0) {
+        jql = `${statusConditions.join(' AND ')} AND ${jql}`
+      }
       
       // Add project filter if specified
       if (config.projectKeys && config.projectKeys.length > 0) {
@@ -325,6 +345,63 @@ class JiraService {
       return response || []
     } catch (error) {
       console.error('Error fetching statuses:', error)
+      return []
+    }
+  }
+
+  async getAvailableStatuses() {
+    try {
+      const config = this.getConfig()
+      
+      if (!config.enabled || !config.apiToken) {
+        return []
+      }
+
+      // Check cache first
+      const cacheKey = 'jira_available_statuses'
+      const cachedData = this.cacheService.get(cacheKey)
+      if (cachedData) {
+        return cachedData
+      }
+
+      // Get all statuses
+      const statuses = await this.getStatuses()
+      
+      // Cache for 1 hour
+      this.cacheService.set(cacheKey, statuses, 60 * 60 * 1000)
+      
+      return statuses
+    } catch (error) {
+      console.error('Error fetching available statuses:', error)
+      return []
+    }
+  }
+
+  async getStatusesByProject(projectKey) {
+    try {
+      const config = this.getConfig()
+      
+      if (!config.enabled || !config.apiToken) {
+        return []
+      }
+
+      // Check cache first
+      const cacheKey = `jira_statuses_${projectKey}`
+      const cachedData = this.cacheService.get(cacheKey)
+      if (cachedData) {
+        return cachedData
+      }
+
+      // Get project details to get workflow statuses
+      const projectDetails = await this.getProjectDetails(projectKey)
+      const statuses = projectDetails?.workflowStatuses || []
+      
+      // Cache for 1 hour
+      this.cacheService.set(cacheKey, statuses, 60 * 60 * 1000)
+      
+      return statuses
+    } catch (error) {
+      console.error('Error fetching project statuses:', error)
       return []
     }
   }

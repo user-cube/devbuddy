@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   GitBranch,
   MessageSquare,
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react'
 
 const Jira = () => {
+  const navigate = useNavigate()
   const [issues, setIssues] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -462,6 +464,28 @@ const Jira = () => {
           }}
         >
           Test Connection
+        </button>
+        
+        <button
+          onClick={() => navigate('/config?showJiraStatus=true')}
+          className="px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2"
+          style={{
+            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+            border: '1px solid rgba(168, 85, 247, 0.3)',
+            color: 'var(--accent-primary)'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = 'rgba(168, 85, 247, 0.3)'
+            e.target.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'rgba(168, 85, 247, 0.2)'
+            e.target.style.transform = 'translateY(0)'
+          }}
+          title="Configure status filters"
+        >
+          <Filter className="w-4 h-4" />
+          Status Filters
         </button>
       </div>
 

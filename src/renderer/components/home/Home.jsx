@@ -50,6 +50,12 @@ const Home = ({ currentTime }) => {
     github: [],
     gitlab: []
   })
+  const [backgroundRefreshStatus, setBackgroundRefreshStatus] = useState({
+    isRunning: false,
+    lastRefreshTime: null,
+    nextRefreshTime: null
+  })
+  const [lastRefreshNotification, setLastRefreshNotification] = useState(null)
 
   useEffect(() => {
     const initializeAndLoadData = async () => {
@@ -67,7 +73,48 @@ const Home = ({ currentTime }) => {
     };
 
     initializeAndLoadData();
+    
+    // Load background refresh status
+    loadBackgroundRefreshStatus();
+    
+    // Listen for background refresh events
+    const handleBackgroundRefreshCompleted = (event, data) => {
+      console.log('Background refresh completed:', data);
+      setLastRefreshNotification({
+        timestamp: data.timestamp,
+        services: data.services
+      });
+      
+      // Reload dashboard data after background refresh
+      setTimeout(() => {
+        loadDashboardData();
+        loadBackgroundRefreshStatus();
+      }, 1000);
+    };
+
+    if (window.electronAPI) {
+      window.electronAPI.onBackgroundRefreshCompleted(handleBackgroundRefreshCompleted);
+    }
+
+    return () => {
+      if (window.electronAPI) {
+        window.electronAPI.removeBackgroundRefreshCompletedListener(handleBackgroundRefreshCompleted);
+      }
+    };
   }, [])
+
+
+
+  const loadBackgroundRefreshStatus = async () => {
+    try {
+      if (window.electronAPI) {
+        const status = await window.electronAPI.getBackgroundRefreshStatus();
+        setBackgroundRefreshStatus(status);
+      }
+    } catch (error) {
+      console.error('Error loading background refresh status:', error);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -259,6 +306,8 @@ const Home = ({ currentTime }) => {
     return date.toLocaleDateString()
   }
 
+
+
   if (loading) {
     return (
       <div className="p-8">
@@ -335,6 +384,29 @@ const Home = ({ currentTime }) => {
         <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
           Your development companion
         </p>
+        
+
+        
+        {/* Last Refresh Notification */}
+        {lastRefreshNotification && (
+          <div className="mt-2 flex items-center justify-center">
+            <div className="px-3 py-1 rounded-full text-xs animate-pulse" style={{
+              backgroundColor: 'rgba(59, 130, 246, 0.2)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              color: 'var(--accent-primary)'
+            }}>
+              <RefreshCw className="w-3 h-3 inline mr-1" />
+              Data refreshed automatically
+            </div>
+            <button
+              onClick={() => setLastRefreshNotification(null)}
+              className="ml-2 text-xs opacity-50 hover:opacity-100 transition-opacity"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              ×
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Overview Stats */}

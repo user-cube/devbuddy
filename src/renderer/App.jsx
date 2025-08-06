@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { NavigationProvider } from './contexts/NavigationContext'
 import Sidebar from './components/layout/Sidebar'
 import Home from './components/home/Home'
 import Jira from './components/jira/Jira'
@@ -110,21 +111,23 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="flex h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
-        <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
-        
-        <main className="flex-1 overflow-y-auto">
-          <Routes>
-            <Route path="/" element={<Home currentTime={currentTime} />} />
-            <Route path="/shortcuts" element={<Shortcuts />} />
-            <Route path="/redirects" element={<Redirects />} />
-            <Route path="/jira" element={<Jira />} />
-            <Route path="/github" element={<GitHub />} />
-            <Route path="/gitlab" element={<GitLab />} />
-            <Route path="/config" element={<Configuration />} />
-          </Routes>
-        </main>
-      </div>
+      <NavigationProvider>
+        <div className="flex h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+          <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
+          
+          <main className="flex-1 overflow-y-auto">
+            <Routes>
+              <Route path="/" element={<Home currentTime={currentTime} />} />
+              <Route path="/shortcuts" element={<Shortcuts />} />
+              <Route path="/redirects" element={<Redirects />} />
+              <Route path="/jira" element={<Jira />} />
+              <Route path="/github" element={<GitHub />} />
+              <Route path="/gitlab" element={<GitLab />} />
+              <Route path="/config" element={<Configuration />} />
+            </Routes>
+          </main>
+        </div>
+      </NavigationProvider>
     </ThemeProvider>
   )
 }

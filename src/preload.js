@@ -47,6 +47,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getJiraIssuesByPriority: (priority) => ipcRenderer.invoke('get-jira-issues-by-priority', priority),
   getJiraIssueTypes: () => ipcRenderer.invoke('get-jira-issue-types'),
   getJiraStatuses: () => ipcRenderer.invoke('get-jira-statuses'),
+  getJiraAvailableStatuses: () => ipcRenderer.invoke('get-jira-available-statuses'),
+  getJiraStatusesByProject: (projectKey) => ipcRenderer.invoke('get-jira-statuses-by-project', projectKey),
   getJiraPriorities: () => ipcRenderer.invoke('get-jira-priorities'),
   createJiraIssue: (projectKey, summary, description, issueType) => ipcRenderer.invoke('create-jira-issue', projectKey, summary, description, issueType),
   
@@ -91,11 +93,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onAppInitialized: (callback) => ipcRenderer.on('app-initialized', callback),
   removeAppInitializedListener: (callback) => ipcRenderer.removeListener('app-initialized', callback),
   
+  // Background refresh
+  triggerBackgroundRefresh: () => ipcRenderer.invoke('trigger-background-refresh'),
+  getBackgroundRefreshStatus: () => ipcRenderer.invoke('get-background-refresh-status'),
+  startBackgroundRefresh: () => ipcRenderer.invoke('start-background-refresh'),
+  stopBackgroundRefresh: () => ipcRenderer.invoke('stop-background-refresh'),
+  onBackgroundRefreshCompleted: (callback) => ipcRenderer.on('background-refresh-completed', callback),
+  removeBackgroundRefreshCompletedListener: (callback) => ipcRenderer.removeListener('background-refresh-completed', callback),
+  
   // Cache management
   clearCache: () => ipcRenderer.invoke('clear-cache'),
   clearGithubCache: () => ipcRenderer.invoke('clear-github-cache'),
   clearGitlabCache: () => ipcRenderer.invoke('clear-gitlab-cache'),
   clearJiraCache: () => ipcRenderer.invoke('clear-jira-cache'),
+  openJiraStatusConfig: () => ipcRenderer.invoke('open-jira-status-config'),
   getCacheStats: () => ipcRenderer.invoke('get-cache-stats'),
   
   // Open external links

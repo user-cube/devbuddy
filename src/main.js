@@ -17,6 +17,164 @@ const jiraService = new JiraService();
 let appInitialized = false;
 let initializationPromise = null;
 
+// Background refresh system
+let backgroundRefreshInterval = null;
+let lastRefreshTime = Date.now();
+
+// Start background refresh system
+function startBackgroundRefresh() {
+  // Clear existing interval if any
+  if (backgroundRefreshInterval) {
+    clearInterval(backgroundRefreshInterval);
+  }
+
+  const config = configService.loadConfig();
+  
+  // Check if background refresh is enabled
+  if (config.app.backgroundRefresh === false) {
+    console.log('🛑 Background refresh disabled in configuration');
+    return;
+  }
+
+  const refreshInterval = Math.min(
+    config.app.updateInterval || 300, // Default 5 minutes
+    config.github.refreshInterval || 300,
+    config.gitlab.refreshInterval || 300,
+    config.jira.refreshInterval || 300
+  ) * 1000; // Convert to milliseconds
+
+  console.log(`🔄 Starting background refresh every ${refreshInterval / 1000} seconds`);
+
+  backgroundRefreshInterval = setInterval(async () => {
+    try {
+      console.log('🔄 Background refresh triggered');
+      await performBackgroundRefresh();
+      lastRefreshTime = Date.now();
+    } catch (error) {
+      console.error('❌ Background refresh failed:', error);
+    }
+  }, refreshInterval);
+
+  // Also check cache expiration every minute
+  setInterval(async () => {
+    try {
+      await checkAndRefreshExpiredCache();
+    } catch (error) {
+      console.error('❌ Cache expiration check failed:', error);
+    }
+  }, 60000); // Check every minute
+}
+
+// Stop background refresh system
+function stopBackgroundRefresh() {
+  if (backgroundRefreshInterval) {
+    clearInterval(backgroundRefreshInterval);
+    backgroundRefreshInterval = null;
+    console.log('🛑 Background refresh stopped');
+  }
+}
+
+// Perform background refresh of all enabled services
+async function performBackgroundRefresh() {
+  const config = configService.loadConfig();
+  const promises = [];
+
+  // Refresh GitHub data if enabled
+  if (config.github.enabled && config.github.apiToken) {
+    console.log('🔄 Background refreshing GitHub data...');
+    promises.push(
+      githubService.getPullRequests().catch(err => {
+        console.log('GitHub background refresh failed:', err.message);
+        return null;
+      })
+    );
+  }
+
+  // Refresh GitLab data if enabled
+  if (config.gitlab.enabled && config.gitlab.apiToken) {
+    console.log('🔄 Background refreshing GitLab data...');
+    promises.push(
+      gitlabService.getMergeRequests().catch(err => {
+        console.log('GitLab background refresh failed:', err.message);
+        return null;
+      })
+    );
+  }
+
+  // Refresh Jira data if enabled
+  if (config.jira.enabled && config.jira.apiToken) {
+    console.log('🔄 Background refreshing Jira data...');
+    promises.push(
+      jiraService.getIssues().catch(err => {
+        console.log('Jira background refresh failed:', err.message);
+        return null;
+      })
+    );
+  }
+
+  // Wait for all refreshes to complete (with timeout)
+  const timeout = 30000; // 30 seconds timeout for background refresh
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Background refresh timeout')), timeout);
+  });
+
+  await Promise.race([
+    Promise.allSettled(promises),
+    timeoutPromise
+  ]);
+
+  console.log('✅ Background refresh completed');
+
+  // Notify renderer about the refresh
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('background-refresh-completed', {
+      timestamp: Date.now(),
+      services: {
+        github: config.github.enabled,
+        gitlab: config.gitlab.enabled,
+        jira: config.jira.enabled
+      }
+    });
+  }
+}
+
+// Check for expired cache and refresh if needed
+async function checkAndRefreshExpiredCache() {
+  const config = configService.loadConfig();
+  let needsRefresh = false;
+
+  // Check GitHub cache
+  if (config.github.enabled && config.github.apiToken) {
+    const cacheKey = `github_prs_${config.github.username}`;
+    if (!githubService.cacheService.has(cacheKey)) {
+      console.log('🔄 GitHub cache expired, triggering refresh...');
+      needsRefresh = true;
+    }
+  }
+
+  // Check GitLab cache
+  if (config.gitlab.enabled && config.gitlab.apiToken) {
+    const cacheKey = `gitlab_mrs_${config.gitlab.username}`;
+    if (!gitlabService.cacheService.has(cacheKey)) {
+      console.log('🔄 GitLab cache expired, triggering refresh...');
+      needsRefresh = true;
+    }
+  }
+
+  // Check Jira cache
+  if (config.jira.enabled && config.jira.apiToken) {
+    const cacheKey = `jira_issues_${config.jira.username}`;
+    if (!jiraService.cacheService.has(cacheKey)) {
+      console.log('🔄 Jira cache expired, triggering refresh...');
+      needsRefresh = true;
+    }
+  }
+
+  if (needsRefresh) {
+    await performBackgroundRefresh();
+  }
+}
+
 // Initialize app data when the app starts
 async function initializeAppData() {
   if (initializationPromise) {
@@ -77,6 +235,9 @@ async function initializeAppData() {
       appInitialized = true;
       console.log('✅ App data initialization completed');
       
+      // Start background refresh after initialization
+      startBackgroundRefresh();
+      
       // Notify renderer that initialization is complete
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('app-initialized');
@@ -85,6 +246,9 @@ async function initializeAppData() {
     } catch (error) {
       console.error('❌ App initialization failed:', error);
       appInitialized = true; // Mark as initialized even if failed
+      
+      // Start background refresh even if initialization failed
+      startBackgroundRefresh();
       
       // Notify renderer that initialization is complete (even with errors)
       if (mainWindow && !mainWindow.isDestroyed()) {
@@ -161,9 +325,11 @@ app.on('window-all-closed', () => {
     // Stop the redirector server before quitting
     redirectorService.stopServer().then(() => {
       console.log('Redirector server stopped');
+      stopBackgroundRefresh();
       app.quit();
     }).catch((error) => {
       console.error('Error stopping redirector server:', error);
+      stopBackgroundRefresh();
       app.quit();
     });
   }
@@ -182,6 +348,7 @@ app.on('before-quit', () => {
   }).catch((error) => {
     console.error('Error stopping redirector server on quit:', error);
   });
+  stopBackgroundRefresh();
 });
 
 // IPC handlers for communication between main and renderer processes
@@ -428,6 +595,24 @@ ipcMain.handle('get-jira-statuses', async () => {
     return await jiraService.getStatuses();
   } catch (error) {
     console.error('Error fetching Jira statuses:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-available-statuses', async () => {
+  try {
+    return await jiraService.getAvailableStatuses();
+  } catch (error) {
+    console.error('Error fetching Jira available statuses:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-jira-statuses-by-project', async (event, projectKey) => {
+  try {
+    return await jiraService.getStatusesByProject(projectKey);
+  } catch (error) {
+    console.error('Error fetching Jira project statuses:', error);
     throw error;
   }
 });
@@ -753,6 +938,44 @@ ipcMain.handle('force-initialization', async () => {
   }
 });
 
+ipcMain.handle('trigger-background-refresh', async () => {
+  try {
+    await performBackgroundRefresh();
+    return { success: true, message: 'Background refresh completed successfully' };
+  } catch (error) {
+    console.error('Error triggering background refresh:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-background-refresh-status', () => {
+  return {
+    isRunning: backgroundRefreshInterval !== null,
+    lastRefreshTime,
+    nextRefreshTime: lastRefreshTime + (configService.loadConfig().app.updateInterval || 300) * 1000
+  };
+});
+
+ipcMain.handle('start-background-refresh', () => {
+  try {
+    startBackgroundRefresh();
+    return { success: true, message: 'Background refresh started' };
+  } catch (error) {
+    console.error('Error starting background refresh:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('stop-background-refresh', () => {
+  try {
+    stopBackgroundRefresh();
+    return { success: true, message: 'Background refresh stopped' };
+  } catch (error) {
+    console.error('Error stopping background refresh:', error);
+    throw error;
+  }
+});
+
 // Cache management
 ipcMain.handle('clear-cache', async () => {
   try {
@@ -792,6 +1015,16 @@ ipcMain.handle('clear-jira-cache', async () => {
     return { success: true, message: 'Jira cache cleared successfully' };
   } catch (error) {
     console.error('Error clearing Jira cache:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('open-jira-status-config', async () => {
+  try {
+    // This will be handled by the renderer process to show the status config
+    return { success: true, message: 'Opening Jira status configuration' };
+  } catch (error) {
+    console.error('Error opening Jira status config:', error);
     throw error;
   }
 });
