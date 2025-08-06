@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
 import JiraStatusConfig from './JiraStatusConfig'
+import Toast from '../layout/Toast'
 
 const Configuration = () => {
   const location = useLocation()
@@ -161,21 +162,7 @@ const Configuration = () => {
               <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Configuration</h1>
             </div>
 
-            {/* Message */}
-            {message.text && (
-              <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-                message.type === 'success' ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300'
-              }`}>
-                {message.type === 'success' ? (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-red-600" />
-                )}
-                <span className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                  {message.text}
-                </span>
-              </div>
-            )}
+
 
             <div className="space-y-8">
           {/* Jira Configuration */}
@@ -801,6 +788,13 @@ const Configuration = () => {
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      <Toast 
+        message={message} 
+        onClose={() => setMessage({ type: '', text: '' })}
+        duration={4000}
+      />
     </div>
   )
 }

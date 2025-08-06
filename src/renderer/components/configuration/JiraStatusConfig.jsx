@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react'
+import Toast from '../layout/Toast'
 
 const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
   const [availableStatuses, setAvailableStatuses] = useState([])
@@ -43,7 +44,11 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
     try {
       if (window.electronAPI) {
         await window.electronAPI.saveConfig(config)
-        setMessage({ type: 'success', text: 'Status configuration saved successfully!' })
+        await window.electronAPI.clearJiraCache()
+        setMessage({ 
+          type: 'success', 
+          text: 'Status configuration saved! Jira cache cleared - new filters will be applied on next data refresh.' 
+        })
         
         // Dispatch event to notify other components about config changes
         window.dispatchEvent(new CustomEvent('config-changed'))
@@ -147,21 +152,7 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
               </h1>
             </div>
 
-        {/* Message */}
-        {message.text && (
-          <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-            message.type === 'success' ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300'
-          }`}>
-            {message.type === 'success' ? (
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-red-600" />
-            )}
-            <span className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-              {message.text}
-            </span>
-          </div>
-        )}
+
 
         {/* Configuration Summary */}
         <div className="card mb-6">
@@ -244,8 +235,8 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
               onClick={clearIncludedStatuses}
               className="px-3 py-1 text-sm rounded-lg font-medium transition-all duration-300"
               style={{
-                backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
                 color: 'var(--success)'
               }}
             >
@@ -290,13 +281,19 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
             return (
               <div
                 key={status.id}
-                className={`p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer hover:scale-105 ${
-                  displayStatus === 'excluded' 
-                    ? 'border-red-500 bg-red-50' 
+                className="p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer hover:scale-105"
+                style={{
+                  backgroundColor: displayStatus === 'excluded' 
+                    ? 'rgba(239, 68, 68, 0.1)' 
                     : displayStatus === 'hidden'
-                    ? 'border-gray-400 bg-gray-50'
-                    : 'border-green-500 bg-green-50'
-                }`}
+                    ? 'rgba(156, 163, 175, 0.1)'
+                    : 'rgba(16, 185, 129, 0.1)',
+                  borderColor: displayStatus === 'excluded' 
+                    ? 'rgba(239, 68, 68, 0.5)' 
+                    : displayStatus === 'hidden'
+                    ? 'rgba(156, 163, 175, 0.5)'
+                    : 'rgba(16, 185, 129, 0.5)'
+                }}
                 onClick={() => toggleExcludedStatus(status.name)}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -305,25 +302,33 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
                   </span>
                   <div className="flex items-center gap-1">
                     {displayStatus === 'excluded' && (
-                      <EyeOff className="w-4 h-4 text-red-500" />
+                      <EyeOff className="w-4 h-4" style={{ color: 'var(--error)' }} />
                     )}
                     {displayStatus === 'hidden' && (
-                      <Eye className="w-4 h-4 text-gray-500" />
+                      <Eye className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                     )}
                     {displayStatus === 'visible' && (
-                      <Eye className="w-4 h-4 text-green-500" />
+                      <Eye className="w-4 h-4" style={{ color: 'var(--success)' }} />
                     )}
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2 text-xs">
-                  <span className={`px-2 py-1 rounded-full ${
-                    displayStatus === 'excluded' 
-                      ? 'bg-red-100 text-red-800' 
-                      : displayStatus === 'hidden'
-                      ? 'bg-gray-100 text-gray-800'
-                      : 'bg-green-100 text-green-800'
-                  }`}>
+                  <span 
+                    className="px-2 py-1 rounded-full"
+                    style={{
+                      backgroundColor: displayStatus === 'excluded' 
+                        ? 'rgba(239, 68, 68, 0.2)' 
+                        : displayStatus === 'hidden'
+                        ? 'rgba(156, 163, 175, 0.2)'
+                        : 'rgba(16, 185, 129, 0.2)',
+                      color: displayStatus === 'excluded' 
+                        ? 'var(--error)' 
+                        : displayStatus === 'hidden'
+                        ? 'var(--text-muted)'
+                        : 'var(--success)'
+                    }}
+                  >
                     {displayStatus === 'excluded' ? 'Excluded' : 
                      displayStatus === 'hidden' ? 'Hidden' : 'Visible'}
                   </span>
@@ -334,11 +339,15 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
                         e.stopPropagation()
                         toggleIncludedStatus(status.name)
                       }}
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        isStatusIncluded(status.name)
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
+                      className="px-2 py-1 rounded-full text-xs"
+                      style={{
+                        backgroundColor: isStatusIncluded(status.name)
+                          ? 'rgba(59, 130, 246, 0.2)'
+                          : 'rgba(156, 163, 175, 0.2)',
+                        color: isStatusIncluded(status.name)
+                          ? 'var(--accent-primary)'
+                          : 'var(--text-muted)'
+                      }}
                     >
                       {isStatusIncluded(status.name) ? 'Included' : 'Include'}
                     </button>
@@ -399,6 +408,13 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      <Toast 
+        message={message} 
+        onClose={() => setMessage({ type: '', text: '' })}
+        duration={4000}
+      />
     </div>
   )
 }

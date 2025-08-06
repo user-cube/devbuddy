@@ -14,7 +14,13 @@ import {
   Users,
   Eye,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Activity,
+  Calendar,
+  Target,
+  Wifi,
+  WifiOff,
+  ArrowRight
 } from 'lucide-react'
 import ShortcutCard from './ShortcutCard'
 
@@ -56,6 +62,12 @@ const Home = ({ currentTime }) => {
     nextRefreshTime: null
   })
   const [lastRefreshNotification, setLastRefreshNotification] = useState(null)
+  const [config, setConfig] = useState(null)
+  const [activeIntegrations, setActiveIntegrations] = useState({
+    jira: false,
+    github: false,
+    gitlab: false
+  })
 
   useEffect(() => {
     const initializeAndLoadData = async () => {
@@ -74,8 +86,9 @@ const Home = ({ currentTime }) => {
 
     initializeAndLoadData();
     
-    // Load background refresh status
+    // Load background refresh status and config
     loadBackgroundRefreshStatus();
+    loadConfig();
     
     // Listen for background refresh events
     const handleBackgroundRefreshCompleted = (event, data) => {
@@ -103,6 +116,18 @@ const Home = ({ currentTime }) => {
     };
   }, [])
 
+  // Listen for configuration changes
+  useEffect(() => {
+    const handleConfigChange = () => {
+      loadConfig();
+    };
+
+    window.addEventListener('config-changed', handleConfigChange);
+    return () => {
+      window.removeEventListener('config-changed', handleConfigChange);
+    };
+  }, []);
+
 
 
   const loadBackgroundRefreshStatus = async () => {
@@ -113,6 +138,22 @@ const Home = ({ currentTime }) => {
       }
     } catch (error) {
       console.error('Error loading background refresh status:', error);
+    }
+  };
+
+  const loadConfig = async () => {
+    try {
+      if (window.electronAPI) {
+        const configData = await window.electronAPI.getConfig();
+        setConfig(configData);
+        setActiveIntegrations({
+          jira: configData?.jira?.enabled || false,
+          github: configData?.github?.enabled || false,
+          gitlab: configData?.gitlab?.enabled || false
+        });
+      }
+    } catch (error) {
+      console.error('Error loading config:', error);
     }
   };
 
@@ -308,6 +349,21 @@ const Home = ({ currentTime }) => {
 
 
 
+  const getIntegrationStatus = (integration) => {
+    if (!activeIntegrations[integration]) {
+      return { status: 'disabled', icon: WifiOff, color: 'var(--text-muted)' }
+    }
+    
+    const hasData = stats[integration]?.total > 0
+    return {
+      status: hasData ? 'active' : 'no-data',
+      icon: hasData ? Wifi : AlertCircle,
+      color: hasData ? 'var(--success)' : 'var(--warning)'
+    }
+  }
+
+
+
   if (loading) {
     return (
       <div className="p-8">
@@ -385,8 +441,6 @@ const Home = ({ currentTime }) => {
           Your development companion
         </p>
         
-
-        
         {/* Last Refresh Notification */}
         {lastRefreshNotification && (
           <div className="mt-2 flex items-center justify-center">
@@ -407,6 +461,47 @@ const Home = ({ currentTime }) => {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Integration Status Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {['jira', 'github', 'gitlab'].map((integration) => {
+          const status = getIntegrationStatus(integration)
+          const IconComponent = status.icon
+          const integrationNames = { jira: 'Jira', github: 'GitHub', gitlab: 'GitLab' }
+          const integrationIcons = { jira: GitBranch, github: GitPullRequest, gitlab: GitMerge }
+          const IntegrationIcon = integrationIcons[integration]
+          
+          return (
+            <div
+              key={integration}
+              className="p-4 rounded-lg transition-all duration-300 hover:scale-105 cursor-pointer"
+              style={{
+                backgroundColor: 'var(--bg-secondary)',
+                border: '1px solid var(--border-primary)',
+                boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1)'
+              }}
+              onClick={() => handleQuickAction(integration)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <IntegrationIcon className="w-6 h-6" style={{ color: status.color }} />
+                  <div>
+                    <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                      {integrationNames[integration]}
+                    </p>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      {status.status === 'disabled' ? 'Disabled' : 
+                       status.status === 'active' ? `${stats[integration]?.total || 0} items` : 
+                       'No data'}
+                    </p>
+                  </div>
+                </div>
+                <IconComponent className="w-5 h-5" style={{ color: status.color }} />
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Overview Stats */}
@@ -479,6 +574,8 @@ const Home = ({ currentTime }) => {
           </div>
         </div>
       </div>
+
+
 
       {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
@@ -584,11 +681,25 @@ const Home = ({ currentTime }) => {
         {/* Recent Jira Issues */}
         <div className="card">
           <div 
-            className="flex items-center gap-3 mb-4 pb-4"
+            className="flex items-center justify-between mb-4 pb-4"
             style={{ borderBottom: '1px solid var(--border-primary)' }}
           >
-            <GitBranch className="w-6 h-6" style={{ color: '#3b82f6' }} />
-            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Jira Issues</h3>
+            <div className="flex items-center gap-3">
+              <GitBranch className="w-6 h-6" style={{ color: '#3b82f6' }} />
+              <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Jira Issues</h3>
+            </div>
+            {activeIntegrations.jira && (
+              <button
+                onClick={() => handleQuickAction('jira')}
+                className="text-sm px-2 py-1 rounded transition-colors"
+                style={{
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  color: 'var(--accent-primary)'
+                }}
+              >
+                View All
+              </button>
+            )}
           </div>
           <div className="space-y-3">
             {recentItems.jira.length > 0 ? (
@@ -609,13 +720,26 @@ const Home = ({ currentTime }) => {
                         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                           {issue.key}
                         </span>
+                        {issue.fields?.priority?.name === 'High' || issue.fields?.priority?.name === 'Highest' ? (
+                          <Flag className="w-3 h-3" style={{ color: 'var(--error)' }} />
+                        ) : null}
                       </div>
                       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                         {issue.fields?.summary}
                       </p>
-                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                        {formatDate(issue.fields?.created)}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                          {formatDate(issue.fields?.created)}
+                        </p>
+                        {issue.fields?.assignee && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            color: 'var(--accent-primary)'
+                          }}>
+                            Assigned
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <ExternalLink className="w-4 h-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
                   </div>
@@ -623,7 +747,7 @@ const Home = ({ currentTime }) => {
               ))
             ) : (
               <div className="text-center py-4" style={{ color: 'var(--text-muted)' }}>
-                No recent issues
+                {activeIntegrations.jira ? 'No recent issues' : 'Jira disabled'}
               </div>
             )}
           </div>
@@ -632,11 +756,25 @@ const Home = ({ currentTime }) => {
         {/* Recent GitHub PRs */}
         <div className="card">
           <div 
-            className="flex items-center gap-3 mb-4 pb-4"
+            className="flex items-center justify-between mb-4 pb-4"
             style={{ borderBottom: '1px solid var(--border-primary)' }}
           >
-            <GitPullRequest className="w-6 h-6" style={{ color: '#10b981' }} />
-            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Recent GitHub PRs</h3>
+            <div className="flex items-center gap-3">
+              <GitPullRequest className="w-6 h-6" style={{ color: '#10b981' }} />
+              <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Recent GitHub PRs</h3>
+            </div>
+            {activeIntegrations.github && (
+              <button
+                onClick={() => handleQuickAction('github')}
+                className="text-sm px-2 py-1 rounded transition-colors"
+                style={{
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  color: '#10b981'
+                }}
+              >
+                View All
+              </button>
+            )}
           </div>
           <div className="space-y-3">
             {recentItems.github.length > 0 ? (
@@ -657,13 +795,31 @@ const Home = ({ currentTime }) => {
                         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                           #{pr.number}
                         </span>
+                        {pr.draft && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{
+                            backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                            color: 'var(--text-muted)'
+                          }}>
+                            Draft
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                         {pr.title}
                       </p>
-                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                        {formatDate(pr.created_at)}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                          {formatDate(pr.created_at)}
+                        </p>
+                        {pr.user && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            color: '#10b981'
+                          }}>
+                            {pr.user.login}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <ExternalLink className="w-4 h-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
                   </div>
@@ -671,7 +827,7 @@ const Home = ({ currentTime }) => {
               ))
             ) : (
               <div className="text-center py-4" style={{ color: 'var(--text-muted)' }}>
-                No recent PRs
+                {activeIntegrations.github ? 'No recent PRs' : 'GitHub disabled'}
               </div>
             )}
           </div>
@@ -680,11 +836,25 @@ const Home = ({ currentTime }) => {
         {/* Recent GitLab MRs */}
         <div className="card">
           <div 
-            className="flex items-center gap-3 mb-4 pb-4"
+            className="flex items-center justify-between mb-4 pb-4"
             style={{ borderBottom: '1px solid var(--border-primary)' }}
           >
-            <GitMerge className="w-6 h-6" style={{ color: '#f56565' }} />
-            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Recent GitLab MRs</h3>
+            <div className="flex items-center gap-3">
+              <GitMerge className="w-6 h-6" style={{ color: '#f56565' }} />
+              <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Recent GitLab MRs</h3>
+            </div>
+            {activeIntegrations.gitlab && (
+              <button
+                onClick={() => handleQuickAction('gitlab')}
+                className="text-sm px-2 py-1 rounded transition-colors"
+                style={{
+                  backgroundColor: 'rgba(245, 101, 101, 0.1)',
+                  color: '#f56565'
+                }}
+              >
+                View All
+              </button>
+            )}
           </div>
           <div className="space-y-3">
             {recentItems.gitlab.length > 0 ? (
@@ -705,13 +875,31 @@ const Home = ({ currentTime }) => {
                         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                           !{mr.iid}
                         </span>
+                        {mr.work_in_progress && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{
+                            backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                            color: 'var(--text-muted)'
+                          }}>
+                            WIP
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                         {mr.title}
                       </p>
-                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                        {formatDate(mr.created_at)}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                          {formatDate(mr.created_at)}
+                        </p>
+                        {mr.author && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{
+                            backgroundColor: 'rgba(245, 101, 101, 0.1)',
+                            color: '#f56565'
+                          }}>
+                            {mr.author.username}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <ExternalLink className="w-4 h-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
                   </div>
@@ -719,9 +907,74 @@ const Home = ({ currentTime }) => {
               ))
             ) : (
               <div className="text-center py-4" style={{ color: 'var(--text-muted)' }}>
-                No recent MRs
+                {activeIntegrations.gitlab ? 'No recent MRs' : 'GitLab disabled'}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Summary */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <Activity className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+          <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Activity Summary</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div 
+            className="p-4 rounded-lg"
+            style={{
+              backgroundColor: 'var(--bg-secondary)',
+              border: '1px solid var(--border-primary)'
+            }}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <Target className="w-5 h-5" style={{ color: 'var(--success)' }} />
+              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>Today's Focus</span>
+            </div>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {totalAssigned > 0 ? `${totalAssigned} assigned items` : 'No assigned items'}
+            </p>
+            {totalHighPriority > 0 && (
+              <p className="text-xs mt-1" style={{ color: 'var(--error)' }}>
+                {totalHighPriority} high priority items
+              </p>
+            )}
+          </div>
+
+          <div 
+            className="p-4 rounded-lg"
+            style={{
+              backgroundColor: 'var(--bg-secondary)',
+              border: '1px solid var(--border-primary)'
+            }}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <Eye className="w-5 h-5" style={{ color: 'var(--warning)' }} />
+              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>In Review</span>
+            </div>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {totalReviewing > 0 ? `${totalReviewing} items in review` : 'No items in review'}
+            </p>
+          </div>
+
+          <div 
+            className="p-4 rounded-lg"
+            style={{
+              backgroundColor: 'var(--bg-secondary)',
+              border: '1px solid var(--border-primary)'
+            }}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <Calendar className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>Last Updated</span>
+            </div>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {backgroundRefreshStatus.lastRefreshTime ? 
+                formatDate(backgroundRefreshStatus.lastRefreshTime) : 
+                'Never'
+              }
+            </p>
           </div>
         </div>
       </div>
@@ -729,7 +982,20 @@ const Home = ({ currentTime }) => {
       {/* Additional Shortcuts */}
       {shortcuts.length > 4 && (
         <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>All Shortcuts</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>All Shortcuts</h2>
+            <button
+              onClick={() => window.location.href = '/shortcuts'}
+              className="text-sm px-3 py-1 rounded transition-colors flex items-center gap-1"
+              style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                color: 'var(--accent-primary)'
+              }}
+            >
+              Manage
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {shortcuts.map((shortcut) => (
               <ShortcutCard
