@@ -61,7 +61,8 @@ class ConfigService {
         notifications: true,
         updateInterval: 300, // 5 minutes
         backgroundRefresh: true, // Enable background refresh by default
-        redirectorPort: 10000 // Port for local redirector server
+        redirectorPort: 10000, // Port for local redirector server
+        defaultEditor: 'vscode' // Default editor: 'vscode' or 'cursor'
       }
     }
   }

@@ -4,24 +4,35 @@ import { AlertCircle, Settings } from 'lucide-react'
 
 const ProtectedRoute = ({ integration, children }) => {
   const [config, setConfig] = useState(null)
+  const [repositoriesConfig, setRepositoriesConfig] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const loadConfig = async () => {
+    const loadConfigs = async () => {
       try {
-        if (window.electronAPI) {
-          const configData = await window.electronAPI.getConfig()
-          setConfig(configData)
+        if (integration === 'repositories') {
+          const [repositoriesConfig] = await Promise.all([
+            window.electronAPI.getRepositoriesConfig()
+          ])
+          setConfig(null)
+          setRepositoriesConfig(repositoriesConfig)
+        } else {
+          const [mainConfig] = await Promise.all([
+            window.electronAPI.getConfig()
+          ])
+          setConfig(mainConfig)
+          setRepositoriesConfig(null)
         }
       } catch (error) {
-        console.error('Error loading config for protected route:', error)
+        console.error('ProtectedRoute: Error loading configs:', error)
+        setError('Failed to load configuration')
       } finally {
         setLoading(false)
       }
     }
 
-    loadConfig()
-  }, [])
+    loadConfigs()
+  }, [integration])
 
   if (loading) {
     return (
@@ -35,7 +46,13 @@ const ProtectedRoute = ({ integration, children }) => {
   }
 
   // Check if the integration is enabled
-  const isEnabled = config?.[integration]?.enabled || false
+  let isEnabled = false
+  
+  if (integration === 'repositories') {
+    isEnabled = repositoriesConfig?.enabled || false
+  } else {
+    isEnabled = config?.[integration]?.enabled || false
+  }
 
   if (!isEnabled) {
     return (

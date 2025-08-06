@@ -849,6 +849,17 @@ const Home = ({ currentTime }) => {
                 GitLab
               </button>
               <button
+                onClick={() => window.location.href = '/repositories'}
+                className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  color: 'var(--accent-primary)'
+                }}
+              >
+                Repositories
+              </button>
+              <button
                 onClick={() => window.location.href = '/config'}
                 className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                 style={{

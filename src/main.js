@@ -8,6 +8,7 @@ const RedirectorService = require('./services/redirector.js');
 const GitHubService = require('./services/github.js');
 const GitLabService = require('./services/gitlab.js');
 const JiraService = require('./services/jira.js');
+const RepositoriesService = require('./services/repositories.js');
 
 let mainWindow;
 const configService = new ConfigService();
@@ -16,6 +17,7 @@ const redirectorService = new RedirectorService();
 const githubService = new GitHubService();
 const gitlabService = new GitLabService();
 const jiraService = new JiraService();
+const repositoriesService = RepositoriesService;
 
 // Global state for app initialization
 let appInitialized = false;
@@ -484,6 +486,27 @@ ipcMain.handle('select-file', async (event) => {
   } catch (error) {
     console.error('Error selecting file:', error);
     return { success: false, message: 'Error selecting file' };
+  }
+});
+
+ipcMain.handle('select-folder', async (event) => {
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: 'Select a folder to scan for repositories'
+    });
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      return { 
+        success: true, 
+        folderPath: result.filePaths[0]
+      };
+    } else {
+      return { success: false, message: 'No folder selected' };
+    }
+  } catch (error) {
+    console.error('Error selecting folder:', error);
+    return { success: false, message: 'Error selecting folder' };
   }
 });
 
@@ -1252,5 +1275,93 @@ ipcMain.handle('import-config', async () => {
   } catch (error) {
     console.error('Error importing config:', error);
     return { success: false, error: error.message };
+  }
+});
+
+// Repositories handlers
+ipcMain.handle('get-repositories-config', async () => {
+  try {
+    return await repositoriesService.getConfig();
+  } catch (error) {
+    console.error('Error getting repositories config:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-repositories-config', async (event, config) => {
+  try {
+    const result = await repositoriesService.saveConfig(config);
+    return result;
+  } catch (error) {
+    console.error('Error updating repositories config:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-repositories', async () => {
+  try {
+    const config = await repositoriesService.getConfig();
+    if (!config.enabled || !config.directories || config.directories.length === 0) {
+      return [];
+    }
+    return await repositoriesService.scanForRepositories(config.directories, config.scanDepth);
+  } catch (error) {
+    console.error('Error getting repositories:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-repositories-for-directory', async (event, directoryPath, tag) => {
+  try {
+    const directory = { path: directoryPath, tag, enabled: true };
+    return await repositoriesService.scanForRepositories([directory], 3);
+  } catch (error) {
+    console.error('Error getting repositories for directory:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-folders-in-directory', async (event, directoryPath) => {
+  try {
+    return await repositoriesService.getFoldersInDirectory(directoryPath);
+  } catch (error) {
+    console.error('Error getting folders in directory:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-repository-info', async (event, folderPath, tag) => {
+  try {
+    return await repositoriesService.getRepositoryInfo(folderPath, tag);
+  } catch (error) {
+    console.error('Error getting repository info:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-repository-commits', async (event, folderPath) => {
+  try {
+    return await repositoriesService.getRepositoryCommits(folderPath);
+  } catch (error) {
+    console.error('Error getting repository commits:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('open-repository', async (event, repoPath) => {
+  try {
+    return await repositoriesService.openRepository(repoPath);
+  } catch (error) {
+    console.error('Error opening repository:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('open-repository-in-editor', async (event, repoPath) => {
+  try {
+    return await repositoriesService.openRepositoryInEditor(repoPath);
+  } catch (error) {
+    console.error('Error opening repository in editor:', error);
+    throw error;
   }
 });

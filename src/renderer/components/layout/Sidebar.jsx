@@ -9,12 +9,14 @@ import {
   GitMerge,
   Code,
   Settings,
-  AlertCircle
+  AlertCircle,
+  Folder
 } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 
 const Sidebar = ({ currentPath, isConfigured }) => {
   const [config, setConfig] = useState(null)
+  const [repositoriesConfig, setRepositoriesConfig] = useState(null)
   const [loading, setLoading] = useState(true)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
@@ -22,8 +24,12 @@ const Sidebar = ({ currentPath, isConfigured }) => {
     const loadConfig = async () => {
       try {
         if (window.electronAPI) {
-          const configData = await window.electronAPI.getConfig()
+          const [configData, reposConfig] = await Promise.all([
+            window.electronAPI.getConfig(),
+            window.electronAPI.getRepositoriesConfig()
+          ])
           setConfig(configData)
+          setRepositoriesConfig(reposConfig)
         }
       } catch (error) {
         console.error('Error loading config for sidebar:', error)
@@ -81,6 +87,12 @@ const Sidebar = ({ currentPath, isConfigured }) => {
       icon: GitMerge, 
       label: 'GitLab',
       enabled: config?.gitlab?.enabled || false
+    },
+    { 
+      path: '/repositories', 
+      icon: Folder, 
+      label: 'Repositories',
+      enabled: repositoriesConfig?.enabled || false
     }
   ]
 

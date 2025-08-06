@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteBookmark: (categoryId, bookmarkId) => ipcRenderer.invoke('delete-bookmark', categoryId, bookmarkId),
   openBookmark: (bookmarkId) => ipcRenderer.invoke('open-bookmark', bookmarkId),
   selectFile: () => ipcRenderer.invoke('select-file'),
+  selectFolder: () => ipcRenderer.invoke('select-folder'),
   
   // Migration
   migrateShortcutsToBookmarks: () => ipcRenderer.invoke('migrate-shortcuts-to-bookmarks'),
@@ -138,4 +139,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopRedirectorServer: () => ipcRenderer.invoke('stop-redirector-server'),
   getRedirectorStatus: () => ipcRenderer.invoke('get-redirector-status'),
   updateRedirectorPort: (newPort) => ipcRenderer.invoke('update-redirector-port', newPort),
+  
+  // Repositories service
+  getRepositoriesConfig: () => ipcRenderer.invoke('get-repositories-config'),
+  updateRepositoriesConfig: (config) => ipcRenderer.invoke('update-repositories-config', config),
+  getRepositories: () => ipcRenderer.invoke('get-repositories'),
+  getRepositoriesForDirectory: (directoryPath, tag) => ipcRenderer.invoke('get-repositories-for-directory', directoryPath, tag),
+  getFoldersInDirectory: (directoryPath) => ipcRenderer.invoke('get-folders-in-directory', directoryPath),
+  getRepositoryInfo: (folderPath, tag) => ipcRenderer.invoke('get-repository-info', folderPath, tag),
+  getRepositoryCommits: (folderPath) => ipcRenderer.invoke('get-repository-commits', folderPath),
+  openRepository: (repoPath) => ipcRenderer.invoke('open-repository', repoPath),
+  openRepositoryInEditor: (repoPath) => ipcRenderer.invoke('open-repository-in-editor', repoPath),
+  selectDirectory: () => ipcRenderer.invoke('select-folder'),
 }); 

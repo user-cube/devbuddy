@@ -11,6 +11,7 @@ import GitLab from './components/gitlab/GitLab'
 import Configuration from './components/configuration/Configuration'
 import Bookmarks from './components/bookmarks/Bookmarks'
 import Redirects from './components/redirects/Redirects'
+import Repositories from './components/repositories/Repositories'
 
 function App() {
   const [currentTime, setCurrentTime] = useState('')
@@ -181,6 +182,11 @@ function App() {
               <Route path="/gitlab" element={
                 <ProtectedRoute integration="gitlab">
                   <GitLab />
+                </ProtectedRoute>
+              } />
+              <Route path="/repositories" element={
+                <ProtectedRoute integration="repositories">
+                  <Repositories />
                 </ProtectedRoute>
               } />
               <Route path="/config" element={<Configuration />} />
