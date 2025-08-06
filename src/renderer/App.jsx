@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { ThemeProvider } from './contexts/ThemeContext'
 import Sidebar from './components/layout/Sidebar'
 import Home from './components/home/Home'
 import Jira from './components/jira/Jira'
@@ -80,31 +81,35 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-dark-900 items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400 mx-auto"></div>
-          <p className="mt-4 text-dark-300">Loading DevBuddy...</p>
+      <ThemeProvider>
+        <div className="flex h-screen items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: 'var(--accent-primary)' }}></div>
+            <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Loading DevBuddy...</p>
+          </div>
         </div>
-      </div>
+      </ThemeProvider>
     )
   }
 
   return (
-    <div className="flex h-screen bg-dark-900">
-      <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Routes>
-          <Route path="/" element={<Home currentTime={currentTime} />} />
-          <Route path="/shortcuts" element={<Shortcuts />} />
-          <Route path="/redirects" element={<Redirects />} />
-          <Route path="/jira" element={<Jira />} />
-          <Route path="/github" element={<GitHub />} />
-          <Route path="/gitlab" element={<GitLab />} />
-          <Route path="/config" element={<Configuration />} />
-        </Routes>
-      </main>
-    </div>
+    <ThemeProvider>
+      <div className="flex h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
+        
+        <main className="flex-1 overflow-y-auto">
+          <Routes>
+            <Route path="/" element={<Home currentTime={currentTime} />} />
+            <Route path="/shortcuts" element={<Shortcuts />} />
+            <Route path="/redirects" element={<Redirects />} />
+            <Route path="/jira" element={<Jira />} />
+            <Route path="/github" element={<GitHub />} />
+            <Route path="/gitlab" element={<GitLab />} />
+            <Route path="/config" element={<Configuration />} />
+          </Routes>
+        </main>
+      </div>
+    </ThemeProvider>
   )
 }
 

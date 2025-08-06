@@ -8,12 +8,14 @@ import {
   CheckCircle, 
   AlertCircle
 } from 'lucide-react'
+import { useTheme } from '../../contexts/ThemeContext'
 
 const Configuration = () => {
   const [config, setConfig] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const { setThemeValue } = useTheme()
 
   useEffect(() => {
     loadConfig()
@@ -60,6 +62,11 @@ const Configuration = () => {
         [key]: value
       }
     }))
+
+    // If updating theme, also update the theme context
+    if (section === 'app' && key === 'theme') {
+      setThemeValue(value)
+    }
   }
 
 
@@ -68,12 +75,15 @@ const Configuration = () => {
     return (
       <div className="p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-400 mx-auto"></div>
-          <p className="mt-4 text-dark-300">
+          <div 
+            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
+            style={{ borderColor: 'var(--accent-primary)' }}
+          ></div>
+          <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>
             {loading ? 'Loading configuration...' : 'Configuration not available'}
           </p>
           {!window.electronAPI && (
-            <p className="mt-2 text-red-400 text-sm">
+            <p className="mt-2 text-sm" style={{ color: 'var(--error)' }}>
               Electron API not available. Make sure you're running the app with Electron.
             </p>
           )}
@@ -86,21 +96,38 @@ const Configuration = () => {
     <div className="p-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent mb-2">
+        <h1 
+          className="text-4xl font-bold mb-2"
+          style={{
+            background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
+        >
           Configuration
         </h1>
-        <p className="text-dark-300 text-lg">
+        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
           Configure your development tools and shortcuts
         </p>
       </div>
 
       {/* Message */}
       {message.text && (
-        <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-          message.type === 'success' 
-            ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
-            : 'bg-red-500/20 border border-red-500/30 text-red-400'
-        }`}>
+        <div 
+          className="mb-6 p-4 rounded-lg flex items-center gap-3"
+          style={{
+            backgroundColor: message.type === 'success' 
+              ? 'rgba(16, 185, 129, 0.1)' 
+              : 'rgba(239, 68, 68, 0.1)',
+            border: message.type === 'success' 
+              ? '1px solid rgba(16, 185, 129, 0.3)' 
+              : '1px solid rgba(239, 68, 68, 0.3)',
+            color: message.type === 'success' 
+              ? 'var(--success)' 
+              : 'var(--error)'
+          }}
+        >
           {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           {message.text}
         </div>
@@ -245,18 +272,26 @@ const Configuration = () => {
 
         {/* App Configuration */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-dark-600">
-            <Settings className="w-6 h-6 text-primary-400" />
-            <h2 className="text-2xl font-semibold">App Settings</h2>
+          <div 
+            className="flex items-center gap-3 mb-6 pb-4"
+            style={{ borderBottom: '1px solid var(--border-primary)' }}
+          >
+            <Settings className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+            <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>App Settings</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">Theme</label>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Theme</label>
               <select
                 value={config?.app?.theme || 'dark'}
                 onChange={(e) => updateConfig('app', 'theme', e.target.value)}
-                className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
               >
                 <option value="dark">Dark</option>
                 <option value="light">Light</option>
@@ -265,36 +300,51 @@ const Configuration = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">Update Interval (seconds)</label>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Update Interval (seconds)</label>
               <input
                 type="number"
                 min="60"
                 max="3600"
                 value={config?.app?.updateInterval || 300}
                 onChange={(e) => updateConfig('app', 'updateInterval', parseInt(e.target.value))}
-                className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">Redirector Port</label>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Redirector Port</label>
               <input
                 type="number"
                 min="1024"
                 max="65535"
                 value={config?.app?.redirectorPort || 10000}
                 onChange={(e) => updateConfig('app', 'redirectorPort', parseInt(e.target.value))}
-                className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
               />
-              <p className="text-xs text-dark-400 mt-1">Port for local redirector server (default: 10000)</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Port for local redirector server (default: 10000)</p>
             </div>
             
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
               <input
                 type="checkbox"
                 checked={config?.app?.autoStart || false}
                 onChange={(e) => updateConfig('app', 'autoStart', e.target.checked)}
-                className="w-4 h-4 text-primary-500 bg-dark-700 border-dark-600 rounded focus:ring-primary-500"
+                className="w-4 h-4 rounded"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  accentColor: 'var(--accent-primary)'
+                }}
               />
               <span>Auto-start with system</span>
             </label>

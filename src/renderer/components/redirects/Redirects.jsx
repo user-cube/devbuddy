@@ -124,8 +124,11 @@ const Redirects = () => {
     return (
       <div className="p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-400 mx-auto"></div>
-          <p className="mt-4 text-dark-300">Loading redirects...</p>
+          <div 
+            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
+            style={{ borderColor: 'var(--accent-primary)' }}
+          ></div>
+          <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Loading redirects...</p>
         </div>
       </div>
     )
@@ -135,21 +138,38 @@ const Redirects = () => {
     <div className="p-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent mb-2">
+        <h1 
+          className="text-4xl font-bold mb-2"
+          style={{
+            background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
+        >
           Local Redirects
         </h1>
-        <p className="text-dark-300 text-lg">
+        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
           Configure local domain redirects for quick access
         </p>
       </div>
 
       {/* Message */}
       {message.text && (
-        <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-          message.type === 'success' 
-            ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
-            : 'bg-red-500/20 border border-red-500/30 text-red-400'
-        }`}>
+        <div 
+          className="mb-6 p-4 rounded-lg flex items-center gap-3"
+          style={{
+            backgroundColor: message.type === 'success' 
+              ? 'rgba(16, 185, 129, 0.1)' 
+              : 'rgba(239, 68, 68, 0.1)',
+            border: message.type === 'success' 
+              ? '1px solid rgba(16, 185, 129, 0.3)' 
+              : '1px solid rgba(239, 68, 68, 0.3)',
+            color: message.type === 'success' 
+              ? 'var(--success)' 
+              : 'var(--error)'
+          }}
+        >
           {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           {message.text}
         </div>
@@ -158,23 +178,37 @@ const Redirects = () => {
       <div className="space-y-6">
         {/* Server Status */}
         <div className="card">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-dark-600">
+          <div 
+            className="flex items-center justify-between mb-6 pb-4"
+            style={{ borderBottom: '1px solid var(--border-primary)' }}
+          >
             <div className="flex items-center gap-3">
-              <Globe className="w-6 h-6 text-primary-400" />
-              <h2 className="text-2xl font-semibold">Server Status</h2>
+              <Globe className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+              <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Server Status</h2>
             </div>
             <div className="flex items-center gap-4">
-              <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                serverStatus.running 
-                  ? 'bg-green-500/20 text-green-400' 
-                  : 'bg-red-500/20 text-red-400'
-              }`}>
-                <div className={`w-2 h-2 rounded-full ${
-                  serverStatus.running ? 'bg-green-400' : 'bg-red-400'
-                }`}></div>
+              <div 
+                className="flex items-center gap-2 px-3 py-1 rounded-full text-sm"
+                style={{
+                  backgroundColor: serverStatus.running 
+                    ? 'rgba(16, 185, 129, 0.1)' 
+                    : 'rgba(239, 68, 68, 0.1)',
+                  color: serverStatus.running 
+                    ? 'var(--success)' 
+                    : 'var(--error)'
+                }}
+              >
+                <div 
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor: serverStatus.running 
+                      ? 'var(--success)' 
+                      : 'var(--error)'
+                  }}
+                ></div>
                 {serverStatus.running ? 'Running' : 'Stopped'}
               </div>
-              <div className="text-sm text-dark-300">
+              <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 Port: {serverStatus.port}
               </div>
             </div>
@@ -192,7 +226,20 @@ const Redirects = () => {
             <button
               onClick={stopServer}
               disabled={!serverStatus.running}
-              className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: 'var(--error)'
+              }}
+              onMouseEnter={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'
+              }}
             >
               <Square className="w-4 h-4" />
               Stop Server
@@ -200,30 +247,42 @@ const Redirects = () => {
           </div>
 
           {serverStatus.running && (
-            <div className="mt-4 p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
-              <h3 className="text-green-400 font-semibold mb-2">✅ Server is running automatically!</h3>
-              <p className="text-green-300 text-sm mb-3">The redirector server starts automatically when DevBuddy launches.</p>
-              <ol className="text-green-300 text-sm space-y-1">
-                <li>1. (Optional) Add to /etc/hosts: <code className="bg-dark-700 px-1 rounded">127.0.0.1 devbuddy.local</code></li>
+            <div 
+              className="mt-4 p-4 rounded-lg"
+              style={{
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)'
+              }}
+            >
+              <h3 className="font-semibold mb-2" style={{ color: 'var(--success)' }}>✅ Server is running automatically!</h3>
+              <p className="text-sm mb-3" style={{ color: 'var(--success)' }}>The redirector server starts automatically when DevBuddy launches.</p>
+              <ol className="text-sm space-y-1" style={{ color: 'var(--success)' }}>
+                <li>1. (Optional) Add to /etc/hosts: <code className="px-1 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>127.0.0.1 devbuddy.local</code></li>
                 <li>2. Configure your redirects below</li>
                 <li>3. Visit either:</li>
-                <li className="ml-4">• <code className="bg-dark-700 px-1 rounded">localhost:{serverStatus.port}/jira</code> (works immediately)</li>
-                <li className="ml-4">• <code className="bg-dark-700 px-1 rounded">devbuddy.local:{serverStatus.port}/jira</code> (requires /etc/hosts setup)</li>
+                <li className="ml-4">• <code className="px-1 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>localhost:{serverStatus.port}/jira</code> (works immediately)</li>
+                <li className="ml-4">• <code className="px-1 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>devbuddy.local:{serverStatus.port}/jira</code> (requires /etc/hosts setup)</li>
               </ol>
             </div>
           )}
 
           {!serverStatus.running && (
-            <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-              <h3 className="text-yellow-400 font-semibold mb-2">⚠️ Server not running</h3>
-              <p className="text-yellow-300 text-sm mb-3">The redirector server should start automatically. If it's not running, try restarting DevBuddy.</p>
-              <ol className="text-yellow-300 text-sm space-y-1">
+            <div 
+              className="mt-4 p-4 rounded-lg"
+              style={{
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                border: '1px solid rgba(245, 158, 11, 0.3)'
+              }}
+            >
+              <h3 className="font-semibold mb-2" style={{ color: 'var(--warning)' }}>⚠️ Server not running</h3>
+              <p className="text-sm mb-3" style={{ color: 'var(--warning)' }}>The redirector server should start automatically. If it's not running, try restarting DevBuddy.</p>
+              <ol className="text-sm space-y-1" style={{ color: 'var(--warning)' }}>
                 <li>1. Start the redirector server manually (button above)</li>
-                <li>2. (Optional) Add to /etc/hosts: <code className="bg-dark-700 px-1 rounded">127.0.0.1 devbuddy.local</code></li>
+                <li>2. (Optional) Add to /etc/hosts: <code className="px-1 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>127.0.0.1 devbuddy.local</code></li>
                 <li>3. Configure your redirects below</li>
                 <li>4. Visit either:</li>
-                <li className="ml-4">• <code className="bg-dark-700 px-1 rounded">localhost:{serverStatus.port}/jira</code> (works immediately)</li>
-                <li className="ml-4">• <code className="bg-dark-700 px-1 rounded">devbuddy.local:{serverStatus.port}/jira</code> (requires /etc/hosts setup)</li>
+                <li className="ml-4">• <code className="px-1 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>localhost:{serverStatus.port}/jira</code> (works immediately)</li>
+                <li className="ml-4">• <code className="px-1 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>devbuddy.local:{serverStatus.port}/jira</code> (requires /etc/hosts setup)</li>
               </ol>
             </div>
           )}
@@ -231,8 +290,11 @@ const Redirects = () => {
 
         {/* Redirects Configuration */}
         <div className="card">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-dark-600">
-            <h2 className="text-2xl font-semibold">Redirects</h2>
+          <div 
+            className="flex items-center justify-between mb-6 pb-4"
+            style={{ borderBottom: '1px solid var(--border-primary)' }}
+          >
+            <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Redirects</h2>
             <button
               onClick={saveRedirects}
               disabled={saving}
@@ -254,14 +316,27 @@ const Redirects = () => {
           
           <div className="space-y-4">
             {Object.entries(redirects).map(([domain, paths]) => (
-              <div key={domain} className="border border-dark-600 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-primary-400 mb-3">{domain}</h3>
+              <div 
+                key={domain} 
+                className="rounded-lg p-4"
+                style={{
+                  border: '1px solid var(--border-primary)'
+                }}
+              >
+                <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--accent-primary)' }}>{domain}</h3>
                 <div className="space-y-3">
                   {Object.entries(paths).map(([path, targetUrl]) => (
-                    <div key={`${domain}-${path}`} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3 bg-dark-800/50 rounded-lg border border-dark-600">
+                    <div 
+                      key={`${domain}-${path}`} 
+                      className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3 rounded-lg"
+                      style={{
+                        backgroundColor: 'var(--bg-tertiary)',
+                        border: '1px solid var(--border-primary)'
+                      }}
+                    >
                       <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-primary-400" />
-                        <span className="font-mono text-sm">{domain}/{path}</span>
+                        <Globe className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                        <span className="font-mono text-sm" style={{ color: 'var(--text-primary)' }}>{domain}/{path}</span>
                       </div>
                       <div className="md:col-span-2">
                         <input
@@ -272,7 +347,12 @@ const Redirects = () => {
                             newRedirects[domain][path] = e.target.value
                             setRedirects(newRedirects)
                           }}
-                          className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none text-sm"
+                          className="w-full rounded-lg px-3 py-2 focus:outline-none text-sm"
+                          style={{
+                            backgroundColor: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-primary)',
+                            color: 'var(--text-primary)'
+                          }}
                           placeholder="Target URL"
                         />
                       </div>
@@ -280,14 +360,38 @@ const Redirects = () => {
                         <button
                           onClick={() => testRedirect(domain, path)}
                           disabled={!serverStatus.running}
-                          className="bg-green-500/20 border border-green-500/30 text-green-400 px-3 py-2 rounded-lg hover:bg-green-500/30 transition-colors disabled:opacity-50"
+                          className="px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                          style={{
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            color: 'var(--success)'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!e.target.disabled) {
+                              e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'
+                          }}
                           title="Test redirect"
                         >
                           <ExternalLink className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => removeRedirect(domain, path)}
-                          className="bg-red-500/20 border border-red-500/30 text-red-400 px-3 py-2 rounded-lg hover:bg-red-500/30 transition-colors"
+                          className="px-3 py-2 rounded-lg transition-colors"
+                          style={{
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: 'var(--error)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'
+                          }}
                           title="Remove redirect"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -302,7 +406,18 @@ const Redirects = () => {
                       const newPath = `new-${Date.now()}`
                       addRedirect(domain, newPath, 'https://example.com')
                     }}
-                    className="w-full bg-primary-500/20 border border-primary-500/30 text-primary-400 px-4 py-2 rounded-lg hover:bg-primary-500/30 transition-colors flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      color: 'var(--accent-primary)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'
+                    }}
                   >
                     <Plus className="w-4 h-4" />
                     Add Redirect to {domain}
@@ -320,7 +435,18 @@ const Redirects = () => {
                   [newDomain]: {}
                 }))
               }}
-              className="w-full bg-blue-500/20 border border-blue-500/30 text-blue-400 px-4 py-3 rounded-lg hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+              style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                color: 'var(--accent-primary)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'
+              }}
             >
               <Plus className="w-4 h-4" />
               Add New Domain

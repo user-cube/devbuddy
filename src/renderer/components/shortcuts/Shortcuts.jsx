@@ -106,8 +106,11 @@ const Shortcuts = () => {
     return (
       <div className="p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-400 mx-auto"></div>
-          <p className="mt-4 text-dark-300">Loading shortcuts...</p>
+          <div 
+            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
+            style={{ borderColor: 'var(--accent-primary)' }}
+          ></div>
+          <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Loading shortcuts...</p>
         </div>
       </div>
     )
@@ -117,21 +120,38 @@ const Shortcuts = () => {
     <div className="p-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent mb-2">
+        <h1 
+          className="text-4xl font-bold mb-2"
+          style={{
+            background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
+        >
           Shortcuts
         </h1>
-        <p className="text-dark-300 text-lg">
+        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
           Manage your development shortcuts and quick access links
         </p>
       </div>
 
       {/* Message */}
       {message.text && (
-        <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-          message.type === 'success' 
-            ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
-            : 'bg-red-500/20 border border-red-500/30 text-red-400'
-        }`}>
+        <div 
+          className="mb-6 p-4 rounded-lg flex items-center gap-3"
+          style={{
+            backgroundColor: message.type === 'success' 
+              ? 'rgba(16, 185, 129, 0.1)' 
+              : 'rgba(239, 68, 68, 0.1)',
+            border: message.type === 'success' 
+              ? '1px solid rgba(16, 185, 129, 0.3)' 
+              : '1px solid rgba(239, 68, 68, 0.3)',
+            color: message.type === 'success' 
+              ? 'var(--success)' 
+              : 'var(--error)'
+          }}
+        >
           {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           {message.text}
         </div>
@@ -140,8 +160,11 @@ const Shortcuts = () => {
       <div className="space-y-6">
         {/* Shortcuts List */}
         <div className="card">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-dark-600">
-            <h2 className="text-2xl font-semibold">Your Shortcuts</h2>
+          <div 
+            className="flex items-center justify-between mb-6 pb-4"
+            style={{ borderBottom: '1px solid var(--border-primary)' }}
+          >
+            <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Your Shortcuts</h2>
             <button
               onClick={saveShortcuts}
               disabled={saving}
@@ -165,15 +188,27 @@ const Shortcuts = () => {
             {shortcuts.map((shortcut, index) => {
               const IconComponent = getIconComponent(shortcut.icon)
               return (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 bg-dark-800/50 rounded-lg border border-dark-600">
+                <div 
+                  key={index} 
+                  className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 rounded-lg"
+                  style={{
+                    backgroundColor: 'var(--bg-tertiary)',
+                    border: '1px solid var(--border-primary)'
+                  }}
+                >
                   <div className="flex items-center gap-3">
-                    <IconComponent className="w-5 h-5 text-primary-400" />
+                    <IconComponent className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
                     <input
                       type="text"
                       placeholder="Name"
                       value={shortcut.name}
                       onChange={(e) => updateShortcut(index, 'name', e.target.value)}
-                      className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                      className="rounded-lg px-3 py-2 focus:outline-none"
+                      style={{
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-primary)',
+                        color: 'var(--text-primary)'
+                      }}
                     />
                   </div>
                   <input
@@ -181,12 +216,22 @@ const Shortcuts = () => {
                     placeholder="URL"
                     value={shortcut.url}
                     onChange={(e) => updateShortcut(index, 'url', e.target.value)}
-                    className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                    className="rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
                   />
                   <select
                     value={shortcut.icon}
                     onChange={(e) => updateShortcut(index, 'icon', e.target.value)}
-                    className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                    className="rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
                   >
                     <option value="rocket">Rocket</option>
                     <option value="server">Server</option>
@@ -200,20 +245,49 @@ const Shortcuts = () => {
                     placeholder="Description"
                     value={shortcut.description}
                     onChange={(e) => updateShortcut(index, 'description', e.target.value)}
-                    className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
+                    className="rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={() => openShortcut(shortcut)}
                       disabled={!shortcut.url}
-                      className="bg-green-500/20 border border-green-500/30 text-green-400 px-3 py-2 rounded-lg hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        color: 'var(--success)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!e.target.disabled) {
+                          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'
+                      }}
                       title="Open shortcut"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => removeShortcut(index)}
-                      className="bg-red-500/20 border border-red-500/30 text-red-400 px-3 py-2 rounded-lg hover:bg-red-500/30 transition-colors"
+                      className="px-3 py-2 rounded-lg transition-colors"
+                      style={{
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        color: 'var(--error)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'
+                      }}
                       title="Remove shortcut"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -224,7 +298,7 @@ const Shortcuts = () => {
             })}
             
             {shortcuts.length === 0 && (
-              <div className="text-center py-8 text-dark-300">
+              <div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
                 <Rocket className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>No shortcuts yet. Add your first shortcut below!</p>
               </div>
@@ -232,7 +306,18 @@ const Shortcuts = () => {
             
             <button
               onClick={addShortcut}
-              className="w-full bg-primary-500/20 border border-primary-500/30 text-primary-400 px-4 py-3 rounded-lg hover:bg-primary-500/30 transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+              style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                color: 'var(--accent-primary)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'
+              }}
             >
               <Plus className="w-4 h-4" />
               Add Shortcut
@@ -242,11 +327,22 @@ const Shortcuts = () => {
 
         {/* Quick Actions */}
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
+          <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={addShortcut}
-              className="bg-primary-500/20 border border-primary-500/30 text-primary-400 px-4 py-3 rounded-lg hover:bg-primary-500/30 transition-colors flex items-center gap-2"
+              className="px-4 py-3 rounded-lg transition-colors flex items-center gap-2"
+              style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                color: 'var(--accent-primary)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'
+              }}
             >
               <Plus className="w-4 h-4" />
               Add New Shortcut
@@ -254,14 +350,38 @@ const Shortcuts = () => {
             <button
               onClick={saveShortcuts}
               disabled={saving}
-              className="bg-green-500/20 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg hover:bg-green-500/30 transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-3 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+              style={{
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                color: 'var(--success)'
+              }}
+              onMouseEnter={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'
+              }}
             >
               <Save className="w-4 h-4" />
               Save Changes
             </button>
             <button
               onClick={loadShortcuts}
-              className="bg-blue-500/20 border border-blue-500/30 text-blue-400 px-4 py-3 rounded-lg hover:bg-blue-500/30 transition-colors flex items-center gap-2"
+              className="px-4 py-3 rounded-lg transition-colors flex items-center gap-2"
+              style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                color: 'var(--accent-primary)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'
+              }}
             >
               <ExternalLink className="w-4 h-4" />
               Reload Shortcuts

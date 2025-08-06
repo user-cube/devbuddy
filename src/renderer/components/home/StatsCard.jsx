@@ -30,13 +30,32 @@ const StatsCard = ({ stats }) => {
         return (
           <div
             key={item.label}
-            className="text-center p-4 bg-primary-500/10 rounded-lg border border-primary-500/20 hover:bg-primary-500/20 transition-colors cursor-pointer"
+            className="text-center p-4 rounded-lg transition-colors cursor-pointer"
+            style={{
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.2)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'
+            }}
           >
-            <Icon className={`w-6 h-6 mx-auto mb-2 ${item.color}`} />
-            <div className="text-2xl font-bold text-primary-400 mb-1">
+            <Icon 
+              className="w-6 h-6 mx-auto mb-2" 
+              style={{ color: 'var(--accent-primary)' }}
+            />
+            <div 
+              className="text-2xl font-bold mb-1"
+              style={{ color: 'var(--accent-primary)' }}
+            >
               {item.value}
             </div>
-            <div className="text-xs text-dark-400">
+            <div 
+              className="text-xs"
+              style={{ color: 'var(--text-muted)' }}
+            >
               {item.label}
             </div>
           </div>

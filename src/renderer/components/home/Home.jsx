@@ -42,10 +42,18 @@ const Home = ({ currentTime }) => {
     <div className="p-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent mb-2">
+        <h1 
+          className="text-4xl font-bold mb-2"
+          style={{
+            background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
+        >
           Welcome to DevBuddy
         </h1>
-        <p className="text-dark-300 text-lg">
+        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
           Your development companion
         </p>
       </div>
@@ -54,12 +62,22 @@ const Home = ({ currentTime }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Time Card */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-4 pb-4 border-b border-dark-600">
-            <Clock className="w-6 h-6 text-primary-400" />
-            <h3 className="text-xl font-semibold">Current Time</h3>
+          <div 
+            className="flex items-center gap-3 mb-4 pb-4"
+            style={{ borderBottom: '1px solid var(--border-primary)' }}
+          >
+            <Clock className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Current Time</h3>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-mono font-bold text-primary-400 bg-dark-800/50 p-4 rounded-lg border border-primary-500/20">
+            <div 
+              className="text-3xl font-mono font-bold p-4 rounded-lg"
+              style={{
+                color: 'var(--accent-primary)',
+                backgroundColor: 'var(--bg-tertiary)',
+                border: '1px solid var(--accent-primary)'
+              }}
+            >
               {currentTime || 'Loading...'}
             </div>
           </div>
@@ -67,9 +85,12 @@ const Home = ({ currentTime }) => {
 
         {/* Shortcuts Card */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-4 pb-4 border-b border-dark-600">
-            <Link className="w-6 h-6 text-primary-400" />
-            <h3 className="text-xl font-semibold">Quick Shortcuts</h3>
+          <div 
+            className="flex items-center gap-3 mb-4 pb-4"
+            style={{ borderBottom: '1px solid var(--border-primary)' }}
+          >
+            <Link className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Quick Shortcuts</h3>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {shortcuts.slice(0, 4).map((shortcut) => (
@@ -80,7 +101,7 @@ const Home = ({ currentTime }) => {
               />
             ))}
             {shortcuts.length === 0 && (
-              <div className="col-span-2 text-center text-dark-400 py-4">
+              <div className="col-span-2 text-center py-4" style={{ color: 'var(--text-muted)' }}>
                 No shortcuts configured
               </div>
             )}
@@ -89,9 +110,12 @@ const Home = ({ currentTime }) => {
 
         {/* Stats Card */}
         <div className="card">
-          <div className="flex items-center gap-3 mb-4 pb-4 border-b border-dark-600">
-            <BarChart3 className="w-6 h-6 text-primary-400" />
-            <h3 className="text-xl font-semibold">Today's Stats</h3>
+          <div 
+            className="flex items-center gap-3 mb-4 pb-4"
+            style={{ borderBottom: '1px solid var(--border-primary)' }}
+          >
+            <BarChart3 className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Today's Stats</h3>
           </div>
           <StatsCard stats={stats} />
         </div>
