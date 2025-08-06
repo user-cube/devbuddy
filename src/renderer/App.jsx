@@ -38,6 +38,22 @@ function App() {
     }
 
     checkConfiguration()
+
+    // Listen for app initialization events
+    const handleAppInitialized = (event, data) => {
+      console.log('App initialization completed:', data)
+      // You can add additional logic here if needed
+    }
+
+    if (window.electronAPI) {
+      window.electronAPI.onAppInitialized(handleAppInitialized)
+    }
+
+    return () => {
+      if (window.electronAPI) {
+        window.electronAPI.removeAppInitializedListener(handleAppInitialized)
+      }
+    }
   }, [navigate, location.pathname])
 
   useEffect(() => {

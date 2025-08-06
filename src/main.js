@@ -13,6 +13,89 @@ const githubService = new GitHubService();
 const gitlabService = new GitLabService();
 const jiraService = new JiraService();
 
+// Global state for app initialization
+let appInitialized = false;
+let initializationPromise = null;
+
+// Initialize app data when the app starts
+async function initializeAppData() {
+  if (initializationPromise) {
+    return initializationPromise;
+  }
+
+  initializationPromise = (async () => {
+    try {
+      console.log('🚀 Initializing app data...');
+      
+      const config = configService.loadConfig();
+      const promises = [];
+
+      // Initialize GitHub data if enabled
+      if (config.github.enabled && config.github.apiToken) {
+        console.log('📦 Pre-loading GitHub data...');
+        promises.push(
+          githubService.getPullRequests().catch(err => {
+            console.log('GitHub pre-load failed:', err.message);
+            return null;
+          })
+        );
+      }
+
+      // Initialize GitLab data if enabled
+      if (config.gitlab.enabled && config.gitlab.apiToken) {
+        console.log('📦 Pre-loading GitLab data...');
+        promises.push(
+          gitlabService.getMergeRequests().catch(err => {
+            console.log('GitLab pre-load failed:', err.message);
+            return null;
+          })
+        );
+      }
+
+      // Initialize Jira data if enabled
+      if (config.jira.enabled && config.jira.apiToken) {
+        console.log('📦 Pre-loading Jira data...');
+        promises.push(
+          jiraService.getIssues().catch(err => {
+            console.log('Jira pre-load failed:', err.message);
+            return null;
+          })
+        );
+      }
+
+      // Wait for all data to load (with timeout)
+      const timeout = 15000; // 15 seconds timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Initialization timeout')), timeout);
+      });
+
+      await Promise.race([
+        Promise.allSettled(promises),
+        timeoutPromise
+      ]);
+
+      appInitialized = true;
+      console.log('✅ App data initialization completed');
+      
+      // Notify renderer that initialization is complete
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('app-initialized');
+      }
+
+    } catch (error) {
+      console.error('❌ App initialization failed:', error);
+      appInitialized = true; // Mark as initialized even if failed
+      
+      // Notify renderer that initialization is complete (even with errors)
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('app-initialized', { error: error.message });
+      }
+    }
+  })();
+
+  return initializationPromise;
+}
+
 function createWindow() {
   // Create the browser window
   const preloadPath = path.join(__dirname, './preload.js')
@@ -47,6 +130,9 @@ function createWindow() {
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    
+    // Start data initialization after window is shown
+    initializeAppData();
   });
 
   // Handle window closed
@@ -631,6 +717,38 @@ ipcMain.handle('get-gitlab-mrs-by-group', async (event, groupId, state) => {
     return await gitlabService.getMergeRequestsByGroup(groupId, state);
   } catch (error) {
     console.error('Error fetching GitLab MRs by group:', error);
+    throw error;
+  }
+});
+
+// App initialization
+ipcMain.handle('is-app-initialized', () => {
+  return appInitialized;
+});
+
+ipcMain.handle('wait-for-initialization', async () => {
+  if (appInitialized) {
+    return { initialized: true };
+  }
+  
+  return new Promise((resolve) => {
+    const checkInitialization = () => {
+      if (appInitialized) {
+        resolve({ initialized: true });
+      } else {
+        setTimeout(checkInitialization, 100);
+      }
+    };
+    checkInitialization();
+  });
+});
+
+ipcMain.handle('force-initialization', async () => {
+  try {
+    await initializeAppData();
+    return { success: true, message: 'App data initialized successfully' };
+  } catch (error) {
+    console.error('Error forcing initialization:', error);
     throw error;
   }
 });

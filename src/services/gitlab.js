@@ -150,8 +150,15 @@ class GitLabService {
         }
       }
 
-      // Cache the result
-      this.cacheService.set(cacheKey, mrs, config.refreshInterval * 1000)
+      // Cache the result with warm cache for initial load
+      if (this.cacheService.isEmpty()) {
+        // First load - use warm cache with longer TTL
+        this.cacheService.setWarmCache(cacheKey, mrs)
+        console.log('GitLab: Using warm cache for initial load')
+      } else {
+        // Subsequent loads - use normal cache
+        this.cacheService.set(cacheKey, mrs, config.refreshInterval * 1000)
+      }
       
       return mrs
     } catch (error) {

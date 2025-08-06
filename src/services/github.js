@@ -151,8 +151,15 @@ class GitHubService {
         }
       }
       
-      // Cache the result
-      this.cacheService.set(cacheKey, prs, config.refreshInterval * 1000)
+      // Cache the result with warm cache for initial load
+      if (this.cacheService.isEmpty()) {
+        // First load - use warm cache with longer TTL
+        this.cacheService.setWarmCache(cacheKey, prs)
+        console.log('GitHub: Using warm cache for initial load')
+      } else {
+        // Subsequent loads - use normal cache
+        this.cacheService.set(cacheKey, prs, config.refreshInterval * 1000)
+      }
       
       return prs
     } catch (error) {

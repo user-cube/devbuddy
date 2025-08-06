@@ -52,7 +52,21 @@ const Home = ({ currentTime }) => {
   })
 
   useEffect(() => {
-    loadDashboardData()
+    const initializeAndLoadData = async () => {
+      try {
+        // Wait for app initialization to complete
+        await window.electronAPI.waitForInitialization();
+        
+        // Load dashboard data
+        await loadDashboardData();
+      } catch (error) {
+        console.error('Error during initialization:', error);
+        // Fallback: try to load data anyway
+        await loadDashboardData();
+      }
+    };
+
+    initializeAndLoadData();
   }, [])
 
   const loadDashboardData = async () => {
@@ -292,17 +306,32 @@ const Home = ({ currentTime }) => {
     <div className="p-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 
-          className="text-4xl font-bold mb-2"
-          style={{
-            background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary))',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}
-        >
-          Welcome to DevBuddy
-        </h1>
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <h1 
+            className="text-4xl font-bold"
+            style={{
+              background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
+            Welcome to DevBuddy
+          </h1>
+          <button
+            onClick={loadDashboardData}
+            disabled={loading}
+            className="p-2 rounded-lg transition-all duration-300 hover:scale-110 disabled:opacity-50"
+            style={{
+              backgroundColor: 'rgba(59, 130, 246, 0.2)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              color: 'var(--accent-primary)'
+            }}
+            title="Refresh data"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
         <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
           Your development companion
         </p>

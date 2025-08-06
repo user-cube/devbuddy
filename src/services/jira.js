@@ -104,8 +104,15 @@ class JiraService {
       const response = await this.makeRequest(endpoint)
       const issues = response.issues || []
       
-      // Cache the result
-      this.cacheService.set(cacheKey, issues, config.refreshInterval * 1000)
+      // Cache the result with warm cache for initial load
+      if (this.cacheService.isEmpty()) {
+        // First load - use warm cache with longer TTL
+        this.cacheService.setWarmCache(cacheKey, issues)
+        console.log('Jira: Using warm cache for initial load')
+      } else {
+        // Subsequent loads - use normal cache
+        this.cacheService.set(cacheKey, issues, config.refreshInterval * 1000)
+      }
       
       return issues
     } catch (error) {

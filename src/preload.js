@@ -84,6 +84,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getGitlabMRsByProject: (projectId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-project', projectId, state),
   getGitlabMRsByGroup: (groupId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-group', groupId, state),
   
+  // App initialization
+  isAppInitialized: () => ipcRenderer.invoke('is-app-initialized'),
+  waitForInitialization: () => ipcRenderer.invoke('wait-for-initialization'),
+  forceInitialization: () => ipcRenderer.invoke('force-initialization'),
+  onAppInitialized: (callback) => ipcRenderer.on('app-initialized', callback),
+  removeAppInitializedListener: (callback) => ipcRenderer.removeListener('app-initialized', callback),
+  
   // Cache management
   clearCache: () => ipcRenderer.invoke('clear-cache'),
   clearGithubCache: () => ipcRenderer.invoke('clear-github-cache'),
