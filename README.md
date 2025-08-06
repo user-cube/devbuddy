@@ -18,6 +18,10 @@ A modern desktop application to streamline your development workflow. Built with
 - **Configuration Management**: Easy setup through a beautiful configuration interface
 - **YAML Configuration**: Human-readable configuration stored in `~/.devbuddy/`
 - **Sticky UI Elements**: Always-accessible save buttons and navigation
+- **Toast Notifications**: Modern notification system with auto-dismiss
+- **Dynamic Navigation**: Sidebar and shortcuts update automatically based on enabled integrations
+- **Enhanced Dashboard**: Rich homepage with integration status, activity summary, and recent items
+- **Real-time Updates**: Configuration changes apply immediately across the application
 
 ## Installation
 
@@ -88,12 +92,28 @@ On first run, DevBuddy will automatically redirect you to the configuration page
 - **Search & Filter**: Find statuses quickly with search functionality
 - **Real-time Updates**: Changes apply immediately with cache refresh
 
+### 🏠 **Enhanced Dashboard**
+- **Integration Status Overview**: Visual cards showing enabled/disabled integrations with data counts
+- **Activity Summary**: Today's focus, items in review, and last update information
+- **Recent Items**: Latest Jira issues, GitHub PRs, and GitLab MRs with detailed information
+- **Smart Navigation**: Direct access to integration pages from status cards
+- **Background Refresh Status**: Visual indicators for automatic data updates
+
 ### 🎨 **Enhanced UI/UX**
 - **Sticky Footer**: Save buttons always visible without scrolling
 - **Dark/Light Theme**: Full theme support with CSS variables
+- **Toast Notifications**: Modern notification system with auto-dismiss and manual close
 - **Responsive Design**: Works on different screen sizes
 - **Loading States**: Smooth loading indicators and transitions
 - **Error Handling**: Clear error messages and recovery options
+- **Dynamic Navigation**: Sidebar and keyboard shortcuts update automatically
+- **Integration Status Cards**: Visual indicators for enabled/disabled integrations
+
+### 🔄 **Real-time Updates**
+- **Dynamic Navigation**: Sidebar and keyboard shortcuts update when integrations are enabled/disabled
+- **Configuration Sync**: Changes apply immediately across all components
+- **Protected Routes**: Automatic redirection when accessing disabled integration pages
+- **Status Indicators**: Visual feedback for unsaved changes and integration status
 
 ## Development
 
@@ -114,17 +134,18 @@ devbuddy/
 │   │   │   └── NavigationContext.jsx     # Navigation state management
 │   │   └── components/                   # React components (organized by feature)
 │   │       ├── home/                     # Home page components
-│   │       │   ├── Home.jsx              # Dashboard with background refresh
-│   │       │   ├── ShortcutCard.jsx
-│   │       │   └── StatsCard.jsx
+│   │       │   ├── Home.jsx              # Enhanced dashboard with integration status
+│   │       │   └── ShortcutCard.jsx
 │   │       ├── layout/                   # Layout components
-│   │       │   ├── Sidebar.jsx
-│   │       │   └── ThemeToggle.jsx
+│   │       │   ├── Sidebar.jsx           # Dynamic navigation with integration status
+│   │       │   ├── ThemeToggle.jsx
+│   │       │   ├── Toast.jsx             # Toast notification system
+│   │       │   └── ProtectedRoute.jsx    # Route protection for disabled integrations
 │   │       ├── configuration/            # Configuration pages
-│   │       │   ├── Configuration.jsx     # Main configuration with sticky footer
-│   │       │   └── JiraStatusConfig.jsx  # Jira status filtering interface
+│   │       │   ├── Configuration.jsx     # Main configuration with sticky footer and toast
+│   │       │   └── JiraStatusConfig.jsx  # Jira status filtering with dark mode support
 │   │       ├── jira/                     # Jira page components
-│   │       │   └── Jira.jsx              # Jira issues with status filter button
+│   │       │   └── Jira.jsx              # Jira issues with status filter navigation
 │   │       ├── github/                   # GitHub page components
 │   │       │   └── GitHub.jsx
 │   │       └── gitlab/                   # GitLab page components
@@ -160,14 +181,23 @@ devbuddy/
 
 ### Keyboard Shortcuts
 
+Keyboard shortcuts are dynamic and update automatically based on enabled integrations:
+
+**Base Navigation:**
 - `Ctrl/Cmd + 1`: Navigate to Home
 - `Ctrl/Cmd + 2`: Navigate to Shortcuts
 - `Ctrl/Cmd + 3`: Navigate to Redirects
-- `Ctrl/Cmd + 4`: Navigate to Jira
-- `Ctrl/Cmd + 5`: Navigate to GitHub
-- `Ctrl/Cmd + 6`: Navigate to GitLab
+
+**Integration Navigation (dynamic):**
+- `Ctrl/Cmd + 4`: Navigate to Jira (if enabled)
+- `Ctrl/Cmd + 5`: Navigate to GitHub (if enabled)
+- `Ctrl/Cmd + 6`: Navigate to GitLab (if enabled)
+
+**Configuration:**
 - `Ctrl/Cmd + 7`: Navigate to Configuration
 - `Escape`: Return to Home
+
+**Note:** Integration shortcuts only appear when the respective integration is enabled in settings.
 
 ## Configuration
 
@@ -225,16 +255,25 @@ app:
 
 ### Jira Status Configuration
 
-DevBuddy provides advanced status filtering for Jira:
+DevBuddy provides advanced status filtering for Jira with a dedicated configuration interface:
 
 - **Excluded Statuses**: Issues with these statuses are hidden from the dashboard
 - **Included Statuses**: When specified, only issues with these statuses are shown (whitelist mode)
-- **Status Categories**: Group statuses for better organization (future feature)
+- **Visual Status Management**: Intuitive grid interface with color coding and search
+- **Real-time Updates**: Changes apply immediately with automatic cache refresh
+- **Dark Mode Support**: Fully compatible with dark/light themes
 
 **Access Status Configuration:**
-1. **From Jira page**: Click "Status Filters" button
+1. **From Jira page**: Click "Status Filters" button in the header
 2. **From Configuration**: Click "Configure Statuses" in Jira section
 3. **Direct navigation**: Go to `/config?showJiraStatus=true`
+
+**Features:**
+- **Search & Filter**: Find statuses quickly with search functionality
+- **Visual Indicators**: Color-coded status cards (excluded/hidden/visible)
+- **Bulk Actions**: Clear all excluded or included statuses
+- **Cache Management**: Automatic Jira cache refresh after saving
+- **Toast Notifications**: Clear feedback on save operations
 
 ### Available Icons for Shortcuts
 
@@ -356,6 +395,12 @@ This creates icons for:
 - [x] Dark/light theme support
 - [x] Icon generation for all platforms
 - [x] Local redirect system
+- [x] Toast notification system
+- [x] Dynamic navigation and keyboard shortcuts
+- [x] Enhanced dashboard with integration status
+- [x] Real-time configuration updates
+- [x] Protected routes for disabled integrations
+- [x] Dark mode compatibility for all components
 - [ ] System tray integration
 - [ ] Desktop notifications
 - [ ] Auto-updates
