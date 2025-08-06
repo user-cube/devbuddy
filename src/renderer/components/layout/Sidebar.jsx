@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
   Home, 
-  Rocket,
+  Bookmark,
   Globe,
   GitBranch, 
   GitPullRequest, 
@@ -58,7 +58,7 @@ const Sidebar = ({ currentPath, isConfigured }) => {
   // Base navigation items (always visible)
   const baseNavItems = [
     { path: '/', icon: Home, label: 'Home' },
-    { path: '/shortcuts', icon: Rocket, label: 'Shortcuts' },
+    { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks' },
     { path: '/redirects', icon: Globe, label: 'Redirects' }
   ]
 

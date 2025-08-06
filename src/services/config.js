@@ -67,26 +67,76 @@ class ConfigService {
   }
 
   getDefaultShortcuts() {
-    return [
-      {
-        name: 'dev/local',
-        url: 'http://localhost:3000',
-        icon: 'rocket',
-        description: 'Local development environment'
-      },
-      {
-        name: 'staging',
-        url: 'https://staging.yourapp.com',
-        icon: 'server',
-        description: 'Staging environment'
-      },
-      {
-        name: 'production',
-        url: 'https://yourapp.com',
-        icon: 'globe',
-        description: 'Production environment'
-      }
-    ]
+    return {
+      categories: [
+        {
+          id: 'development',
+          name: 'Development',
+          icon: 'code',
+          color: '#3b82f6',
+          shortcuts: [
+            {
+              id: 'dev-local',
+              name: 'Local Dev',
+              url: 'http://localhost:3000',
+              icon: 'rocket',
+              description: 'Local development environment'
+            },
+            {
+              id: 'dev-docs',
+              name: 'Documentation',
+              url: 'http://localhost:3000/docs',
+              icon: 'book',
+              description: 'Local documentation'
+            }
+          ]
+        },
+        {
+          id: 'environments',
+          name: 'Environments',
+          icon: 'server',
+          color: '#10b981',
+          shortcuts: [
+            {
+              id: 'staging',
+              name: 'Staging',
+              url: 'https://staging.yourapp.com',
+              icon: 'server',
+              description: 'Staging environment'
+            },
+            {
+              id: 'production',
+              name: 'Production',
+              url: 'https://yourapp.com',
+              icon: 'globe',
+              description: 'Production environment'
+            }
+          ]
+        },
+        {
+          id: 'tools',
+          name: 'Tools',
+          icon: 'wrench',
+          color: '#f59e0b',
+          shortcuts: [
+            {
+              id: 'jira',
+              name: 'Jira',
+              url: 'https://jira.atlassian.net',
+              icon: 'git-branch',
+              description: 'Project management'
+            },
+            {
+              id: 'github',
+              name: 'GitHub',
+              url: 'https://github.com',
+              icon: 'git-pull-request',
+              description: 'Code repository'
+            }
+          ]
+        }
+      ]
+    }
   }
 
   ensureConfigDir() {
@@ -170,6 +220,24 @@ class ConfigService {
       const shortcutsData = fs.readFileSync(this.shortcutsPath, 'utf8')
       const shortcuts = yaml.load(shortcutsData)
       
+      // Handle migration from old format to new format
+      if (Array.isArray(shortcuts)) {
+        // Convert old array format to new categorized format
+        const migratedShortcuts = {
+          categories: [
+            {
+              id: 'general',
+              name: 'General',
+              icon: 'link',
+              color: '#6b7280',
+              shortcuts: shortcuts
+            }
+          ]
+        }
+        this.saveShortcuts(migratedShortcuts)
+        return migratedShortcuts
+      }
+      
       return shortcuts || this.getDefaultShortcuts()
     } catch (error) {
       console.error('Error loading shortcuts:', error)
@@ -199,6 +267,113 @@ class ConfigService {
 
   updateShortcuts(shortcuts) {
     return this.saveShortcuts(shortcuts)
+  }
+
+  // Helper methods for categorized shortcuts
+  getAllShortcuts() {
+    const shortcutsData = this.loadShortcuts()
+    const allShortcuts = []
+    
+    if (shortcutsData.categories) {
+      shortcutsData.categories.forEach(category => {
+        if (category.shortcuts) {
+          category.shortcuts.forEach(shortcut => {
+            allShortcuts.push({
+              ...shortcut,
+              category: category.name,
+              categoryId: category.id,
+              categoryColor: category.color
+            })
+          })
+        }
+      })
+    }
+    
+    return allShortcuts
+  }
+
+  addCategory(category) {
+    const shortcutsData = this.loadShortcuts()
+    if (!shortcutsData.categories) {
+      shortcutsData.categories = []
+    }
+    
+    // Generate unique ID if not provided
+    if (!category.id) {
+      category.id = `category-${Date.now()}`
+    }
+    
+    shortcutsData.categories.push(category)
+    return this.saveShortcuts(shortcutsData)
+  }
+
+  updateCategory(categoryId, updatedCategory) {
+    const shortcutsData = this.loadShortcuts()
+    if (shortcutsData.categories) {
+      const index = shortcutsData.categories.findIndex(cat => cat.id === categoryId)
+      if (index !== -1) {
+        shortcutsData.categories[index] = { ...shortcutsData.categories[index], ...updatedCategory }
+        return this.saveShortcuts(shortcutsData)
+      }
+    }
+    return false
+  }
+
+  deleteCategory(categoryId) {
+    const shortcutsData = this.loadShortcuts()
+    if (shortcutsData.categories) {
+      shortcutsData.categories = shortcutsData.categories.filter(cat => cat.id !== categoryId)
+      return this.saveShortcuts(shortcutsData)
+    }
+    return false
+  }
+
+  addShortcut(categoryId, shortcut) {
+    const shortcutsData = this.loadShortcuts()
+    if (shortcutsData.categories) {
+      const category = shortcutsData.categories.find(cat => cat.id === categoryId)
+      if (category) {
+        if (!category.shortcuts) {
+          category.shortcuts = []
+        }
+        
+        // Generate unique ID if not provided
+        if (!shortcut.id) {
+          shortcut.id = `shortcut-${Date.now()}`
+        }
+        
+        category.shortcuts.push(shortcut)
+        return this.saveShortcuts(shortcutsData)
+      }
+    }
+    return false
+  }
+
+  updateShortcut(categoryId, shortcutId, updatedShortcut) {
+    const shortcutsData = this.loadShortcuts()
+    if (shortcutsData.categories) {
+      const category = shortcutsData.categories.find(cat => cat.id === categoryId)
+      if (category && category.shortcuts) {
+        const index = category.shortcuts.findIndex(shortcut => shortcut.id === shortcutId)
+        if (index !== -1) {
+          category.shortcuts[index] = { ...category.shortcuts[index], ...updatedShortcut }
+          return this.saveShortcuts(shortcutsData)
+        }
+      }
+    }
+    return false
+  }
+
+  deleteShortcut(categoryId, shortcutId) {
+    const shortcutsData = this.loadShortcuts()
+    if (shortcutsData.categories) {
+      const category = shortcutsData.categories.find(cat => cat.id === categoryId)
+      if (category && category.shortcuts) {
+        category.shortcuts = category.shortcuts.filter(shortcut => shortcut.id !== shortcutId)
+        return this.saveShortcuts(shortcutsData)
+      }
+    }
+    return false
   }
 
   getJiraConfig() {

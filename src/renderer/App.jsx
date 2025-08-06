@@ -9,7 +9,7 @@ import Jira from './components/jira/Jira'
 import GitHub from './components/github/GitHub'
 import GitLab from './components/gitlab/GitLab'
 import Configuration from './components/configuration/Configuration'
-import Shortcuts from './components/shortcuts/Shortcuts'
+import Bookmarks from './components/bookmarks/Bookmarks'
 import Redirects from './components/redirects/Redirects'
 
 function App() {
@@ -166,7 +166,7 @@ function App() {
           <main className="flex-1 overflow-y-auto">
             <Routes>
               <Route path="/" element={<Home currentTime={currentTime} />} />
-              <Route path="/shortcuts" element={<Shortcuts />} />
+              <Route path="/bookmarks" element={<Bookmarks />} />
               <Route path="/redirects" element={<Redirects />} />
               <Route path="/jira" element={
                 <ProtectedRoute integration="jira">

@@ -11,10 +11,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveConfig: (config) => ipcRenderer.invoke('save-config', config),
   isConfigured: () => ipcRenderer.invoke('is-configured'),
   
-  // Shortcuts
-  getShortcuts: () => ipcRenderer.invoke('get-shortcuts'),
-  updateShortcuts: (shortcuts) => ipcRenderer.invoke('update-shortcuts', shortcuts),
-  openShortcut: (shortcut) => ipcRenderer.invoke('open-shortcut', shortcut),
+  // Bookmarks
+  getBookmarks: () => ipcRenderer.invoke('get-bookmarks'),
+  getAllBookmarks: () => ipcRenderer.invoke('get-all-bookmarks'),
+  updateBookmarks: (bookmarks) => ipcRenderer.invoke('update-bookmarks', bookmarks),
+  
+  // Category management
+  addBookmarkCategory: (category) => ipcRenderer.invoke('add-bookmark-category', category),
+  updateBookmarkCategory: (categoryId, updatedCategory) => ipcRenderer.invoke('update-bookmark-category', categoryId, updatedCategory),
+  deleteBookmarkCategory: (categoryId) => ipcRenderer.invoke('delete-bookmark-category', categoryId),
+  
+  // Bookmark management
+  addBookmark: (categoryId, bookmark) => ipcRenderer.invoke('add-bookmark', categoryId, bookmark),
+  updateBookmark: (categoryId, bookmarkId, updatedBookmark) => ipcRenderer.invoke('update-bookmark', categoryId, bookmarkId, updatedBookmark),
+  deleteBookmark: (categoryId, bookmarkId) => ipcRenderer.invoke('delete-bookmark', categoryId, bookmarkId),
+  openBookmark: (bookmarkId) => ipcRenderer.invoke('open-bookmark', bookmarkId),
+  
+  // Migration
+  migrateShortcutsToBookmarks: () => ipcRenderer.invoke('migrate-shortcuts-to-bookmarks'),
   
   // Service configurations
   getJiraConfig: () => ipcRenderer.invoke('get-jira-config'),

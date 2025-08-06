@@ -1,10 +1,10 @@
 # DevBuddy
 
-A modern desktop application to streamline your development workflow. Built with Electron, React, and Tailwind CSS, DevBuddy provides quick access to your development tools, shortcuts, and project information with intelligent caching and background data management.
+A modern desktop application to streamline your development workflow. Built with Electron, React, and Tailwind CSS, DevBuddy provides quick access to your development tools, bookmarks, and project information with intelligent caching and background data management.
 
 ## Features
 
-- **Local Shortcuts**: Quick access to your development environments (dev/local, staging, production)
+- **Local Bookmarks**: Quick access to your development environments (dev/local, staging, production)
 - **Local Redirects**: Custom domain redirects (e.g., `localhost/jira` or `devbuddy.local/jira` → `jira.atlassian.net`)
 - **Jira Integration**: View and manage your active tasks with custom status filtering
 - **GitHub Integration**: Monitor your pull requests and reviews
@@ -19,7 +19,7 @@ A modern desktop application to streamline your development workflow. Built with
 - **YAML Configuration**: Human-readable configuration stored in `~/.devbuddy/`
 - **Sticky UI Elements**: Always-accessible save buttons and navigation
 - **Toast Notifications**: Modern notification system with auto-dismiss
-- **Dynamic Navigation**: Sidebar and shortcuts update automatically based on enabled integrations
+- **Dynamic Navigation**: Sidebar and bookmarks update automatically based on enabled integrations
 - **Enhanced Dashboard**: Rich homepage with integration status, activity summary, and recent items
 - **Real-time Updates**: Configuration changes apply immediately across the application
 - **Configuration Import/Export**: Backup and share configurations with automatic backup protection
@@ -50,7 +50,7 @@ npm start
 
 On first run, DevBuddy will automatically redirect you to the configuration page where you can:
 
-1. **Configure Shortcuts**: Add your local development URLs
+1. **Configure Bookmarks**: Add your local development URLs
 2. **Set up Local Redirects**: Configure custom domain redirects (e.g., `localhost/jira` or `devbuddy.local/jira`)
 3. **Set up Jira**: Add your Jira credentials, project keys, and configure status filtering
 4. **Configure GitHub**: Add your GitHub token and organizations
@@ -232,7 +232,7 @@ Keyboard shortcuts are dynamic and update automatically based on enabled integra
 
 **Base Navigation:**
 - `Ctrl/Cmd + 1`: Navigate to Home
-- `Ctrl/Cmd + 2`: Navigate to Shortcuts
+- `Ctrl/Cmd + 2`: Navigate to Bookmarks
 - `Ctrl/Cmd + 3`: Navigate to Redirects
 
 **Integration Navigation (dynamic):**
@@ -253,14 +253,14 @@ Keyboard shortcuts are dynamic and update automatically based on enabled integra
 Configuration files are stored in `~/.devbuddy/` and are automatically created on first run:
 
 - `config.yaml` - Main configuration (Jira, GitHub, GitLab, App settings)
-- `shortcuts.yaml` - Local shortcuts configuration
+- `bookmarks.yaml` - Local bookmarks configuration
 - `redirects.yaml` - Local redirects configuration
 - `backups/` - Automatic backup directory for import operations
 
 ### Configuration Structure
 
 ```yaml
-shortcuts:
+bookmarks:
   - name: "dev/local"
     url: "http://localhost:3000"
     icon: "rocket"
@@ -323,7 +323,7 @@ DevBuddy provides advanced status filtering for Jira with a dedicated configurat
 - **Cache Management**: Automatic Jira cache refresh after saving
 - **Toast Notifications**: Clear feedback on save operations
 
-### Available Icons for Shortcuts
+### Available Icons for Bookmarks
 
 - `rocket`: For local development
 - `server`: For staging environments
@@ -426,7 +426,7 @@ This creates icons for:
 - [x] Basic Electron app structure
 - [x] React + Tailwind CSS UI
 - [x] Sidebar navigation
-- [x] Home page with time display and shortcuts
+- [x] Home page with time display and bookmarks
 - [x] Jira API integration with status filtering
 - [x] GitHub API integration
 - [x] GitLab API integration

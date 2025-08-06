@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const ConfigService = require('./services/config.js');
+const BookmarksService = require('./services/bookmarks.js');
 const RedirectorService = require('./services/redirector.js');
 const GitHubService = require('./services/github.js');
 const GitLabService = require('./services/gitlab.js');
@@ -10,6 +11,7 @@ const JiraService = require('./services/jira.js');
 
 let mainWindow;
 const configService = new ConfigService();
+const bookmarksService = new BookmarksService();
 const redirectorService = new RedirectorService();
 const githubService = new GitHubService();
 const gitlabService = new GitLabService();
@@ -378,28 +380,69 @@ ipcMain.handle('is-configured', () => {
 });
 
 // Shortcuts
-ipcMain.handle('get-shortcuts', () => {
-  return configService.getShortcuts();
+ipcMain.handle('get-bookmarks', () => {
+  return bookmarksService.getBookmarks();
 });
 
-ipcMain.handle('update-shortcuts', async (event, shortcuts) => {
-  return configService.updateShortcuts(shortcuts);
+ipcMain.handle('get-all-bookmarks', () => {
+  return bookmarksService.getAllBookmarks();
 });
 
-ipcMain.handle('open-shortcut', async (event, shortcutName) => {
+ipcMain.handle('update-bookmarks', async (event, bookmarks) => {
+  return bookmarksService.updateBookmarks(bookmarks);
+});
+
+// Category management
+ipcMain.handle('add-bookmark-category', async (event, category) => {
+  return bookmarksService.addCategory(category);
+});
+
+ipcMain.handle('update-bookmark-category', async (event, categoryId, updatedCategory) => {
+  return bookmarksService.updateCategory(categoryId, updatedCategory);
+});
+
+ipcMain.handle('delete-bookmark-category', async (event, categoryId) => {
+  return bookmarksService.deleteCategory(categoryId);
+});
+
+// Bookmark management
+ipcMain.handle('add-bookmark', async (event, categoryId, bookmark) => {
+  return bookmarksService.addBookmark(categoryId, bookmark);
+});
+
+ipcMain.handle('update-bookmark', async (event, categoryId, bookmarkId, updatedBookmark) => {
+  return bookmarksService.updateBookmark(categoryId, bookmarkId, updatedBookmark);
+});
+
+ipcMain.handle('delete-bookmark', async (event, categoryId, bookmarkId) => {
+  return bookmarksService.deleteBookmark(categoryId, bookmarkId);
+});
+
+ipcMain.handle('open-bookmark', async (event, bookmarkId) => {
   try {
-    const shortcuts = configService.getShortcuts();
-    const shortcut = shortcuts.find(s => s.name === shortcutName);
+    const bookmark = bookmarksService.getBookmarkById(bookmarkId);
     
-    if (shortcut) {
-      await shell.openExternal(shortcut.url);
-      return { success: true, message: `Opened ${shortcut.name}` };
+    if (bookmark) {
+      await shell.openExternal(bookmark.url);
+      return { success: true, message: `Opened ${bookmark.name}` };
     } else {
-      return { success: false, message: `Shortcut ${shortcutName} not found` };
+      return { success: false, message: `Bookmark ${bookmarkId} not found` };
     }
   } catch (error) {
-    console.error('Error opening shortcut:', error);
-    return { success: false, message: 'Error opening shortcut' };
+    console.error('Error opening bookmark:', error);
+    return { success: false, message: 'Error opening bookmark' };
+  }
+});
+
+// Migration from old shortcuts
+ipcMain.handle('migrate-shortcuts-to-bookmarks', async (event) => {
+  try {
+    const oldShortcuts = configService.getShortcuts();
+    const migratedBookmarks = bookmarksService.migrateFromShortcuts(oldShortcuts);
+    return { success: true, migratedBookmarks };
+  } catch (error) {
+    console.error('Error migrating shortcuts to bookmarks:', error);
+    return { success: false, error: error.message };
   }
 });
 

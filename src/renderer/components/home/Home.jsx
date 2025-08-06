@@ -22,7 +22,7 @@ import {
   WifiOff,
   ArrowRight
 } from 'lucide-react'
-import ShortcutCard from './ShortcutCard'
+import BookmarkCard from './BookmarkCard'
 
 const Home = ({ currentTime }) => {
   const [shortcuts, setShortcuts] = useState([])
@@ -162,9 +162,9 @@ const Home = ({ currentTime }) => {
       setLoading(true)
       setError(null)
       
-      // Load shortcuts first (fast, local data)
-      const shortcutsData = await window.electronAPI.getShortcuts()
-      setShortcuts(shortcutsData || [])
+      // Load bookmarks first (fast, local data)
+      const bookmarksData = await window.electronAPI.getAllBookmarks()
+      setShortcuts(bookmarksData || [])
       
       // Load data from all integrations in parallel with timeout
       const timeout = 10000 // 10 seconds timeout
@@ -290,13 +290,13 @@ const Home = ({ currentTime }) => {
     }
   }
 
-  const handleShortcutClick = async (shortcutName) => {
+  const handleBookmarkClick = async (bookmarkId) => {
     if (window.electronAPI) {
       try {
-        const result = await window.electronAPI.openShortcut(shortcutName)
-        console.log('Shortcut result:', result)
+        const result = await window.electronAPI.openBookmark(bookmarkId)
+        console.log('Bookmark result:', result)
       } catch (error) {
-        console.error('Error opening shortcut:', error)
+        console.error('Error opening bookmark:', error)
       }
     }
   }
@@ -609,19 +609,19 @@ const Home = ({ currentTime }) => {
             style={{ borderBottom: '1px solid var(--border-primary)' }}
           >
             <Link className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
-            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Quick Shortcuts</h3>
+            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Quick Bookmarks</h3>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {shortcuts.slice(0, 4).map((shortcut) => (
-              <ShortcutCard
-                key={shortcut.name}
-                shortcut={shortcut}
-                onClick={() => handleShortcutClick(shortcut.name)}
+            {shortcuts.slice(0, 4).map((bookmark) => (
+              <BookmarkCard
+                key={bookmark.id}
+                bookmark={bookmark}
+                onClick={() => handleBookmarkClick(bookmark.id)}
               />
             ))}
             {shortcuts.length === 0 && (
               <div className="col-span-2 text-center py-4" style={{ color: 'var(--text-muted)' }}>
-                No shortcuts configured
+                No bookmarks configured
               </div>
             )}
           </div>
@@ -979,13 +979,13 @@ const Home = ({ currentTime }) => {
         </div>
       </div>
 
-      {/* Additional Shortcuts */}
+      {/* Additional Bookmarks */}
       {shortcuts.length > 4 && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>All Shortcuts</h2>
+            <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>All Bookmarks</h2>
             <button
-              onClick={() => window.location.href = '/shortcuts'}
+              onClick={() => window.location.href = '/bookmarks'}
               className="text-sm px-3 py-1 rounded transition-colors flex items-center gap-1"
               style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -997,11 +997,11 @@ const Home = ({ currentTime }) => {
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {shortcuts.map((shortcut) => (
-              <ShortcutCard
-                key={shortcut.name}
-                shortcut={shortcut}
-                onClick={() => handleShortcutClick(shortcut.name)}
+            {shortcuts.map((bookmark) => (
+              <BookmarkCard
+                key={bookmark.id}
+                bookmark={bookmark}
+                onClick={() => handleBookmarkClick(bookmark.id)}
               />
             ))}
           </div>
