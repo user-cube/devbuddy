@@ -138,31 +138,34 @@ const Configuration = () => {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <Settings className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Configuration</h1>
-        </div>
+    <div className="flex flex-col h-full">
+      {/* Main Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-8">
+              <Settings className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
+              <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Configuration</h1>
+            </div>
 
-        {/* Message */}
-        {message.text && (
-          <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-            message.type === 'success' ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300'
-          }`}>
-            {message.type === 'success' ? (
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-red-600" />
+            {/* Message */}
+            {message.text && (
+              <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+                message.type === 'success' ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300'
+              }`}>
+                {message.type === 'success' ? (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                )}
+                <span className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+                  {message.text}
+                </span>
+              </div>
             )}
-            <span className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-              {message.text}
-            </span>
-          </div>
-        )}
 
-        <div className="space-y-8">
+            <div className="space-y-8">
           {/* Jira Configuration */}
           <div className="card">
             <div className="flex items-center gap-3 mb-6 pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
@@ -742,38 +745,48 @@ const Configuration = () => {
               </label>
             </div>
           </div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={clearCache}
-            className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
-            style={{
-              backgroundColor: 'rgba(107, 114, 128, 0.2)',
-              border: '1px solid rgba(107, 114, 128, 0.3)',
-              color: 'var(--text-secondary)'
-            }}
-          >
-            Clear Cache
-          </button>
-          <button
-            onClick={saveConfig}
-            disabled={saving}
-            className="btn-primary flex items-center gap-2 px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5" />
-                Save Configuration
-              </>
-            )}
-          </button>
+      {/* Sticky Footer - Action Buttons */}
+      <div className="flex-shrink-0 p-6" style={{
+        backgroundColor: 'var(--bg-primary)',
+        borderTop: '1px solid var(--border-primary)',
+        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-between items-center">
+            <button
+              onClick={clearCache}
+              className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+              style={{
+                backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                border: '1px solid rgba(107, 114, 128, 0.3)',
+                color: 'var(--text-secondary)'
+              }}
+            >
+              Clear Cache
+            </button>
+            <button
+              onClick={saveConfig}
+              disabled={saving}
+              className="btn-primary flex items-center gap-2 px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Save Configuration
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

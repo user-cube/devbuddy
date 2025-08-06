@@ -120,26 +120,29 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <button
-            onClick={onBack}
-            className="p-2 rounded-lg transition-all duration-300 hover:scale-105"
-            style={{
-              backgroundColor: 'rgba(107, 114, 128, 0.2)',
-              border: '1px solid rgba(107, 114, 128, 0.3)',
-              color: 'var(--text-secondary)'
-            }}
-          >
-            ←
-          </button>
-          <GitBranch className="w-8 h-8" style={{ color: '#3b82f6' }} />
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            Jira Status Configuration
-          </h1>
-        </div>
+    <div className="flex flex-col h-full">
+      {/* Main Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-8">
+          <div className="max-w-6xl mx-auto">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-8">
+              <button
+                onClick={onBack}
+                className="p-2 rounded-lg transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                  border: '1px solid rgba(107, 114, 128, 0.3)',
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                ←
+              </button>
+              <GitBranch className="w-8 h-8" style={{ color: '#3b82f6' }} />
+              <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                Jira Status Configuration
+              </h1>
+            </div>
 
         {/* Message */}
         {message.text && (
@@ -350,37 +353,47 @@ const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
             </p>
           </div>
         )}
+          </div>
+        </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={onBack}
-            className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
-            style={{
-              backgroundColor: 'rgba(107, 114, 128, 0.2)',
-              border: '1px solid rgba(107, 114, 128, 0.3)',
-              color: 'var(--text-secondary)'
-            }}
-          >
-            Back to Configuration
-          </button>
-          <button
-            onClick={saveStatusConfig}
-            disabled={saving}
-            className="btn-primary flex items-center gap-2 px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5" />
-                Save Configuration
-              </>
-            )}
-          </button>
+      {/* Sticky Footer - Action Buttons */}
+      <div className="flex-shrink-0 p-6" style={{
+        backgroundColor: 'var(--bg-primary)',
+        borderTop: '1px solid var(--border-primary)',
+        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center">
+            <button
+              onClick={onBack}
+              className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
+              style={{
+                backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                border: '1px solid rgba(107, 114, 128, 0.3)',
+                color: 'var(--text-secondary)'
+              }}
+            >
+              Back to Configuration
+            </button>
+            <button
+              onClick={saveStatusConfig}
+              disabled={saving}
+              className="btn-primary flex items-center gap-2 px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Save Configuration
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
