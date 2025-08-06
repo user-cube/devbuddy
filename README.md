@@ -1,11 +1,13 @@
 # DevBuddy
 
-A modern desktop application to streamline your development workflow. Built with Electron, React, and Tailwind CSS, DevBuddy provides quick access to your development tools, bookmarks, and project information with intelligent caching and background data management.
+A modern desktop application to streamline your development workflow. Built with Electron, React, and Tailwind CSS, DevBuddy provides quick access to your development tools, bookmarks, project information, and local repositories with intelligent caching and background data management.
 
 ## Features
 
 - **Local Bookmarks**: Quick access to your development environments (dev/local, staging, production)
 - **Local Redirects**: Custom domain redirects (e.g., `localhost/jira` or `devbuddy.local/jira` → `jira.atlassian.net`)
+- **Local Repository Management**: Scan and manage your local Git repositories with detailed information
+- **Editor Integration**: Open repositories in VS Code or Cursor with configurable default editor
 - **Jira Integration**: View and manage your active tasks with custom status filtering
 - **GitHub Integration**: Monitor your pull requests and reviews
 - **GitLab Integration**: Track your merge requests
@@ -71,6 +73,33 @@ On first run, DevBuddy will automatically redirect you to the configuration page
   Or manually add: `127.0.0.1 devbuddy.local`
 - **Test**: Visit `http://devbuddy.local:10000/jira` in your browser
 
+### Local Repository Management
+
+DevBuddy can scan and manage your local Git repositories:
+
+1. **Configure Repository Paths**: Add directories to scan for Git repositories
+2. **Repository Information**: View repository details including:
+   - Repository name and path
+   - Primary programming language
+   - Last modification date
+   - Git status and branch information
+   - Commit history and recent activity
+3. **Quick Actions**: 
+   - Open repository in file explorer
+   - Open repository in configured editor (VS Code or Cursor)
+4. **Editor Configuration**: Choose between VS Code and Cursor as default editor
+
+**Repository Setup:**
+1. Go to **Configuration** → **Local Repositories**
+2. Add directories to scan (e.g., `~/projects`, `~/workspace`)
+3. Configure default editor in **App Settings**
+4. View and manage repositories in the **Repositories** page
+
+**Supported Editors:**
+- **VS Code**: Uses `code` command with fallback to system default
+- **Cursor**: Uses `cursor` command with fallback to VS Code
+- **Cross-platform**: Works on macOS, Windows, and Linux
+
 ## Key Features
 
 ### 🚀 **Smart Caching System**
@@ -119,9 +148,18 @@ On first run, DevBuddy will automatically redirect you to the configuration page
 ### 📁 **Configuration Import/Export**
 - **Export Configuration**: Save all settings to JSON file with timestamp
 - **Import Configuration**: Load settings from file with automatic backup
-- **Backup Protection**: Automatic backup before each import operation
+- **Backup Protection**: Automatic backup before each import
 - **Version Compatibility**: Support for future configuration format updates
 - **Validation**: Robust error checking and format validation
+
+### 📂 **Local Repository Management**
+- **Directory Scanning**: Automatically scan configured directories for Git repositories
+- **Repository Information**: Display repository name, path, language, and last modification date
+- **Editor Integration**: Open repositories in VS Code or Cursor with configurable default
+- **File Explorer Integration**: Quick access to repository folders in system file manager
+- **Cross-platform Support**: Works seamlessly on macOS, Windows, and Linux
+- **Smart Fallbacks**: Automatic fallback to alternative editors if primary editor is unavailable
+- **Repository Statistics**: Track repository count, languages used, and modification patterns
 
 ## Development
 
@@ -156,14 +194,17 @@ devbuddy/
 │   │       │   └── Jira.jsx              # Jira issues with status filter navigation
 │   │       ├── github/                   # GitHub page components
 │   │       │   └── GitHub.jsx
-│   │       └── gitlab/                   # GitLab page components
-│   │           └── GitLab.jsx
+│   │       ├── gitlab/                   # GitLab page components
+│   │       │   └── GitLab.jsx
+│   │       └── repositories/             # Repository management components
+│   │           └── Repositories.jsx      # Repository listing with editor integration
 │   ├── services/                         # API services with caching
 │   │   ├── config.js                     # Configuration management
 │   │   ├── cache.js                      # Cache service with TTL
 │   │   ├── jira.js                       # Jira service with status filtering
 │   │   ├── github.js                     # GitHub service
 │   │   ├── gitlab.js                     # GitLab service
+│   │   ├── repositories.js               # Local repository management
 │   │   └── redirector.js                 # Local redirect service
 │   └── assets/                           # App assets
 ├── scripts/                              # Build and utility scripts
@@ -239,9 +280,10 @@ Keyboard shortcuts are dynamic and update automatically based on enabled integra
 - `Ctrl/Cmd + 4`: Navigate to Jira (if enabled)
 - `Ctrl/Cmd + 5`: Navigate to GitHub (if enabled)
 - `Ctrl/Cmd + 6`: Navigate to GitLab (if enabled)
+- `Ctrl/Cmd + 7`: Navigate to Repositories
 
 **Configuration:**
-- `Ctrl/Cmd + 7`: Navigate to Configuration
+- `Ctrl/Cmd + 8`: Navigate to Configuration
 - `Escape`: Return to Home
 
 **Note:** Integration shortcuts only appear when the respective integration is enabled in settings.
@@ -265,6 +307,11 @@ bookmarks:
     url: "http://localhost:3000"
     icon: "rocket"
     description: "Local development environment"
+
+repositories:
+  enabled: true
+  paths: ["~/projects", "~/workspace"]
+  scanInterval: 300
 
 jira:
   enabled: false
@@ -299,6 +346,7 @@ app:
   backgroundRefresh: true
   updateInterval: 300
   redirectorPort: 10000
+  defaultEditor: "vscode"  # "vscode" or "cursor"
 ```
 
 ### Jira Status Configuration
@@ -363,6 +411,38 @@ With this configuration:
 - Server runs on configurable port (default: 10000, no sudo required)
 - For `localhost` URLs: No additional setup required
 - For `devbuddy.local` URLs: `/etc/hosts` must include `127.0.0.1 devbuddy.local`
+
+### Repository Configuration
+
+Configure local repository scanning and management:
+
+```yaml
+repositories:
+  enabled: true
+  paths: ["~/projects", "~/workspace", "/path/to/other/repos"]
+  scanInterval: 300  # Scan interval in seconds
+```
+
+**Configuration Options:**
+- **enabled**: Enable/disable repository scanning
+- **paths**: Array of directories to scan for Git repositories
+- **scanInterval**: How often to rescan directories (in seconds)
+
+**Supported Path Formats:**
+- **Home directory**: `~/projects`, `~/workspace`
+- **Absolute paths**: `/Users/username/projects`, `C:\Users\username\projects`
+- **Relative paths**: `./repos`, `../workspace`
+
+**Editor Configuration:**
+```yaml
+app:
+  defaultEditor: "vscode"  # "vscode" or "cursor"
+```
+
+**Editor Fallback Chain:**
+- **macOS**: Primary editor → Secondary editor → TextEdit
+- **Windows**: Primary editor → Secondary editor → Notepad
+- **Linux**: Primary editor → Secondary editor → nano
 
 ## API Integration Setup
 
@@ -450,7 +530,15 @@ This creates icons for:
 - [x] Protected routes for disabled integrations
 - [x] Dark mode compatibility for all components
 - [x] Configuration import/export with backup protection
+- [x] Local repository management and scanning
+- [x] Editor integration (VS Code and Cursor)
+- [x] Repository information display (language, last modified, etc.)
+- [x] Quick actions for repositories (open in file explorer, open in editor)
+- [x] Configurable default editor selection
 - [ ] System tray integration
 - [ ] Desktop notifications
 - [ ] Advanced theme customization
 - [ ] Keyboard shortcuts customization
+- [ ] Repository statistics and analytics
+- [ ] Git status integration (uncommitted changes, branches)
+- [ ] Repository search and filtering
