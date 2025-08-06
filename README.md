@@ -1,19 +1,23 @@
 # DevBuddy
 
-A modern desktop application to streamline your development workflow. Built with Electron, React, and Tailwind CSS, DevBuddy provides quick access to your development tools, shortcuts, and project information.
+A modern desktop application to streamline your development workflow. Built with Electron, React, and Tailwind CSS, DevBuddy provides quick access to your development tools, shortcuts, and project information with intelligent caching and background data management.
 
 ## Features
 
 - **Local Shortcuts**: Quick access to your development environments (dev/local, staging, production)
 - **Local Redirects**: Custom domain redirects (e.g., `localhost/jira` or `devbuddy.local/jira` → `jira.atlassian.net`)
-- **Jira Integration**: View and manage your active tasks (coming soon)
-- **GitHub Integration**: Monitor your pull requests and reviews (coming soon)
-- **GitLab Integration**: Track your merge requests (coming soon)
-- **Beautiful UI**: Modern, responsive design with dark theme using Tailwind CSS
+- **Jira Integration**: View and manage your active tasks with custom status filtering
+- **GitHub Integration**: Monitor your pull requests and reviews
+- **GitLab Integration**: Track your merge requests
+- **Intelligent Caching**: Smart cache management with TTL and warm cache for faster loading
+- **Background Refresh**: Automatic data updates even when the app is minimized
+- **Custom Status Filtering**: Configure which Jira statuses to show or hide
+- **Beautiful UI**: Modern, responsive design with dark/light theme using Tailwind CSS
 - **Keyboard Shortcuts**: Quick navigation with Ctrl/Cmd + number keys
 - **Background Services**: Automatic data fetching and updates
 - **Configuration Management**: Easy setup through a beautiful configuration interface
 - **YAML Configuration**: Human-readable configuration stored in `~/.devbuddy/`
+- **Sticky UI Elements**: Always-accessible save buttons and navigation
 
 ## Installation
 
@@ -43,10 +47,10 @@ On first run, DevBuddy will automatically redirect you to the configuration page
 
 1. **Configure Shortcuts**: Add your local development URLs
 2. **Set up Local Redirects**: Configure custom domain redirects (e.g., `localhost/jira` or `devbuddy.local/jira`)
-3. **Set up Jira**: Add your Jira credentials and project keys
+3. **Set up Jira**: Add your Jira credentials, project keys, and configure status filtering
 4. **Configure GitHub**: Add your GitHub token and organizations
 5. **Set up GitLab**: Add your GitLab credentials
-6. **App Settings**: Configure theme, notifications, and update intervals
+6. **App Settings**: Configure theme, notifications, background refresh, and update intervals
 
 ### Local Redirects Setup
 
@@ -62,41 +66,79 @@ On first run, DevBuddy will automatically redirect you to the configuration page
   Or manually add: `127.0.0.1 devbuddy.local`
 - **Test**: Visit `http://devbuddy.local:10000/jira` in your browser
 
+## Key Features
+
+### 🚀 **Smart Caching System**
+- **Warm Cache**: Initial data loads are cached for 30 minutes for faster startup
+- **TTL Management**: Configurable cache expiration per service
+- **Cache Statistics**: Monitor cache performance and usage
+- **Manual Cache Control**: Clear cache per service or globally
+
+### 🔄 **Background Refresh**
+- **Automatic Updates**: Data refreshes automatically based on configured intervals
+- **Minimized Operation**: Continues working even when the app is minimized
+- **Smart Timing**: Uses the minimum refresh interval from all enabled services
+- **Manual Trigger**: Force refresh data at any time
+
+### 🎯 **Jira Status Filtering**
+- **Custom Status Configuration**: Dedicated page for managing Jira status filters
+- **Exclude Statuses**: Hide completed, closed, or irrelevant statuses
+- **Include Statuses**: Whitelist mode to show only specific statuses
+- **Visual Status Management**: Intuitive grid interface with color coding
+- **Search & Filter**: Find statuses quickly with search functionality
+- **Real-time Updates**: Changes apply immediately with cache refresh
+
+### 🎨 **Enhanced UI/UX**
+- **Sticky Footer**: Save buttons always visible without scrolling
+- **Dark/Light Theme**: Full theme support with CSS variables
+- **Responsive Design**: Works on different screen sizes
+- **Loading States**: Smooth loading indicators and transitions
+- **Error Handling**: Clear error messages and recovery options
+
 ## Development
 
 ### Project Structure
 ```
 devbuddy/
 ├── src/
-│   ├── main.js                         # Main Electron process
+│   ├── main.js                         # Main Electron process with background refresh
 │   ├── preload.js                      # Preload script for secure IPC
 │   ├── background.js                   # Background tasks and services
 │   ├── renderer/                       # React application
 │   │   ├── main.jsx                    # React entry point
-│   │   ├── App.jsx                     # Main App component
+│   │   ├── App.jsx                     # Main App component with navigation context
 │   │   ├── index.html                  # HTML template
 │   │   ├── index.css                   # Tailwind CSS imports
+│   │   ├── contexts/                   # React contexts
+│   │   │   ├── ThemeContext.jsx        # Theme management
+│   │   │   └── NavigationContext.jsx   # Navigation state management
 │   │   └── components/                 # React components (organized by feature)
 │   │       ├── home/                   # Home page components
-│   │       │   ├── Home.jsx
+│   │       │   ├── Home.jsx            # Dashboard with background refresh
 │   │       │   ├── ShortcutCard.jsx
 │   │       │   └── StatsCard.jsx
 │   │       ├── layout/                 # Layout components
-│   │       │   └── Sidebar.jsx
-│   │       ├── configuration/          # Configuration page
-│   │       │   └── Configuration.jsx
+│   │       │   ├── Sidebar.jsx
+│   │       │   └── ThemeToggle.jsx
+│   │       ├── configuration/          # Configuration pages
+│   │       │   ├── Configuration.jsx   # Main configuration with sticky footer
+│   │       │   └── JiraStatusConfig.jsx # Jira status filtering interface
 │   │       ├── jira/                   # Jira page components
-│   │       │   └── Jira.jsx
+│   │       │   └── Jira.jsx            # Jira issues with status filter button
 │   │       ├── github/                 # GitHub page components
 │   │       │   └── GitHub.jsx
 │   │       └── gitlab/                 # GitLab page components
 │   │           └── GitLab.jsx
-│   ├── services/                       # API services
+│   ├── services/                       # API services with caching
 │   │   ├── config.js                   # Configuration management
-│   │   ├── jira.js
-│   │   ├── github.js
-│   │   └── gitlab.js
+│   │   ├── cache.js                    # Cache service with TTL
+│   │   ├── jira.js                     # Jira service with status filtering
+│   │   ├── github.js                   # GitHub service
+│   │   ├── gitlab.js                   # GitLab service
+│   │   └── redirector.js               # Local redirect service
 │   └── assets/                         # App assets
+├── scripts/                            # Build and utility scripts
+│   └── generate-icons-python.py        # Icon generation for all platforms
 ├── assets/                             # Root assets directory
 ├── package.json                        # Project configuration
 ├── vite.config.js                      # Vite configuration
@@ -114,6 +156,7 @@ devbuddy/
 - `npm run build:renderer`: Build only the React app
 - `npm run dist`: Create distributable packages
 - `npm run preview`: Preview the built React app
+- `python scripts/generate-icons-python.py`: Generate app icons for all platforms
 
 ### Keyboard Shortcuts
 
@@ -151,6 +194,13 @@ jira:
   apiToken: ""
   username: ""
   projectKeys: []
+  excludedStatuses: ["Done", "Closed", "Resolved", "Cancelled"]
+  includedStatuses: []
+  statusCategories:
+    todo: ["To Do", "Open"]
+    inProgress: ["In Progress", "Development"]
+    review: ["Review", "Testing"]
+    blocked: ["Blocked", "On Hold"]
 
 github:
   enabled: false
@@ -168,9 +218,23 @@ app:
   theme: "dark"
   autoStart: false
   notifications: true
+  backgroundRefresh: true
   updateInterval: 300
   redirectorPort: 10000
 ```
+
+### Jira Status Configuration
+
+DevBuddy provides advanced status filtering for Jira:
+
+- **Excluded Statuses**: Issues with these statuses are hidden from the dashboard
+- **Included Statuses**: When specified, only issues with these statuses are shown (whitelist mode)
+- **Status Categories**: Group statuses for better organization (future feature)
+
+**Access Status Configuration:**
+1. **From Jira page**: Click "Status Filters" button
+2. **From Configuration**: Click "Configure Statuses" in Jira section
+3. **Direct navigation**: Go to `/config?showJiraStatus=true`
 
 ### Available Icons for Shortcuts
 
@@ -221,6 +285,7 @@ With this configuration:
 2. Create an API token in your profile settings
 3. Note your Jira base URL (e.g., `https://company.atlassian.net`)
 4. Add your project keys (e.g., `PROJ, DEV, BUG`)
+5. Configure status filtering to show only relevant issues
 
 ### GitHub Setup
 
@@ -237,12 +302,13 @@ With this configuration:
 ## Technology Stack
 
 - **Electron**: Desktop application framework
-- **React**: UI library
-- **Tailwind CSS**: Utility-first CSS framework
+- **React**: UI library with hooks and context
+- **Tailwind CSS**: Utility-first CSS framework with dark theme support
 - **Vite**: Build tool and dev server
 - **Lucide React**: Icon library
 - **React Router**: Client-side routing
 - **js-yaml**: YAML configuration parsing
+- **CairoSVG & Pillow**: Icon generation for multiple platforms
 
 ## Building for Distribution
 
@@ -254,17 +320,19 @@ npm run dist
 
 This will create platform-specific packages in the `dist/` directory.
 
-## Contributing
+### Icon Generation
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+Generate app icons for all platforms:
 
-## License
+```bash
+python scripts/generate-icons-python.py
+```
 
-MIT License - see LICENSE file for details.
+This creates icons for:
+- **macOS**: `.icns` files with @2x support
+- **Windows**: `.ico` files
+- **Linux**: PNG icons in various sizes
+- **Electron**: Generic PNG icons
 
 ## Roadmap
 
@@ -272,19 +340,27 @@ MIT License - see LICENSE file for details.
 - [x] React + Tailwind CSS UI
 - [x] Sidebar navigation
 - [x] Home page with time display and shortcuts
-- [x] Placeholder pages for Jira, GitHub, and GitLab
+- [x] Jira API integration with status filtering
+- [x] GitHub API integration
+- [x] GitLab API integration
 - [x] Local shortcut configuration
 - [x] Background service architecture
 - [x] YAML-based configuration system
 - [x] Configuration management interface
 - [x] Setup wizard for first-time users
 - [x] Organized component structure by feature
-- [ ] Jira API integration
-- [ ] GitHub API integration
-- [ ] GitLab API integration
+- [x] Intelligent caching system with TTL
+- [x] Background refresh for all services
+- [x] Custom Jira status filtering
+- [x] Sticky UI elements for better UX
+- [x] Dark/light theme support
+- [x] Icon generation for all platforms
+- [x] Local redirect system
 - [ ] System tray integration
-- [ ] Notifications
-- [ ] Data persistence
+- [ ] Desktop notifications
 - [ ] Auto-updates
 - [ ] Configuration import/export
-- [ ] Theme customization
+- [ ] Advanced theme customization
+- [ ] Data export/backup
+- [ ] Keyboard shortcuts customization
+- [ ] Plugin system for custom integrations
