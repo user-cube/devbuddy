@@ -2,10 +2,12 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const ConfigService = require('./services/config.js');
 const RedirectorService = require('./services/redirector.js');
+const GitHubService = require('./services/github.js');
 
 let mainWindow;
 const configService = new ConfigService();
 const redirectorService = new RedirectorService();
+const githubService = new GitHubService();
 
 function createWindow() {
   // Create the browser window
@@ -142,6 +144,16 @@ ipcMain.handle('open-shortcut', async (event, shortcutName) => {
   }
 });
 
+ipcMain.handle('open-external', async (event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    console.error('Error opening external URL:', error);
+    return { success: false, message: 'Error opening URL' };
+  }
+});
+
 // Service configurations
 ipcMain.handle('get-jira-config', () => {
   return configService.getJiraConfig();
@@ -182,8 +194,138 @@ ipcMain.handle('get-jira-tasks', async () => {
 });
 
 ipcMain.handle('get-github-prs', async () => {
-  // This will be implemented in services/github.js
-  return [];
+  try {
+    return await githubService.getPullRequests();
+  } catch (error) {
+    console.error('Error fetching GitHub PRs:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-pr-details', async (event, prNumber, repo) => {
+  try {
+    return await githubService.getPullRequestDetails(prNumber, repo);
+  } catch (error) {
+    console.error('Error fetching GitHub PR details:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-pr-reviews', async (event, prNumber, repo) => {
+  try {
+    return await githubService.getPullRequestReviews(prNumber, repo);
+  } catch (error) {
+    console.error('Error fetching GitHub PR reviews:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-pr-comments', async (event, prNumber, repo) => {
+  try {
+    return await githubService.getPullRequestComments(prNumber, repo);
+  } catch (error) {
+    console.error('Error fetching GitHub PR comments:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-pr-commits', async (event, prNumber, repo) => {
+  try {
+    return await githubService.getPullRequestCommits(prNumber, repo);
+  } catch (error) {
+    console.error('Error fetching GitHub PR commits:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-pr-files', async (event, prNumber, repo) => {
+  try {
+    return await githubService.getPullRequestFiles(prNumber, repo);
+  } catch (error) {
+    console.error('Error fetching GitHub PR files:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('review-github-pr', async (event, prNumber, repo, review) => {
+  try {
+    return await githubService.reviewPullRequest(prNumber, repo, review);
+  } catch (error) {
+    console.error('Error reviewing GitHub PR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('merge-github-pr', async (event, prNumber, repo, mergeMethod) => {
+  try {
+    return await githubService.mergePullRequest(prNumber, repo, mergeMethod);
+  } catch (error) {
+    console.error('Error merging GitHub PR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('close-github-pr', async (event, prNumber, repo) => {
+  try {
+    return await githubService.closePullRequest(prNumber, repo);
+  } catch (error) {
+    console.error('Error closing GitHub PR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-user-info', async () => {
+  try {
+    return await githubService.getUserInfo();
+  } catch (error) {
+    console.error('Error fetching GitHub user info:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-organizations', async () => {
+  try {
+    return await githubService.getOrganizations();
+  } catch (error) {
+    console.error('Error fetching GitHub organizations:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-repositories', async (event, org) => {
+  try {
+    return await githubService.getRepositories(org);
+  } catch (error) {
+    console.error('Error fetching GitHub repositories:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('search-github-prs', async (event, query) => {
+  try {
+    return await githubService.searchPullRequests(query);
+  } catch (error) {
+    console.error('Error searching GitHub PRs:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-prs-by-repo', async (event, repo, state) => {
+  try {
+    return await githubService.getPullRequestsByRepo(repo, state);
+  } catch (error) {
+    console.error('Error fetching GitHub PRs by repo:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-github-prs-by-org', async (event, org, state) => {
+  try {
+    return await githubService.getPullRequestsByOrg(org, state);
+  } catch (error) {
+    console.error('Error fetching GitHub PRs by org:', error);
+    throw error;
+  }
 });
 
 ipcMain.handle('get-gitlab-prs', async () => {

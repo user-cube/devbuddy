@@ -24,7 +24,12 @@ class ConfigService {
         enabled: false,
         apiToken: '',
         username: '',
-        organizations: []
+        organizations: [],
+        defaultOrg: '',
+        refreshInterval: 300, // 5 minutes
+        showDrafts: true,
+        showClosed: false,
+        maxResults: 50
       },
       gitlab: {
         enabled: false,
@@ -188,7 +193,22 @@ class ConfigService {
 
   getGithubConfig() {
     const config = this.loadConfig()
-    return config.github || {}
+    const githubConfig = config.github || {}
+    
+    // Ensure all required fields exist with defaults
+    const completeConfig = {
+      enabled: githubConfig.enabled || false,
+      apiToken: githubConfig.apiToken || '',
+      username: githubConfig.username || '',
+      organizations: githubConfig.organizations || [],
+      defaultOrg: githubConfig.defaultOrg || '',
+      refreshInterval: githubConfig.refreshInterval || 300,
+      showDrafts: githubConfig.showDrafts !== undefined ? githubConfig.showDrafts : true,
+      showClosed: githubConfig.showClosed || false,
+      maxResults: githubConfig.maxResults || 50
+    }
+    
+    return completeConfig
   }
 
   updateGithubConfig(githubConfig) {

@@ -31,8 +31,28 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Services
   getJiraTasks: () => ipcRenderer.invoke('get-jira-tasks'),
+  
+  // GitHub service
   getGithubPRs: () => ipcRenderer.invoke('get-github-prs'),
+  getGithubPRDetails: (prNumber, repo) => ipcRenderer.invoke('get-github-pr-details', prNumber, repo),
+  getGithubPRReviews: (prNumber, repo) => ipcRenderer.invoke('get-github-pr-reviews', prNumber, repo),
+  getGithubPRComments: (prNumber, repo) => ipcRenderer.invoke('get-github-pr-comments', prNumber, repo),
+  getGithubPRCommits: (prNumber, repo) => ipcRenderer.invoke('get-github-pr-commits', prNumber, repo),
+  getGithubPRFiles: (prNumber, repo) => ipcRenderer.invoke('get-github-pr-files', prNumber, repo),
+  reviewGithubPR: (prNumber, repo, review) => ipcRenderer.invoke('review-github-pr', prNumber, repo, review),
+  mergeGithubPR: (prNumber, repo, mergeMethod) => ipcRenderer.invoke('merge-github-pr', prNumber, repo, mergeMethod),
+  closeGithubPR: (prNumber, repo) => ipcRenderer.invoke('close-github-pr', prNumber, repo),
+  getGithubUserInfo: () => ipcRenderer.invoke('get-github-user-info'),
+  getGithubOrganizations: () => ipcRenderer.invoke('get-github-organizations'),
+  getGithubRepositories: (org) => ipcRenderer.invoke('get-github-repositories', org),
+  searchGithubPRs: (query) => ipcRenderer.invoke('search-github-prs', query),
+  getGithubPRsByRepo: (repo, state) => ipcRenderer.invoke('get-github-prs-by-repo', repo, state),
+  getGithubPRsByOrg: (org, state) => ipcRenderer.invoke('get-github-prs-by-org', org, state),
+  
   getGitlabPRs: () => ipcRenderer.invoke('get-gitlab-prs'),
+  
+  // Open external links
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
   
   // Redirector service
   getRedirects: () => ipcRenderer.invoke('get-redirects'),

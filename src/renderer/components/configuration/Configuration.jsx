@@ -201,28 +201,145 @@ const Configuration = () => {
           </div>
           
           {config?.github?.enabled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Username"
-                value={config?.github?.username || ''}
-                onChange={(e) => updateConfig('github', 'username', e.target.value)}
-                className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
-              />
-              <input
-                type="password"
-                placeholder="Personal Access Token"
-                value={config?.github?.apiToken || ''}
-                onChange={(e) => updateConfig('github', 'apiToken', e.target.value)}
-                className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Organizations (comma-separated)"
-                value={config?.github?.organizations?.join(', ') || ''}
-                onChange={(e) => updateConfig('github', 'organizations', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                className="bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-primary-500 focus:outline-none"
-              />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Username</label>
+                  <input
+                    type="text"
+                    placeholder="GitHub username"
+                    value={config?.github?.username || ''}
+                    onChange={(e) => updateConfig('github', 'username', e.target.value)}
+                    className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Personal Access Token</label>
+                  <input
+                    type="password"
+                    placeholder="GitHub Personal Access Token"
+                    value={config?.github?.apiToken || ''}
+                    onChange={(e) => updateConfig('github', 'apiToken', e.target.value)}
+                    className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                    Create a token with <code>repo</code> and <code>read:org</code> scopes
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Organizations</label>
+                  <input
+                    type="text"
+                    placeholder="org1, org2, org3"
+                    value={config?.github?.organizations?.join(', ') || ''}
+                    onChange={(e) => updateConfig('github', 'organizations', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                    className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                    Comma-separated list of organizations to monitor
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Default Organization</label>
+                  <input
+                    type="text"
+                    placeholder="Default organization"
+                    value={config?.github?.defaultOrg || ''}
+                    onChange={(e) => updateConfig('github', 'defaultOrg', e.target.value)}
+                    className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Refresh Interval (seconds)</label>
+                  <input
+                    type="number"
+                    min="60"
+                    max="3600"
+                    value={config?.github?.refreshInterval || 300}
+                    onChange={(e) => updateConfig('github', 'refreshInterval', parseInt(e.target.value))}
+                    className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Max Results</label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="100"
+                    value={config?.github?.maxResults || 50}
+                    onChange={(e) => updateConfig('github', 'maxResults', parseInt(e.target.value))}
+                    className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                    style={{
+                      backgroundColor: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                      <input
+                        type="checkbox"
+                        checked={config?.github?.showDrafts || true}
+                        onChange={(e) => updateConfig('github', 'showDrafts', e.target.checked)}
+                        className="w-4 h-4 rounded"
+                        style={{
+                          backgroundColor: 'var(--bg-tertiary)',
+                          border: '1px solid var(--border-primary)',
+                          accentColor: 'var(--accent-primary)'
+                        }}
+                      />
+                      <span className="text-sm">Show Draft PRs</span>
+                    </label>
+                    <label className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                      <input
+                        type="checkbox"
+                        checked={config?.github?.showClosed || false}
+                        onChange={(e) => updateConfig('github', 'showClosed', e.target.checked)}
+                        className="w-4 h-4 rounded"
+                        style={{
+                          backgroundColor: 'var(--bg-tertiary)',
+                          border: '1px solid var(--border-primary)',
+                          accentColor: 'var(--accent-primary)'
+                        }}
+                      />
+                      <span className="text-sm">Show Closed PRs</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

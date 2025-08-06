@@ -121,9 +121,15 @@ const Redirects = () => {
     }
   }
 
-  const testRedirect = (domain, path) => {
+  const testRedirect = async (domain, path) => {
     const url = `http://${domain}:${serverStatus.port}/${path}`
-    window.open(url, '_blank')
+    try {
+      if (window.electronAPI) {
+        await window.electronAPI.openExternal(url)
+      }
+    } catch (error) {
+      console.error('Error opening redirect URL:', error)
+    }
   }
 
   const updateRedirectPath = (domain, oldPath, newPath, targetUrl) => {
