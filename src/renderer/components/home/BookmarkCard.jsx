@@ -1,32 +1,58 @@
 import React from 'react'
 
 const BookmarkCard = ({ bookmark, onClick }) => {
-  const getIconClass = (iconName) => {
-    // Map icon names to Font Awesome classes (matching the IconSelector)
-    const iconMap = {
-      bookmark: 'fas fa-bookmark',
-      folder: 'fas fa-folder',
-      link: 'fas fa-link',
-      'external-link': 'fas fa-external-link-alt',
-      file: 'fas fa-file',
-      'file-alt': 'fas fa-file-alt',
-      'file-code': 'fas fa-file-code',
-      'file-pdf': 'fas fa-file-pdf',
-      'file-image': 'fas fa-file-image',
-      home: 'fas fa-home',
-      globe: 'fas fa-globe',
-      search: 'fas fa-search',
-      tools: 'fas fa-tools',
-      wrench: 'fas fa-wrench',
-      cog: 'fas fa-cog',
-      star: 'fas fa-star',
-      heart: 'fas fa-heart',
-      fire: 'fas fa-fire',
-      bolt: 'fas fa-bolt',
-      rocket: 'fas fa-rocket'
+  const getBookmarkIcon = (bookmark) => {
+    if (bookmark.filePath) {
+      // Get file extension and return appropriate icon
+      const fileExtension = bookmark.filePath.split('.').pop()?.toLowerCase()
+      const fileIconMap = {
+        pdf: 'fas fa-file-pdf',
+        doc: 'fas fa-file-word',
+        docx: 'fas fa-file-word',
+        xls: 'fas fa-file-excel',
+        xlsx: 'fas fa-file-excel',
+        ppt: 'fas fa-file-powerpoint',
+        pptx: 'fas fa-file-powerpoint',
+        txt: 'fas fa-file-alt',
+        md: 'fas fa-file-alt',
+        json: 'fas fa-file-code',
+        js: 'fas fa-file-code',
+        ts: 'fas fa-file-code',
+        jsx: 'fas fa-file-code',
+        tsx: 'fas fa-file-code',
+        py: 'fas fa-file-code',
+        java: 'fas fa-file-code',
+        cpp: 'fas fa-file-code',
+        c: 'fas fa-file-code',
+        h: 'fas fa-file-code',
+        css: 'fas fa-file-code',
+        html: 'fas fa-file-code',
+        xml: 'fas fa-file-code',
+        yml: 'fas fa-file-code',
+        yaml: 'fas fa-file-code',
+        png: 'fas fa-file-image',
+        jpg: 'fas fa-file-image',
+        jpeg: 'fas fa-file-image',
+        gif: 'fas fa-file-image',
+        svg: 'fas fa-file-image',
+        mp4: 'fas fa-file-video',
+        avi: 'fas fa-file-video',
+        mov: 'fas fa-file-video',
+        mp3: 'fas fa-file-audio',
+        wav: 'fas fa-file-audio',
+        zip: 'fas fa-file-archive',
+        rar: 'fas fa-file-archive',
+        tar: 'fas fa-file-archive',
+        gz: 'fas fa-file-archive'
+      }
+      return fileIconMap[fileExtension] || 'fas fa-file'
     }
-    return iconMap[iconName] || 'fas fa-bookmark'
+    
+    // For URLs, use globe icon
+    return 'fas fa-globe'
   }
+
+
 
   const truncateText = (text, maxLength = 50) => {
     if (!text) return ''
@@ -52,10 +78,20 @@ const BookmarkCard = ({ bookmark, onClick }) => {
       }
     }
     
+    // For file paths, try to keep the filename
+    if (text.includes('/') || text.includes('\\')) {
+      const fileName = text.split(/[/\\]/).pop()
+      if (fileName && fileName.length <= maxLength) {
+        return fileName
+      } else if (fileName && fileName.length > maxLength) {
+        return fileName.substring(0, maxLength - 3) + '...'
+      }
+    }
+    
     return text.substring(0, maxLength - 3) + '...'
   }
 
-  const iconClass = getIconClass(bookmark.icon)
+
 
   return (
     <button
@@ -89,8 +125,10 @@ const BookmarkCard = ({ bookmark, onClick }) => {
       
       <div className="flex flex-col items-center gap-2 text-center flex-1 justify-center">
         <i 
-          className={`${iconClass} text-xl transition-colors flex-shrink-0`}
-          style={{ color: 'var(--accent-primary)' }}
+          className={`${getBookmarkIcon(bookmark)} text-xl transition-colors flex-shrink-0`}
+          style={{ 
+            color: bookmark.filePath ? 'var(--success)' : 'var(--accent-primary)'
+          }}
         />
         <div className="w-full min-w-0">
           <span 
@@ -100,15 +138,16 @@ const BookmarkCard = ({ bookmark, onClick }) => {
           >
             {truncateText(bookmark.name, 30)}
           </span>
-          {(bookmark.description || bookmark.url) && (
+          {(bookmark.description || bookmark.url || bookmark.filePath) && (
             <span 
               className="text-xs transition-colors block truncate mt-1"
               style={{ color: 'var(--text-muted)' }}
-              title={bookmark.description || bookmark.url}
+              title={bookmark.description || bookmark.url || bookmark.filePath}
             >
-              {truncateText(bookmark.description || bookmark.url, 40)}
+              {truncateText(bookmark.description || bookmark.url || bookmark.filePath, 40)}
             </span>
           )}
+
         </div>
       </div>
     </button>

@@ -24,6 +24,57 @@ const Bookmarks = () => {
   const [showAddCategory, setShowAddCategory] = useState(false)
   const [showAddBookmark, setShowAddBookmark] = useState(null) // categoryId
 
+  const getBookmarkIcon = (bookmark) => {
+    if (bookmark.filePath) {
+      // Get file extension and return appropriate icon
+      const fileExtension = bookmark.filePath.split('.').pop()?.toLowerCase()
+      const fileIconMap = {
+        pdf: 'fas fa-file-pdf',
+        doc: 'fas fa-file-word',
+        docx: 'fas fa-file-word',
+        xls: 'fas fa-file-excel',
+        xlsx: 'fas fa-file-excel',
+        ppt: 'fas fa-file-powerpoint',
+        pptx: 'fas fa-file-powerpoint',
+        txt: 'fas fa-file-alt',
+        md: 'fas fa-file-alt',
+        json: 'fas fa-file-code',
+        js: 'fas fa-file-code',
+        ts: 'fas fa-file-code',
+        jsx: 'fas fa-file-code',
+        tsx: 'fas fa-file-code',
+        py: 'fas fa-file-code',
+        java: 'fas fa-file-code',
+        cpp: 'fas fa-file-code',
+        c: 'fas fa-file-code',
+        h: 'fas fa-file-code',
+        css: 'fas fa-file-code',
+        html: 'fas fa-file-code',
+        xml: 'fas fa-file-code',
+        yml: 'fas fa-file-code',
+        yaml: 'fas fa-file-code',
+        png: 'fas fa-file-image',
+        jpg: 'fas fa-file-image',
+        jpeg: 'fas fa-file-image',
+        gif: 'fas fa-file-image',
+        svg: 'fas fa-file-image',
+        mp4: 'fas fa-file-video',
+        avi: 'fas fa-file-video',
+        mov: 'fas fa-file-video',
+        mp3: 'fas fa-file-audio',
+        wav: 'fas fa-file-audio',
+        zip: 'fas fa-file-archive',
+        rar: 'fas fa-file-archive',
+        tar: 'fas fa-file-archive',
+        gz: 'fas fa-file-archive'
+      }
+      return fileIconMap[fileExtension] || 'fas fa-file'
+    }
+    
+    // For URLs, use globe icon
+    return 'fas fa-globe'
+  }
+
   const truncateText = (text, maxLength = 60) => {
     if (!text) return ''
     if (text.length <= maxLength) return text
@@ -214,7 +265,7 @@ const Bookmarks = () => {
             </div>
 
             {/* Categories */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {bookmarks.categories?.map((category) => (
                 <div
                   key={category.id}
@@ -226,31 +277,31 @@ const Bookmarks = () => {
                 >
                   {/* Category Header */}
                   <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleCategory(category.id)}
-                        className="p-1 rounded transition-colors hover:bg-black/10"
-                      >
-                        {expandedCategories.has(category.id) ? (
-                          <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-                        ) : (
-                          <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-                        )}
-                      </button>
-                      <div 
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: category.color || '#6b7280' }}
-                      ></div>
-                      <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {category.name}
-                      </h3>
-                      <span className="text-sm px-2 py-1 rounded-full" style={{
-                        backgroundColor: 'rgba(107, 114, 128, 0.2)',
-                        color: 'var(--text-muted)'
-                      }}>
-                        {category.bookmarks?.length || 0} bookmarks
-                      </span>
-                    </div>
+                                       <div className="flex items-center gap-3">
+                     <button
+                       onClick={() => toggleCategory(category.id)}
+                       className="p-1 rounded transition-colors hover:bg-black/10"
+                     >
+                       {expandedCategories.has(category.id) ? (
+                         <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                       ) : (
+                         <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                       )}
+                     </button>
+                     <i 
+                       className={`fas fa-${category.icon || 'folder'} text-lg`}
+                       style={{ color: category.color || '#6b7280' }}
+                     ></i>
+                     <h3 className="text-lg font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
+                       {category.name}
+                     </h3>
+                     <span className="text-sm px-3 py-1 rounded-full" style={{
+                       backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                       color: 'var(--text-muted)'
+                     }}>
+                       {category.bookmarks?.length || 0} bookmarks
+                     </span>
+                   </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setShowAddBookmark(category.id)}
@@ -291,63 +342,72 @@ const Bookmarks = () => {
                     </div>
                   </div>
 
-                  {/* Category Content */}
-                  {expandedCategories.has(category.id) && (
-                    <div className="px-4 pb-4">
+                                     {/* Category Content */}
+                   {expandedCategories.has(category.id) && (
+                     <div className="px-4 pb-6">
                       {category.bookmarks?.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {category.bookmarks.map((bookmark) => (
-                            <div
-                              key={bookmark.id}
-                              className="p-3 rounded-lg transition-all duration-300 hover:scale-105 cursor-pointer h-24 flex flex-col justify-between"
-                              style={{
-                                backgroundColor: 'var(--bg-tertiary)',
-                                border: '1px solid var(--border-primary)'
-                              }}
-                              onClick={() => handleOpenBookmark(bookmark.id)}
+                                                       <div
+                             key={bookmark.id}
+                             className="p-4 rounded-lg transition-all duration-300 hover:scale-105 cursor-pointer h-28 flex flex-col justify-between"
+                             style={{
+                               backgroundColor: 'var(--bg-tertiary)',
+                               border: '1px solid var(--border-primary)'
+                             }}
+                             onClick={() => handleOpenBookmark(bookmark.id)}
+                           >
+                             <div className="flex items-start justify-between">
+                               <div className="flex-1 min-w-0">
+                                 <div className="flex items-center gap-2 mb-1">
+                                   <i 
+                                     className={`${getBookmarkIcon(bookmark)} text-sm`}
+                                     style={{ 
+                                       color: bookmark.filePath ? 'var(--success)' : 'var(--accent-primary)'
+                                     }}
+                                   ></i>
+                                   <span 
+                                     className="text-sm font-medium block truncate" 
+                                     style={{ color: 'var(--text-primary)' }}
+                                     title={bookmark.name}
+                                   >
+                                     {truncateText(bookmark.name, 25)}
+                                   </span>
+                                 </div>
+                               </div>
+                               <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                                 <button
+                                   onClick={(e) => {
+                                     e.stopPropagation()
+                                     setEditingBookmark({ categoryId: category.id, bookmark })
+                                   }}
+                                   className="p-1.5 rounded transition-colors hover:bg-black/10"
+                                   style={{ color: 'var(--text-muted)' }}
+                                   title="Edit bookmark"
+                                 >
+                                   <Edit className="w-3.5 h-3.5" />
+                                 </button>
+                                 <button
+                                   onClick={(e) => {
+                                     e.stopPropagation()
+                                     handleDeleteBookmark(category.id, bookmark.id)
+                                   }}
+                                   className="p-1.5 rounded transition-colors hover:bg-black/10"
+                                   style={{ color: 'var(--text-muted)' }}
+                                   title="Delete bookmark"
+                                 >
+                                   <Trash2 className="w-3.5 h-3.5" />
+                                 </button>
+                               </div>
+                             </div>
+                                                          <p 
+                              className="text-xs mt-2 truncate" 
+                              style={{ color: 'var(--text-secondary)' }}
+                              title={bookmark.description || bookmark.url || bookmark.filePath}
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <span 
-                                    className="text-sm font-medium block truncate" 
-                                    style={{ color: 'var(--text-primary)' }}
-                                    title={bookmark.name}
-                                  >
-                                    {truncateText(bookmark.name, 25)}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setEditingBookmark({ categoryId: category.id, bookmark })
-                                    }}
-                                    className="p-1 rounded transition-colors hover:bg-black/10"
-                                    style={{ color: 'var(--text-muted)' }}
-                                    title="Edit bookmark"
-                                  >
-                                    <Edit className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleDeleteBookmark(category.id, bookmark.id)
-                                    }}
-                                    className="p-1 rounded transition-colors hover:bg-black/10"
-                                    style={{ color: 'var(--text-muted)' }}
-                                    title="Delete bookmark"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </div>
-                              <p 
-                                className="text-xs mt-2 truncate" 
-                                style={{ color: 'var(--text-secondary)' }}
-                                title={bookmark.description || bookmark.url}
-                              >
-                                {truncateText(bookmark.description || bookmark.url, 50)}
-                              </p>
+                              {truncateText(bookmark.description || bookmark.url || bookmark.filePath, 50)}
+                            </p>
+
                             </div>
                           ))}
                         </div>
@@ -551,14 +611,43 @@ const BookmarkModal = ({ categoryId, bookmark, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: bookmark?.name || '',
     url: bookmark?.url || '',
+    filePath: bookmark?.filePath || '',
     icon: bookmark?.icon || 'bookmark',
     description: bookmark?.description || ''
   })
+  const [bookmarkType, setBookmarkType] = useState(bookmark?.filePath ? 'file' : 'url')
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (formData.name.trim() && formData.url.trim()) {
-      onSave(formData)
+    if (formData.name.trim()) {
+      if (bookmarkType === 'url' && formData.url.trim()) {
+        onSave({ ...formData, filePath: '' })
+      } else if (bookmarkType === 'file' && formData.filePath.trim()) {
+        onSave({ ...formData, url: '' })
+      } else {
+        // Show error message
+        alert(bookmarkType === 'url' ? 'Please enter a valid URL' : 'Please select a file')
+      }
+    } else {
+      alert('Please enter a name for the bookmark')
+    }
+  }
+
+  const handleSelectFile = async () => {
+    try {
+      if (window.electronAPI) {
+        const result = await window.electronAPI.selectFile()
+        if (result.success) {
+          setFormData({
+            ...formData,
+            filePath: result.filePath,
+            url: '', // Clear URL when file is selected
+            name: formData.name || result.fileName
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error selecting file:', error)
     }
   }
 
@@ -594,19 +683,91 @@ const BookmarkModal = ({ categoryId, bookmark, onSave, onCancel }) => {
               required
             />
           </div>
+          
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
-              URL
+              Type
             </label>
-            <input
-              type="url"
-              value={formData.url}
-              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-              className="w-full rounded-lg px-3 py-2"
-              placeholder="https://example.com"
-              required
-            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setBookmarkType('url')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
+                  bookmarkType === 'url' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                }`}
+              >
+                🌐 URL
+              </button>
+              <button
+                type="button"
+                onClick={() => setBookmarkType('file')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
+                  bookmarkType === 'file' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                }`}
+              >
+                📁 File
+              </button>
+            </div>
+            <p className="text-xs mt-2 px-3 py-2 rounded-lg" style={{ 
+              color: 'var(--text-muted)',
+              backgroundColor: 'rgba(107, 114, 128, 0.1)',
+              border: '1px solid rgba(107, 114, 128, 0.2)'
+            }}>
+              {bookmarkType === 'url' 
+                ? '🌐 URLs will open in your default browser' 
+                : '📁 Files will open with their default system application'
+              }
+            </p>
           </div>
+
+          {bookmarkType === 'url' ? (
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                URL
+              </label>
+              <input
+                type="url"
+                value={formData.url}
+                onChange={(e) => setFormData({ ...formData, url: e.target.value, filePath: '' })}
+                className="w-full rounded-lg px-3 py-2"
+                placeholder="https://example.com"
+                required={bookmarkType === 'url'}
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                File
+              </label>
+              <div className="flex gap-2">
+                                 <input
+                   type="text"
+                   value={formData.filePath}
+                   onChange={(e) => setFormData({ ...formData, filePath: e.target.value, url: '' })}
+                   className="flex-1 rounded-lg px-3 py-2"
+                   placeholder="Click Browse to select a file..."
+                   readOnly
+                   required={bookmarkType === 'file'}
+                 />
+                                 <button
+                   type="button"
+                   onClick={handleSelectFile}
+                   className="px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+                   style={{
+                     backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                     border: '1px solid rgba(59, 130, 246, 0.3)',
+                     color: 'var(--accent-primary)'
+                   }}
+                 >
+                   📁 Browse
+                 </button>
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
               Icon

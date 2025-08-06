@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateBookmark: (categoryId, bookmarkId, updatedBookmark) => ipcRenderer.invoke('update-bookmark', categoryId, bookmarkId, updatedBookmark),
   deleteBookmark: (categoryId, bookmarkId) => ipcRenderer.invoke('delete-bookmark', categoryId, bookmarkId),
   openBookmark: (bookmarkId) => ipcRenderer.invoke('open-bookmark', bookmarkId),
+  selectFile: () => ipcRenderer.invoke('select-file'),
   
   // Migration
   migrateShortcutsToBookmarks: () => ipcRenderer.invoke('migrate-shortcuts-to-bookmarks'),

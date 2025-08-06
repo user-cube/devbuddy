@@ -423,8 +423,17 @@ ipcMain.handle('open-bookmark', async (event, bookmarkId) => {
     const bookmark = bookmarksService.getBookmarkById(bookmarkId);
     
     if (bookmark) {
-      await shell.openExternal(bookmark.url);
-      return { success: true, message: `Opened ${bookmark.name}` };
+      if (bookmark.filePath) {
+        // Open local file with default system application
+        await shell.openPath(bookmark.filePath);
+        return { success: true, message: `Opened file: ${bookmark.name}` };
+      } else if (bookmark.url) {
+        // Open URL in default browser
+        await shell.openExternal(bookmark.url);
+        return { success: true, message: `Opened ${bookmark.name} in browser` };
+      } else {
+        return { success: false, message: 'Bookmark has no URL or file path' };
+      }
     } else {
       return { success: false, message: `Bookmark ${bookmarkId} not found` };
     }
@@ -453,6 +462,28 @@ ipcMain.handle('open-external', async (event, url) => {
   } catch (error) {
     console.error('Error opening external URL:', error);
     return { success: false, message: 'Error opening URL' };
+  }
+});
+
+ipcMain.handle('select-file', async (event) => {
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      title: 'Select a file to bookmark'
+    });
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      return { 
+        success: true, 
+        filePath: result.filePaths[0],
+        fileName: path.basename(result.filePaths[0])
+      };
+    } else {
+      return { success: false, message: 'No file selected' };
+    }
+  } catch (error) {
+    console.error('Error selecting file:', error);
+    return { success: false, message: 'Error selecting file' };
   }
 });
 
