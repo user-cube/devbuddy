@@ -17,11 +17,18 @@ build/
 .env.production.local
 
 # IDE files
-.vscode/
+.vscode/**
+!.vscode/settings.json
+
+
+
 .idea/
 *.swp
 *.swo
 *~
+
+# Husky
+.husky/
 
 # OS generated files
 .DS_Store
