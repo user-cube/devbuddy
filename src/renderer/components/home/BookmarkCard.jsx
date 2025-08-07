@@ -86,7 +86,7 @@ const BookmarkCard = ({ bookmark, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="group relative w-full h-32 rounded-xl p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col"
+      className="group relative w-full h-32 rounded-xl p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col overflow-hidden"
       style={{
         background: 'linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary))',
         border: '1px solid var(--border-primary)'
@@ -100,21 +100,8 @@ const BookmarkCard = ({ bookmark, onClick }) => {
         e.target.style.borderColor = 'var(--border-primary)'
       }}
     >
-      {/* Category Badge */}
-      {bookmark.category && (
-        <div 
-          className="absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium"
-          style={{
-            backgroundColor: bookmark.categoryColor ? `${bookmark.categoryColor}20` : 'rgba(107, 114, 128, 0.2)',
-            color: bookmark.categoryColor || 'var(--text-muted)'
-          }}
-        >
-          {bookmark.category}
-        </div>
-      )}
-      
       {/* Content */}
-      <div className="flex items-start gap-3 h-full">
+      <div className="flex items-start gap-3 h-full pb-8">
         {/* Icon */}
         <div className="flex-shrink-0 mt-1">
           <i 
@@ -146,6 +133,21 @@ const BookmarkCard = ({ bookmark, onClick }) => {
           )}
         </div>
       </div>
+
+      {/* Category Badge - Positioned at bottom right */}
+      {bookmark.category && (
+        <div 
+          className="absolute bottom-2 right-2 px-2 py-1 rounded-full text-xs font-medium max-w-[calc(100%-1rem)]"
+          style={{
+            backgroundColor: bookmark.categoryColor ? `${bookmark.categoryColor}20` : 'rgba(107, 114, 128, 0.2)',
+            color: bookmark.categoryColor || 'var(--text-muted)'
+          }}
+        >
+          <span className="block truncate" title={bookmark.category}>
+            {bookmark.category}
+          </span>
+        </div>
+      )}
     </button>
   )
 }

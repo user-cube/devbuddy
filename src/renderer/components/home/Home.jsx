@@ -25,7 +25,8 @@ import {
   Settings,
   Zap,
   Star,
-  Heart
+  Heart,
+  Folder
 } from 'lucide-react'
 import BookmarkCard from './BookmarkCard'
 
@@ -36,7 +37,8 @@ const Home = ({ currentTime }) => {
   const [stats, setStats] = useState({
     jira: { total: 0, assigned: 0, inProgress: 0, highPriority: 0 },
     github: { total: 0, assigned: 0, reviewing: 0, draft: 0 },
-    gitlab: { total: 0, assigned: 0, reviewing: 0, draft: 0 }
+    gitlab: { total: 0, assigned: 0, reviewing: 0, draft: 0 },
+    repositories: { total: 0 }
   })
   const [recentItems, setRecentItems] = useState({
     jira: [],
@@ -53,7 +55,8 @@ const Home = ({ currentTime }) => {
   const [activeIntegrations, setActiveIntegrations] = useState({
     jira: false,
     github: false,
-    gitlab: false
+    gitlab: false,
+    repositories: false
   })
 
   useEffect(() => {
@@ -121,11 +124,13 @@ const Home = ({ currentTime }) => {
     try {
       if (window.electronAPI) {
         const configData = await window.electronAPI.getConfig();
+        const repositoriesConfig = await window.electronAPI.getRepositoriesConfig();
         setConfig(configData);
         setActiveIntegrations({
           jira: configData?.jira?.enabled || false,
           github: configData?.github?.enabled || false,
-          gitlab: configData?.gitlab?.enabled || false
+          gitlab: configData?.gitlab?.enabled || false,
+          repositories: repositoriesConfig?.enabled || false
         });
       }
     } catch (error) {
@@ -153,6 +158,10 @@ const Home = ({ currentTime }) => {
         }),
         loadGitLabData().catch(err => {
           console.error('GitLab load failed:', err)
+          return null
+        }),
+        loadRepositoriesData().catch(err => {
+          console.error('Repositories load failed:', err)
           return null
         })
       ]
@@ -259,6 +268,27 @@ const Home = ({ currentTime }) => {
     }
   }
 
+  const loadRepositoriesData = async () => {
+    try {
+      const config = await window.electronAPI.getRepositoriesConfig()
+      if (config.enabled) {
+        const repos = await window.electronAPI.getRepositories()
+        setStats(prev => ({
+          ...prev,
+          repositories: {
+            total: repos.length
+          }
+        }))
+        setRecentItems(prev => ({
+          ...prev,
+          repositories: repos.slice(0, 3)
+        }))
+      }
+    } catch (error) {
+      console.error('Error loading repositories data:', error)
+    }
+  }
+
   const handleBookmarkClick = async (bookmarkId) => {
     if (window.electronAPI) {
       try {
@@ -280,6 +310,9 @@ const Home = ({ currentTime }) => {
         await window.electronAPI.openExternal(item.html_url)
       } else if (type === 'gitlab') {
         await window.electronAPI.openExternal(item.web_url)
+      } else if (type === 'repositories') {
+        // For repositories, we can open the folder in file explorer
+        await window.electronAPI.openRepository(item.path)
       }
     } catch (error) {
       console.error('Error opening item:', error)
@@ -301,6 +334,8 @@ const Home = ({ currentTime }) => {
       if (item.work_in_progress) return <ClockIcon className="w-4 h-4 text-yellow-500" />
       if (item.merged_at) return <CheckCircle className="w-4 h-4 text-green-500" />
       return <GitMerge className="w-4 h-4 text-orange-500" />
+    } else if (type === 'repositories') {
+      return <Folder className="w-4 h-4 text-purple-500" />
     }
   }
 
@@ -343,6 +378,9 @@ const Home = ({ currentTime }) => {
         break
       case 'gitlab':
         window.location.hash = '#/gitlab'
+        break
+      case 'repositories':
+        window.location.hash = '#/repositories'
         break
       case 'overview':
       case 'assigned':
@@ -398,6 +436,7 @@ const Home = ({ currentTime }) => {
   const totalAssigned = stats.jira.assigned + stats.github.assigned + stats.gitlab.assigned
   const totalReviewing = stats.github.reviewing + stats.gitlab.reviewing
   const totalHighPriority = stats.jira.highPriority
+  const totalRepositories = stats.repositories.total
 
   return (
     <div className="min-h-screen p-6">
@@ -461,7 +500,7 @@ const Home = ({ currentTime }) => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <div 
           className="p-6 rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
           style={{
@@ -533,15 +572,33 @@ const Home = ({ currentTime }) => {
             <Flag className="w-8 h-8" style={{ color: 'var(--error)' }} />
           </div>
         </div>
+
+        <div 
+          className="p-6 rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+          style={{
+            background: 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary))',
+            border: '1px solid var(--border-primary)',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}
+          onClick={() => handleQuickAction('repositories')}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Repositories</p>
+              <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{totalRepositories}</p>
+            </div>
+            <Folder className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
+          </div>
+        </div>
       </div>
 
       {/* Integration Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {['jira', 'github', 'gitlab'].map((integration) => {
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        {['jira', 'github', 'gitlab', 'repositories'].map((integration) => {
           const status = getIntegrationStatus(integration)
           const IconComponent = status.icon
-          const integrationNames = { jira: 'Jira', github: 'GitHub', gitlab: 'GitLab' }
-          const integrationIcons = { jira: GitBranch, github: GitPullRequest, gitlab: GitMerge }
+          const integrationNames = { jira: 'Jira', github: 'GitHub', gitlab: 'GitLab', repositories: 'Repositories' }
+          const integrationIcons = { jira: GitBranch, github: GitPullRequest, gitlab: GitMerge, repositories: Folder }
           const IntegrationIcon = integrationIcons[integration]
           
           return (
@@ -778,7 +835,45 @@ const Home = ({ currentTime }) => {
               </div>
             )}
 
-            {!activeIntegrations.jira && !activeIntegrations.github && !activeIntegrations.gitlab && (
+            {/* Repositories */}
+            {activeIntegrations.repositories && recentItems.repositories.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Folder className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                  <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Repositories</span>
+                </div>
+                <div className="space-y-2">
+                  {recentItems.repositories.slice(0, 2).map((repo) => (
+                    <div
+                      key={repo.id}
+                      className="p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                      style={{
+                        backgroundColor: 'var(--bg-tertiary)',
+                        border: '1px solid var(--border-primary)'
+                      }}
+                      onClick={() => openItem(repo, 'repositories')}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            {getStatusIcon(repo, 'repositories')}
+                            <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                              {repo.name}
+                            </span>
+                          </div>
+                                                     <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                             {repo.path}
+                           </p>
+                        </div>
+                        <ExternalLink className="w-3 h-3 opacity-50 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!activeIntegrations.jira && !activeIntegrations.github && !activeIntegrations.gitlab && !activeIntegrations.repositories && (
               <div className="text-center py-8">
                 <Settings className="w-12 h-12 mx-auto mb-3 opacity-50" style={{ color: 'var(--text-muted)' }} />
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>

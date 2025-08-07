@@ -1,149 +1,149 @@
-import React, { useState, useEffect } from 'react'
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { ThemeProvider } from './contexts/ThemeContext'
-import { NavigationProvider } from './contexts/NavigationContext'
-import Sidebar from './components/layout/Sidebar'
-import ProtectedRoute from './components/layout/ProtectedRoute'
-import Home from './components/home/Home'
-import Jira from './components/jira/Jira'
-import GitHub from './components/github/GitHub'
-import GitLab from './components/gitlab/GitLab'
-import Configuration from './components/configuration/Configuration'
-import Bookmarks from './components/bookmarks/Bookmarks'
-import Redirects from './components/redirects/Redirects'
-import Repositories from './components/repositories/Repositories'
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { NavigationProvider } from './contexts/NavigationContext';
+import Sidebar from './components/layout/Sidebar';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+import Home from './components/home/Home';
+import Jira from './components/jira/Jira';
+import GitHub from './components/github/GitHub';
+import GitLab from './components/gitlab/GitLab';
+import Configuration from './components/configuration/Configuration';
+import Bookmarks from './components/bookmarks/Bookmarks';
+import Redirects from './components/redirects/Redirects';
+import Repositories from './components/repositories/Repositories';
 
-function App() {
-  const [currentTime, setCurrentTime] = useState('')
-  const [isConfigured, setIsConfigured] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [config, setConfig] = useState(null)
-  const navigate = useNavigate()
-  const location = useLocation()
+function App () {
+  const [currentTime, setCurrentTime] = useState('');
+  const [isConfigured, setIsConfigured] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [config, setConfig] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Check if app is configured and load config
     const checkConfiguration = async () => {
       try {
         if (window.electronAPI) {
-          const configured = await window.electronAPI.isConfigured()
-          setIsConfigured(configured)
-          
+          const configured = await window.electronAPI.isConfigured();
+          setIsConfigured(configured);
+
           // Load configuration for dynamic navigation
-          const configData = await window.electronAPI.getConfig()
-          setConfig(configData)
-          
+          const configData = await window.electronAPI.getConfig();
+          setConfig(configData);
+
           // Only redirect to config if we're on the home page and not configured
           if (!configured && location.pathname === '/') {
-            navigate('/config')
+            navigate('/config');
           }
         }
-      } catch (error) {
-        console.error('Error checking configuration:', error)
+      } catch {
+        // Error checking configuration
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    checkConfiguration()
+    checkConfiguration();
 
     // Listen for configuration changes
     const handleConfigChange = async () => {
       try {
         if (window.electronAPI) {
-          const configData = await window.electronAPI.getConfig()
-          setConfig(configData)
-          
+          const configData = await window.electronAPI.getConfig();
+          setConfig(configData);
+
           // Redirect if user is on a disabled integration page
-          const currentPath = location.pathname
+          const currentPath = location.pathname;
           if (currentPath === '/jira' && !configData?.jira?.enabled) {
-            navigate('/')
+            navigate('/');
           } else if (currentPath === '/github' && !configData?.github?.enabled) {
-            navigate('/')
+            navigate('/');
           } else if (currentPath === '/gitlab' && !configData?.gitlab?.enabled) {
-            navigate('/')
+            navigate('/');
           }
         }
-      } catch (error) {
-        console.error('Error updating config after change:', error)
+      } catch {
+        // Error updating config after change
       }
-    }
+    };
 
-    window.addEventListener('config-changed', handleConfigChange)
+    window.addEventListener('config-changed', handleConfigChange);
 
     return () => {
-      window.removeEventListener('config-changed', handleConfigChange)
-    }
-  }, [navigate, location.pathname])
+      window.removeEventListener('config-changed', handleConfigChange);
+    };
+  }, [navigate, location.pathname]);
 
   useEffect(() => {
     // Listen for app initialization events
-    const handleAppInitialized = (event, data) => {
-      console.log('App initialization completed:', data)
+    const handleAppInitialized = (_event, _data) => {
+      // App initialization completed
       // You can add additional logic here if needed
-    }
+    };
 
     if (window.electronAPI) {
-      window.electronAPI.onAppInitialized(handleAppInitialized)
+      window.electronAPI.onAppInitialized(handleAppInitialized);
     }
 
     return () => {
       if (window.electronAPI) {
-        window.electronAPI.removeAppInitializedListener(handleAppInitialized)
+        window.electronAPI.removeAppInitializedListener(handleAppInitialized);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
     // Update time every second
     const updateTime = () => {
       if (window.electronAPI) {
         window.electronAPI.getCurrentTime().then(time => {
-          setCurrentTime(time)
+          setCurrentTime(time);
         }).catch(() => {
-          setCurrentTime(new Date().toLocaleString())
-        })
+          setCurrentTime(new Date().toLocaleString());
+        });
       } else {
-        setCurrentTime(new Date().toLocaleString())
+        setCurrentTime(new Date().toLocaleString());
       }
-    }
+    };
 
-    updateTime()
-    const interval = setInterval(updateTime, 1000)
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   // Dynamic keyboard shortcuts based on enabled integrations
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '7') {
-        e.preventDefault()
-        
+        e.preventDefault();
+
         // Build dynamic routes array based on enabled integrations
-        const baseRoutes = ['/', '/shortcuts', '/redirects']
-        const integrationRoutes = []
-        
-        if (config?.jira?.enabled) integrationRoutes.push('/jira')
-        if (config?.github?.enabled) integrationRoutes.push('/github')
-        if (config?.gitlab?.enabled) integrationRoutes.push('/gitlab')
-        
-        const routes = [...baseRoutes, ...integrationRoutes, '/config']
-        const index = parseInt(e.key) - 1
-        
+        const baseRoutes = ['/', '/shortcuts', '/redirects'];
+        const integrationRoutes = [];
+
+        if (config?.jira?.enabled) integrationRoutes.push('/jira');
+        if (config?.github?.enabled) integrationRoutes.push('/github');
+        if (config?.gitlab?.enabled) integrationRoutes.push('/gitlab');
+
+        const routes = [...baseRoutes, ...integrationRoutes, '/config'];
+        const index = parseInt(e.key) - 1;
+
         if (index < routes.length) {
-          navigate(routes[index])
+          navigate(routes[index]);
         }
       }
-      
-      if (e.key === 'Escape') {
-        navigate('/')
-      }
-    }
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [navigate, config])
+      if (e.key === 'Escape') {
+        navigate('/');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navigate, config]);
 
   if (loading) {
     return (
@@ -155,7 +155,7 @@ function App() {
           </div>
         </div>
       </ThemeProvider>
-    )
+    );
   }
 
   return (
@@ -163,7 +163,7 @@ function App() {
       <NavigationProvider>
         <div className="flex h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
           <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
-          
+
           <main className="flex-1 overflow-y-auto">
             <Routes>
               <Route path="/" element={<Home currentTime={currentTime} />} />
@@ -195,7 +195,7 @@ function App() {
         </div>
       </NavigationProvider>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App 
+export default App;

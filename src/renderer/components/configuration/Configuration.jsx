@@ -66,14 +66,22 @@ const Configuration = () => {
     
     try {
       if (window.electronAPI) {
-        await Promise.all([
+        const [configResult, reposResult] = await Promise.all([
           window.electronAPI.saveConfig(config),
           window.electronAPI.updateRepositoriesConfig(repositoriesConfig)
         ])
-        setMessage({ type: 'success', text: 'Configuration saved successfully!' })
         
-        // Dispatch event to notify other components about config changes
-        window.dispatchEvent(new CustomEvent('config-changed'))
+        // Check if both operations were successful
+        if (configResult?.success && reposResult?.success) {
+          setMessage({ type: 'success', text: 'Configuration saved successfully!' })
+          
+          // Dispatch event to notify other components about config changes
+          window.dispatchEvent(new CustomEvent('config-changed'))
+        } else {
+          throw new Error('One or more save operations failed')
+        }
+      } else {
+        throw new Error('Electron API not available')
       }
     } catch (error) {
       console.error('Error saving config:', error)
@@ -789,8 +797,7 @@ const Configuration = () => {
       {/* Toast Messages */}
       {message.text && (
         <Toast
-          type={message.type}
-          message={message.text}
+          message={message}
           onClose={() => setMessage({ type: '', text: '' })}
         />
       )}

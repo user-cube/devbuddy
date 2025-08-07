@@ -1,21 +1,21 @@
-const http = require('http')
-const url = require('url')
-const fs = require('fs')
-const path = require('path')
-const os = require('os')
-const yaml = require('js-yaml')
+const http = require('http');
+const url = require('url');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const yaml = require('js-yaml');
 
 class RedirectorService {
-  constructor() {
-    this.configDir = path.join(os.homedir(), '.devbuddy')
-    this.redirectsPath = path.join(this.configDir, 'redirects.yaml')
-    this.configPath = path.join(this.configDir, 'config.yaml')
-    this.server = null
-    this.port = this.getPortFromConfig()
-    this.defaultRedirects = this.getDefaultRedirects()
+  constructor () {
+    this.configDir = path.join(os.homedir(), '.devbuddy');
+    this.redirectsPath = path.join(this.configDir, 'redirects.yaml');
+    this.configPath = path.join(this.configDir, 'config.yaml');
+    this.server = null;
+    this.port = this.getPortFromConfig();
+    this.defaultRedirects = this.getDefaultRedirects();
   }
 
-  getDefaultRedirects() {
+  getDefaultRedirects () {
     return {
       'localhost': {
         'jira': 'https://jira.atlassian.net',
@@ -31,125 +31,125 @@ class RedirectorService {
         'staging': 'https://staging.yourapp.com',
         'prod': 'https://yourapp.com'
       }
-    }
+    };
   }
 
-  loadRedirects() {
+  loadRedirects () {
     try {
-      this.ensureConfigDir()
-      
+      this.ensureConfigDir();
+
       if (!fs.existsSync(this.redirectsPath)) {
-        this.saveRedirects(this.defaultRedirects)
-        return this.defaultRedirects
+        this.saveRedirects(this.defaultRedirects);
+        return this.defaultRedirects;
       }
 
-      const redirectsData = fs.readFileSync(this.redirectsPath, 'utf8')
-      const redirects = yaml.load(redirectsData)
-      
-      return redirects || this.defaultRedirects
+      const redirectsData = fs.readFileSync(this.redirectsPath, 'utf8');
+      const redirects = yaml.load(redirectsData);
+
+      return redirects || this.defaultRedirects;
     } catch (error) {
-      console.error('Error loading redirects:', error)
-      return this.defaultRedirects
+      console.error('Error loading redirects:', error);
+      return this.defaultRedirects;
     }
   }
 
-  saveRedirects(redirects) {
+  saveRedirects (redirects) {
     try {
-      this.ensureConfigDir()
-      const yamlData = yaml.dump(redirects, { 
+      this.ensureConfigDir();
+      const yamlData = yaml.dump(redirects, {
         indent: 2,
         lineWidth: 120,
         noRefs: true
-      })
-      fs.writeFileSync(this.redirectsPath, yamlData, 'utf8')
-      return true
+      });
+      fs.writeFileSync(this.redirectsPath, yamlData, 'utf8');
+      return true;
     } catch (error) {
-      console.error('Error saving redirects:', error)
-      return false
+      console.error('Error saving redirects:', error);
+      return false;
     }
   }
 
-  ensureConfigDir() {
+  ensureConfigDir () {
     if (!fs.existsSync(this.configDir)) {
-      fs.mkdirSync(this.configDir, { recursive: true })
+      fs.mkdirSync(this.configDir, { recursive: true });
     }
   }
 
-  getPortFromConfig() {
+  getPortFromConfig () {
     try {
       if (fs.existsSync(this.configPath)) {
-        const configData = fs.readFileSync(this.configPath, 'utf8')
-        const config = yaml.load(configData)
-        return config?.app?.redirectorPort || 10000
+        const configData = fs.readFileSync(this.configPath, 'utf8');
+        const config = yaml.load(configData);
+        return config?.app?.redirectorPort || 10000;
       }
     } catch (error) {
-      console.error('Error reading port from config:', error)
+      console.error('Error reading port from config:', error);
     }
-    return 10000 // Default port
+    return 10000; // Default port
   }
 
-  getRedirects() {
-    return this.loadRedirects()
+  getRedirects () {
+    return this.loadRedirects();
   }
 
-  updateRedirects(redirects) {
-    return this.saveRedirects(redirects)
+  updateRedirects (redirects) {
+    return this.saveRedirects(redirects);
   }
 
-  addRedirect(domain, path, targetUrl) {
-    const redirects = this.loadRedirects()
-    
+  addRedirect (domain, path, targetUrl) {
+    const redirects = this.loadRedirects();
+
     if (!redirects[domain]) {
-      redirects[domain] = {}
+      redirects[domain] = {};
     }
-    
-    redirects[domain][path] = targetUrl
-    return this.saveRedirects(redirects)
+
+    redirects[domain][path] = targetUrl;
+    return this.saveRedirects(redirects);
   }
 
-  removeRedirect(domain, path) {
-    const redirects = this.loadRedirects()
-    
+  removeRedirect (domain, path) {
+    const redirects = this.loadRedirects();
+
     if (redirects[domain] && redirects[domain][path]) {
-      delete redirects[domain][path]
-      
+      delete redirects[domain][path];
+
       // Remove domain if empty
       if (Object.keys(redirects[domain]).length === 0) {
-        delete redirects[domain]
+        delete redirects[domain];
       }
-      
-      return this.saveRedirects(redirects)
+
+      return this.saveRedirects(redirects);
     }
-    
-    return false
+
+    return false;
   }
 
-  startServer() {
+  startServer () {
     return new Promise((resolve, reject) => {
       if (this.server) {
-        console.log('Redirector server already running')
-        resolve()
-        return
+        console.log('Redirector server already running');
+        resolve();
+        return;
       }
 
       this.server = http.createServer((req, res) => {
-        const parsedUrl = url.parse(req.url, true)
-        const host = req.headers.host
-        const pathname = parsedUrl.pathname.slice(1) // Remove leading slash
-        
-        console.log(`Redirect request: ${host}${req.url}`)
-        
-        const redirects = this.loadRedirects()
-        const domain = host.split(':')[0] // Remove port if present
-        
+        const parsedUrl = url.parse(req.url, true);
+        const host = req.headers.host;
+        const pathname = parsedUrl.pathname.slice(1); // Remove leading slash
+
+        console.log(`Redirect request: ${host}${req.url}`);
+
+        const redirects = this.loadRedirects();
+        const domain = host.split(':')[0]; // Remove port if present
+
         if (redirects[domain] && redirects[domain][pathname]) {
-          const targetUrl = redirects[domain][pathname]
-          console.log(`Redirecting ${host}${req.url} to ${targetUrl}`)
-          
+          const targetUrl = redirects[domain][pathname];
+          console.log(`Redirecting ${host}${req.url} to ${targetUrl}`);
+
           res.writeHead(302, {
             'Location': targetUrl,
             'Content-Type': 'text/html'
-          })
+          });
           res.end(`
             <!DOCTYPE html>
             <html lang="en">
@@ -284,17 +284,17 @@ class RedirectorService {
               </script>
             </body>
             </html>
-          `)
+          `);
         } else {
-          res.writeHead(404, { 'Content-Type': 'text/html' })
-          
+          res.writeHead(404, { 'Content-Type': 'text/html' });
+
           // Generate HTML for all available redirects across all domains
-          let allRedirectsHtml = ''
-          let hasRedirects = false
-          
+          let allRedirectsHtml = '';
+          let hasRedirects = false;
+
           Object.entries(redirects).forEach(([redirectDomain, paths]) => {
             if (Object.keys(paths).length > 0) {
-              hasRedirects = true
+              hasRedirects = true;
               allRedirectsHtml += `
                 <div class="domain-section">
                   <h3 class="domain-title">${redirectDomain}</h3>
@@ -314,14 +314,14 @@ class RedirectorService {
                     `).join('')}
                   </div>
                 </div>
-              `
+              `;
             }
-          })
-          
+          });
+
           if (!hasRedirects) {
-            allRedirectsHtml = '<p class="no-redirects">No redirects configured yet. Configure them in DevBuddy app.</p>'
+            allRedirectsHtml = '<p class="no-redirects">No redirects configured yet. Configure them in DevBuddy app.</p>';
           }
-          
+
           res.end(`
             <!DOCTYPE html>
             <html lang="en">
@@ -611,62 +611,62 @@ class RedirectorService {
               </div>
             </body>
             </html>
-          `)
+          `);
         }
-      })
+      });
 
       this.server.listen(this.port, () => {
-        console.log(`Redirector server running on port ${this.port}`)
-        console.log(`Available domains: localhost, devbuddy.local`)
-        console.log(`For devbuddy.local, add to /etc/hosts: 127.0.0.1 devbuddy.local`)
-        resolve()
-      })
+        console.log(`Redirector server running on port ${this.port}`);
+        console.log('Available domains: localhost, devbuddy.local');
+        console.log('For devbuddy.local, add to /etc/hosts: 127.0.0.1 devbuddy.local');
+        resolve();
+      });
 
       this.server.on('error', (error) => {
         if (error.code === 'EACCES') {
-          console.error(`Permission denied to bind to port ${this.port}. Try running with sudo or use a different port.`)
+          console.error(`Permission denied to bind to port ${this.port}. Try running with sudo or use a different port.`);
         } else {
-          console.error('Redirector server error:', error)
+          console.error('Redirector server error:', error);
         }
-        reject(error)
-      })
-    })
+        reject(error);
+      });
+    });
   }
 
-  stopServer() {
+  stopServer () {
     return new Promise((resolve) => {
       if (this.server) {
         this.server.close(() => {
-          this.server = null
-          console.log('Redirector server stopped')
-          resolve()
-        })
+          this.server = null;
+          console.log('Redirector server stopped');
+          resolve();
+        });
       } else {
-        resolve()
+        resolve();
       }
-    })
+    });
   }
 
-  isServerRunning() {
-    return this.server !== null
+  isServerRunning () {
+    return this.server !== null;
   }
 
-  updatePort(newPort) {
+  updatePort (newPort) {
     if (this.isServerRunning()) {
-      console.log('Cannot change port while server is running')
-      return false
+      console.log('Cannot change port while server is running');
+      return false;
     }
-    this.port = newPort
-    return true
+    this.port = newPort;
+    return true;
   }
 
-  getServerStatus() {
+  getServerStatus () {
     return {
       running: this.isServerRunning(),
       port: this.port,
       redirects: this.loadRedirects()
-    }
+    };
   }
 }
 
-module.exports = RedirectorService 
+module.exports = RedirectorService;

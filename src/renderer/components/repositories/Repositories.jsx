@@ -9,7 +9,10 @@ import {
   CheckCircle,
   Clock,
   ChevronLeft,
-  FileText
+  FileText,
+  Calendar,
+  User,
+  GitCommit
 } from 'lucide-react'
 import Toast from '../layout/Toast'
 
@@ -17,8 +20,8 @@ import Toast from '../layout/Toast'
 const GitGraph = ({ commits, currentBranch }) => {
   if (!commits || commits.length === 0) {
     return (
-      <div className="text-center py-8">
-        <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-50" style={{ color: 'var(--text-muted)' }} />
+      <div className="text-center py-12">
+        <GitCommit className="w-12 h-12 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>No commits found</p>
       </div>
     )
@@ -43,45 +46,63 @@ const GitGraph = ({ commits, currentBranch }) => {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {commits.map((commit, index) => (
-        <div key={commit.hash} className="flex items-start gap-3">
-          {/* Commit line */}
-          <div className="flex flex-col items-center">
-            <div 
-              className="w-3 h-3 rounded-full border-2"
-              style={{ 
-                backgroundColor: getCommitColor(commit),
-                borderColor: getCommitColor(commit)
-              }}
-            />
-            {index < commits.length - 1 && (
+        <div key={commit.hash} className="group relative">
+          <div className="flex items-start gap-4">
+            {/* Commit line */}
+            <div className="flex flex-col items-center">
               <div 
-                className="w-0.5 h-8 mt-1"
-                style={{ backgroundColor: 'var(--border)' }}
+                className="w-4 h-4 rounded-full border-2 transition-all duration-300 group-hover:scale-110"
+                style={{ 
+                  backgroundColor: getCommitColor(commit),
+                  borderColor: getCommitColor(commit)
+                }}
               />
-            )}
-          </div>
-          
-          {/* Commit info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                {commit.message}
-              </span>
-              {commit.branch === currentBranch && (
-                <span className="text-xs px-2 py-1 rounded-full" style={{
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                  color: 'var(--accent-primary)'
-                }}>
-                  {commit.branch}
-                </span>
+              {index < commits.length - 1 && (
+                <div 
+                  className="w-0.5 h-12 mt-2"
+                  style={{ backgroundColor: 'var(--border-primary)' }}
+                />
               )}
             </div>
-            <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
-              <span>{commit.author}</span>
-              <span>{formatDate(commit.date)}</span>
-              <span className="font-mono">{commit.hash.substring(0, 7)}</span>
+            
+            {/* Commit card */}
+            <div className="flex-1 min-w-0">
+              <div className="p-4 rounded-lg transition-all duration-300 group-hover:scale-[1.02]" style={{
+                backgroundColor: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-primary)'
+              }}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                      {commit.message}
+                    </h4>
+                    <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      <span className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {commit.author}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(commit.date)}
+                      </span>
+                      <span className="font-mono bg-black/10 px-2 py-0.5 rounded" style={{ color: 'var(--text-muted)' }}>
+                        {commit.hash.substring(0, 7)}
+                      </span>
+                    </div>
+                  </div>
+                  {commit.branch === currentBranch && (
+                    <span className="text-xs px-2 py-1 rounded-full flex-shrink-0" style={{
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      color: 'var(--accent-primary)',
+                      border: '1px solid rgba(59, 130, 246, 0.2)'
+                    }}>
+                      {commit.branch}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -92,6 +113,7 @@ const GitGraph = ({ commits, currentBranch }) => {
 
 const Repositories = () => {
   const [repositories, setRepositories] = useState([])
+  const [filteredRepositories, setFilteredRepositories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState({ type: '', text: '' })
@@ -103,6 +125,10 @@ const Repositories = () => {
   const [folderRepositoryInfo, setFolderRepositoryInfo] = useState({})
   const [repositoryCommits, setRepositoryCommits] = useState({})
   const [appConfig, setAppConfig] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [cacheStatus, setCacheStatus] = useState(null)
+  const [isRefreshingRepositories, setIsRefreshingRepositories] = useState(false)
+  const searchInputRef = React.useRef(null)
 
   useEffect(() => {
     loadConfig()
@@ -126,6 +152,34 @@ const Repositories = () => {
     }
   }, [config])
 
+  // Filter repositories based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredRepositories(repositories)
+    } else {
+      const filtered = repositories.filter(repo => 
+        repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        repo.path.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (repo.branch && repo.branch.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (repo.remote && repo.remote.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+      setFilteredRepositories(filtered)
+    }
+  }, [repositories, searchQuery])
+
+  // Keyboard shortcut for search (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const loadConfig = async () => {
     try {
       const config = await window.electronAPI.getRepositoriesConfig()
@@ -134,6 +188,10 @@ const Repositories = () => {
       // Load app config to get default editor
       const appConfigData = await window.electronAPI.getConfig()
       setAppConfig(appConfigData?.app)
+
+      // Load cache status
+      const cacheStatusData = await window.electronAPI.getRepositoriesCacheStatus()
+      setCacheStatus(cacheStatusData)
     } catch (error) {
       console.error('Error loading repositories config:', error)
       setError('Failed to load configuration')
@@ -163,6 +221,7 @@ const Repositories = () => {
       }))
       
       setRepositories(folders)
+      setFilteredRepositories(folders)
       setSelectedDirectory(directory)
     } catch (error) {
       console.error('Error loading folders for directory:', error)
@@ -172,13 +231,13 @@ const Repositories = () => {
     }
   }
 
-  const loadRepositoryInfo = async (folderPath, tag) => {
+  const loadRepositoryInfo = async (folderPath, tag, forceRefresh = false) => {
     try {
       setLoading(true)
       setError(null)
       
-      // Check if we already have repository info for this folder
-      if (folderRepositoryInfo[folderPath]) {
+      // Check if we already have repository info for this folder (unless forcing refresh)
+      if (folderRepositoryInfo[folderPath] && !forceRefresh) {
         setSelectedFolder(folderRepositoryInfo[folderPath])
         setLoading(false)
         return
@@ -195,7 +254,7 @@ const Repositories = () => {
       setSelectedFolder(repoInfo)
       
       // Load commits for this repository
-      await loadRepositoryCommits(folderPath)
+      await loadRepositoryCommits(folderPath, forceRefresh)
     } catch (error) {
       console.error('Error loading repository info:', error)
       setError('Failed to load repository information')
@@ -204,10 +263,10 @@ const Repositories = () => {
     }
   }
 
-  const loadRepositoryCommits = async (folderPath) => {
+  const loadRepositoryCommits = async (folderPath, forceRefresh = false) => {
     try {
-      // Check if we already have commits for this folder
-      if (repositoryCommits[folderPath]) {
+      // Check if we already have commits for this folder (unless forcing refresh)
+      if (repositoryCommits[folderPath] && !forceRefresh) {
         return
       }
 
@@ -277,6 +336,26 @@ const Repositories = () => {
 
   const goBackToFolders = () => {
     setSelectedFolder(null)
+  }
+
+  const refreshRepositoriesInBackground = async () => {
+    try {
+      setIsRefreshingRepositories(true)
+      const result = await window.electronAPI.refreshRepositoriesCacheInBackground()
+      if (result.success) {
+        setMessage({ type: 'success', text: `Repositories scan completed successfully. Found ${result.count} repositories.` })
+        // Reload cache status
+        const cacheStatusData = await window.electronAPI.getRepositoriesCacheStatus()
+        setCacheStatus(cacheStatusData)
+      } else {
+        setMessage({ type: 'error', text: `Failed to refresh repositories: ${result.error}` })
+      }
+    } catch (error) {
+      console.error('Error refreshing repositories:', error)
+      setMessage({ type: 'error', text: 'Failed to refresh repositories' })
+    } finally {
+      setIsRefreshingRepositories(false)
+    }
   }
 
   if (loading) {
@@ -352,27 +431,49 @@ const Repositories = () => {
     return (
       <div className="min-h-screen p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <Folder className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
-              <div>
-                <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Repositories</h1>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  {config?.directories?.length > 0 
-                    ? `${config.directories.length} directory${config.directories.length > 1 ? 'ies' : 'y'} configured`
-                    : 'No directories configured'
-                  }
-                </p>
-              </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <Folder className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Repositories</h1>
+              <p className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
+                {config?.directories?.length > 0 
+                  ? `${config.directories.length} directory${config.directories.length > 1 ? 'ies' : 'y'} configured`
+                  : 'No directories configured'
+                }
+                {cacheStatus && (
+                  <span className="ml-2">
+                    • {cacheStatus.repositoryCount} repositories in repositories.yml
+                    {cacheStatus.lastUpdated && (
+                      <span className="ml-1">
+                        (last scan: {new Date(cacheStatus.lastUpdated).toLocaleDateString()})
+                      </span>
+                    )}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={refreshRepositoriesInBackground}
+              disabled={isRefreshingRepositories}
+              className="p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
+              style={{
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                color: 'var(--success)'
+              }}
+              title="Refresh repositories scan"
+            >
+              <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshingRepositories ? 'animate-spin' : ''}`} />
+            </button>
+            
             <button
               onClick={loadConfig}
               disabled={loading}
-              className="p-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
+              className="p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
               style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 border: '1px solid rgba(59, 130, 246, 0.2)',
@@ -380,12 +481,12 @@ const Repositories = () => {
               }}
               title="Refresh configuration"
             >
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
             
             <button
               onClick={() => window.location.hash = '#/config'}
-              className="p-3 rounded-lg transition-all duration-300 hover:scale-105"
+              className="p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-105"
               style={{
                 backgroundColor: 'rgba(107, 114, 128, 0.1)',
                 border: '1px solid rgba(107, 114, 128, 0.2)',
@@ -393,14 +494,14 @@ const Repositories = () => {
               }}
               title="Settings"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
         {/* Directories List */}
         {config?.directories?.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {config.directories.map((directory) => (
               <div
                 key={directory.id}
@@ -408,18 +509,18 @@ const Repositories = () => {
                 onClick={() => loadFoldersForDirectory(directory)}
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Folder className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
-                    <div>
-                      <h3 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Folder className="w-6 h-6 flex-shrink-0" style={{ color: 'var(--accent-primary)' }} />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-base sm:text-lg truncate" style={{ color: 'var(--text-primary)' }}>
                         {directory.tag || 'Untagged'}
                       </h3>
-                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      <p className="text-xs sm:text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
                         {directory.path}
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs px-2 py-1 rounded-full" style={{
+                  <span className="text-xs px-2 py-1 rounded-full flex-shrink-0" style={{
                     backgroundColor: directory.enabled 
                       ? 'rgba(16, 185, 129, 0.1)' 
                       : 'rgba(107, 114, 128, 0.1)',
@@ -432,10 +533,10 @@ const Repositories = () => {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <span className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
                     Click to view folders
                   </span>
-                  <ExternalLink className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                  <ExternalLink className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-secondary)' }} />
                 </div>
               </div>
             ))}
@@ -480,8 +581,8 @@ const Repositories = () => {
     return (
       <div className="min-h-screen p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
             <button
               onClick={goBackToDirectories}
               className="p-2 rounded-lg transition-all duration-300 hover:scale-105"
@@ -495,33 +596,33 @@ const Repositories = () => {
               <ChevronLeft className="w-5 h-5" />
             </button>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <Folder className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
-              <div>
-                <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  {selectedDirectory.tag || 'Untagged'} Folders
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {selectedDirectory.tag || 'Untagged'} Repositories
                 </h1>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-xs sm:text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
                   {selectedDirectory.path}
                 </p>
               </div>
             </div>
             
             {repositories.length > 0 && (
-              <span className="text-sm px-3 py-1 rounded-full" style={{
+              <span className="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full flex-shrink-0" style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 color: 'var(--accent-primary)'
               }}>
-                {repositories.length} {repositories.length === 1 ? 'folder' : 'folders'}
+                {searchQuery ? `${filteredRepositories.length}/${repositories.length}` : repositories.length} {repositories.length === 1 ? 'repo' : 'repos'}
               </span>
             )}
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => loadFoldersForDirectory(selectedDirectory)}
               disabled={loading}
-              className="p-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
+              className="p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
               style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 border: '1px solid rgba(59, 130, 246, 0.2)',
@@ -529,12 +630,12 @@ const Repositories = () => {
               }}
               title="Refresh folders"
             >
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
             
             <button
               onClick={() => window.location.hash = '#/config'}
-              className="p-3 rounded-lg transition-all duration-300 hover:scale-105"
+              className="p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-105"
               style={{
                 backgroundColor: 'rgba(107, 114, 128, 0.1)',
                 border: '1px solid rgba(107, 114, 128, 0.2)',
@@ -542,115 +643,177 @@ const Repositories = () => {
               }}
               title="Settings"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
-        {/* Folders Table */}
-        {repositories.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b" style={{ borderColor: 'var(--border)' }}>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Folder</th>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Type</th>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Status</th>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {repositories.map((folder) => (
-                  <tr 
-                    key={folder.path} 
-                    className="border-b hover:bg-opacity-50 transition-colors cursor-pointer"
-                    style={{ borderColor: 'var(--border)' }}
-                    onClick={() => loadRepositoryInfo(folder.path, selectedDirectory.tag)}
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search repositories by name, path, branch, or remote... (Ctrl+K)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50"
+              style={{
+                backgroundColor: 'var(--bg-secondary)',
+                borderColor: 'var(--border-primary)',
+                color: 'var(--text-primary)',
+                focusRingColor: 'var(--accent-primary)'
+              }}
+            />
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors hover:bg-black/10"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Found {filteredRepositories.length} repository{filteredRepositories.length !== 1 ? 'ies' : ''} matching "{searchQuery}"
+            </div>
+          )}
+        </div>
+
+        {/* Repositories Grid */}
+        {filteredRepositories.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredRepositories.map((folder) => (
+              <div
+                key={folder.path}
+                className="group relative p-6 rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+                style={{
+                  background: 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary))',
+                  border: '1px solid var(--border-primary)',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+                onClick={() => loadRepositoryInfo(folder.path, selectedDirectory.tag)}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))'
+                  e.target.style.borderColor = 'var(--accent-primary)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary))'
+                  e.target.style.borderColor = 'var(--border-primary)'
+                }}
+              >
+                {/* Repository Icon and Name */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg" style={{
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.2)'
+                    }}>
+                      <GitBranch className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>
+                        {folder.name}
+                      </h3>
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        {selectedDirectory.tag || 'Untagged'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--text-muted)' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Repository Path */}
+                <div className="mb-4">
+                  <p className="text-xs font-mono truncate" style={{ color: 'var(--text-muted)' }} title={folder.path}>
+                    {folder.path}
+                  </p>
+                </div>
+
+                {/* Status and Actions */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--success)' }}></div>
+                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      Git Repository
+                    </span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      loadRepositoryInfo(folder.path, selectedDirectory.tag)
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 hover:scale-105"
+                    style={{
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.2)',
+                      color: 'var(--accent-primary)'
+                    }}
                   >
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        {folder.isGitRepository ? (
-                          <GitBranch className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
-                        ) : (
-                          <Folder className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
-                        )}
-                        <div>
-                          <div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                            {folder.name}
-                          </div>
-                          <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            {folder.path}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-sm px-2 py-1 rounded-full" style={{
-                        backgroundColor: folder.isGitRepository 
-                          ? 'rgba(16, 185, 129, 0.1)' 
-                          : 'rgba(107, 114, 128, 0.1)',
-                        color: folder.isGitRepository 
-                          ? 'var(--success)' 
-                          : 'var(--text-secondary)'
-                      }}>
-                        {folder.isGitRepository ? 'Git Repository' : 'Regular Folder'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        {folder.isGitRepository ? 'Click to view details' : 'Not a repository'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          if (folder.isGitRepository) {
-                            loadRepositoryInfo(folder.path, selectedDirectory.tag)
-                          }
-                        }}
-                        disabled={!folder.isGitRepository}
-                        className="px-3 py-1 rounded text-sm transition-all duration-300 disabled:opacity-50"
-                        style={{
-                          backgroundColor: folder.isGitRepository 
-                            ? 'rgba(59, 130, 246, 0.1)' 
-                            : 'rgba(107, 114, 128, 0.1)',
-                          border: folder.isGitRepository 
-                            ? '1px solid rgba(59, 130, 246, 0.2)' 
-                            : '1px solid rgba(107, 114, 128, 0.2)',
-                          color: folder.isGitRepository 
-                            ? 'var(--accent-primary)' 
-                            : 'var(--text-secondary)'
-                        }}
-                      >
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    View Details
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="text-center py-12">
-            <Folder className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
+            <GitBranch className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
             <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-              No Folders Found
+              {searchQuery ? 'No Matching Repositories' : 'No Repositories Found'}
             </h3>
             <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-              No folders found in {selectedDirectory.path}
+              {searchQuery 
+                ? `No repositories match your search for "${searchQuery}"`
+                : `No Git repositories found in ${selectedDirectory.path}`
+              }
             </p>
-            <button
-              onClick={() => loadFoldersForDirectory(selectedDirectory)}
-              className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
-              style={{
-                backgroundColor: 'var(--accent-primary)',
-                color: 'white'
-              }}
-            >
-              <RefreshCw className="w-4 h-4 inline mr-2" />
-              Retry Scan
-            </button>
+            {searchQuery ? (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: 'var(--accent-primary)',
+                  color: 'white'
+                }}
+              >
+                Clear Search
+              </button>
+            ) : (
+              <button
+                onClick={() => loadFoldersForDirectory(selectedDirectory)}
+                className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: 'var(--accent-primary)',
+                  color: 'white'
+                }}
+              >
+                <RefreshCw className="w-4 h-4 inline mr-2" />
+                Retry Scan
+              </button>
+            )}
           </div>
         )}
 
@@ -702,7 +865,7 @@ const Repositories = () => {
         
         <div className="flex items-center gap-3">
           <button
-            onClick={() => loadRepositoryInfo(selectedFolder.path, selectedDirectory.tag)}
+            onClick={() => loadRepositoryInfo(selectedFolder.path, selectedDirectory.tag, true)}
             disabled={loading}
             className="p-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
             style={{
@@ -731,39 +894,87 @@ const Repositories = () => {
       </div>
 
       {/* Repository Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Repository Info */}
-        <div className="card">
-          <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-            Repository Information
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span style={{ color: 'var(--text-secondary)' }}>Branch:</span>
-              <span style={{ color: 'var(--text-primary)' }}>
-                {selectedFolder.branch || 'No branch'}
-              </span>
+        <div className="lg:col-span-2">
+          <div className="card">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-xl" style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.2)'
+              }}>
+                <GitBranch className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {selectedFolder.name}
+                </h3>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  {selectedFolder.path}
+                </p>
+              </div>
+              {getStatusIcon(selectedFolder)}
             </div>
-            <div className="flex items-center justify-between">
-              <span style={{ color: 'var(--text-secondary)' }}>Last commit:</span>
-              <span style={{ color: 'var(--text-primary)' }}>
-                {formatDate(selectedFolder.lastCommitDate)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span style={{ color: 'var(--text-secondary)' }}>Remote:</span>
-              <span className="truncate ml-2" style={{ color: 'var(--text-primary)' }}>
-                {selectedFolder.remote || 'None'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span style={{ color: 'var(--text-secondary)' }}>Status:</span>
-              <div className="flex items-center gap-2">
-                {getStatusIcon(selectedFolder)}
-                <span style={{ color: 'var(--text-primary)' }}>
-                  {selectedFolder.hasChanges ? 'Has changes' : 
-                   selectedFolder.isUpToDate ? 'Up to date' : 'Behind remote'}
-                </span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg" style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)'
+                }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <GitBranch className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                    <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Current Branch</span>
+                  </div>
+                  <p className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {selectedFolder.branch || 'No branch'}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-lg" style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)'
+                }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                    <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Last Commit</span>
+                  </div>
+                  <p className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {formatDate(selectedFolder.lastCommitDate)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg" style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)'
+                }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <ExternalLink className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                    <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Remote</span>
+                  </div>
+                  <p className="text-sm font-mono truncate" style={{ color: 'var(--text-primary)' }} title={selectedFolder.remote || 'None'}>
+                    {selectedFolder.remote || 'None'}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-lg" style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)'
+                }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-4 rounded-full" style={{ 
+                      backgroundColor: selectedFolder.hasChanges ? 'var(--warning)' : 
+                                  selectedFolder.isUpToDate ? 'var(--success)' : 'var(--error)' 
+                    }}></div>
+                    <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Status</span>
+                  </div>
+                  <p className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {selectedFolder.hasChanges ? 'Has changes' : 
+                     selectedFolder.isUpToDate ? 'Up to date' : 'Behind remote'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -771,33 +982,33 @@ const Repositories = () => {
 
         {/* Actions */}
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-            Actions
+          <h3 className="text-xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
+            Quick Actions
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <button
               onClick={() => handleOpenRepository(selectedFolder.path)}
-              className="w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+              className="w-full px-4 py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 flex items-center gap-3"
               style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 border: '1px solid rgba(59, 130, 246, 0.2)',
                 color: 'var(--accent-primary)'
               }}
             >
-              <ExternalLink className="w-4 h-4 inline mr-2" />
-              Open in File Explorer
+              <ExternalLink className="w-5 h-5" />
+              <span>Open in File Explorer</span>
             </button>
             <button
               onClick={() => handleOpenInEditor(selectedFolder.path)}
-              className="w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+              className="w-full px-4 py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 flex items-center gap-3"
               style={{
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                border: '1px solid rgba(59, 130, 246, 0.2)',
-                color: 'var(--accent-primary)'
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                color: 'var(--success)'
               }}
             >
-              <FileText className="w-4 h-4 inline mr-2" />
-              Open in {appConfig?.defaultEditor === 'cursor' ? 'Cursor' : 'VS Code'}
+              <FileText className="w-5 h-5" />
+              <span>Open in {appConfig?.defaultEditor === 'cursor' ? 'Cursor' : 'VS Code'}</span>
             </button>
           </div>
         </div>
@@ -806,13 +1017,27 @@ const Repositories = () => {
       {/* Git Graph */}
       <div className="mt-6">
         <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-              Recent Commits
-            </h3>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg" style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.2)'
+              }}>
+                <GitCommit className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+              </div>
+              <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                Recent Commits
+              </h3>
+              <span className="text-sm px-2 py-1 rounded-full" style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                color: 'var(--accent-primary)'
+              }}>
+                {repositoryCommits[selectedFolder.path]?.length || 0} commits
+              </span>
+            </div>
             <button
-              onClick={() => loadRepositoryCommits(selectedFolder.path)}
-              className="p-2 rounded-lg transition-all duration-300 hover:scale-105"
+              onClick={() => loadRepositoryCommits(selectedFolder.path, true)}
+              className="p-3 rounded-lg transition-all duration-300 hover:scale-105"
               style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 border: '1px solid rgba(59, 130, 246, 0.2)',
@@ -820,7 +1045,7 @@ const Repositories = () => {
               }}
               title="Refresh commits"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-5 h-5" />
             </button>
           </div>
           <GitGraph 
