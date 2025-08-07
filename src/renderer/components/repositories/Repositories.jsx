@@ -92,6 +92,7 @@ const GitGraph = ({ commits, currentBranch }) => {
 
 const Repositories = () => {
   const [repositories, setRepositories] = useState([])
+  const [filteredRepositories, setFilteredRepositories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState({ type: '', text: '' })
@@ -103,6 +104,10 @@ const Repositories = () => {
   const [folderRepositoryInfo, setFolderRepositoryInfo] = useState({})
   const [repositoryCommits, setRepositoryCommits] = useState({})
   const [appConfig, setAppConfig] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [cacheStatus, setCacheStatus] = useState(null)
+  const [isRefreshingCache, setIsRefreshingCache] = useState(false)
+  const searchInputRef = React.useRef(null)
 
   useEffect(() => {
     loadConfig()
@@ -126,6 +131,34 @@ const Repositories = () => {
     }
   }, [config])
 
+  // Filter repositories based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredRepositories(repositories)
+    } else {
+      const filtered = repositories.filter(repo => 
+        repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        repo.path.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (repo.branch && repo.branch.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (repo.remote && repo.remote.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+      setFilteredRepositories(filtered)
+    }
+  }, [repositories, searchQuery])
+
+  // Keyboard shortcut for search (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const loadConfig = async () => {
     try {
       const config = await window.electronAPI.getRepositoriesConfig()
@@ -134,6 +167,10 @@ const Repositories = () => {
       // Load app config to get default editor
       const appConfigData = await window.electronAPI.getConfig()
       setAppConfig(appConfigData?.app)
+
+      // Load cache status
+      const cacheStatusData = await window.electronAPI.getRepositoriesCacheStatus()
+      setCacheStatus(cacheStatusData)
     } catch (error) {
       console.error('Error loading repositories config:', error)
       setError('Failed to load configuration')
@@ -163,6 +200,7 @@ const Repositories = () => {
       }))
       
       setRepositories(folders)
+      setFilteredRepositories(folders)
       setSelectedDirectory(directory)
     } catch (error) {
       console.error('Error loading folders for directory:', error)
@@ -279,6 +317,26 @@ const Repositories = () => {
     setSelectedFolder(null)
   }
 
+  const refreshCacheInBackground = async () => {
+    try {
+      setIsRefreshingCache(true)
+      const result = await window.electronAPI.refreshRepositoriesCacheInBackground()
+      if (result.success) {
+        setMessage({ type: 'success', text: `Cache refreshed successfully. Found ${result.count} repositories.` })
+        // Reload cache status
+        const cacheStatusData = await window.electronAPI.getRepositoriesCacheStatus()
+        setCacheStatus(cacheStatusData)
+      } else {
+        setMessage({ type: 'error', text: `Failed to refresh cache: ${result.error}` })
+      }
+    } catch (error) {
+      console.error('Error refreshing cache:', error)
+      setMessage({ type: 'error', text: 'Failed to refresh cache' })
+    } finally {
+      setIsRefreshingCache(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -363,12 +421,36 @@ const Repositories = () => {
                     ? `${config.directories.length} directory${config.directories.length > 1 ? 'ies' : 'y'} configured`
                     : 'No directories configured'
                   }
+                  {cacheStatus && (
+                    <span className="ml-2">
+                      • {cacheStatus.repositoryCount} cached repositories
+                      {cacheStatus.lastUpdated && (
+                        <span className="ml-1">
+                          (updated {new Date(cacheStatus.lastUpdated).toLocaleDateString()})
+                        </span>
+                      )}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
+            <button
+              onClick={refreshCacheInBackground}
+              disabled={isRefreshingCache}
+              className="p-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
+              style={{
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                color: 'var(--success)'
+              }}
+              title="Refresh cache in background"
+            >
+              <RefreshCw className={`w-5 h-5 ${isRefreshingCache ? 'animate-spin' : ''}`} />
+            </button>
+            
             <button
               onClick={loadConfig}
               disabled={loading}
@@ -499,7 +581,7 @@ const Repositories = () => {
               <Folder className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
               <div>
                 <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  {selectedDirectory.tag || 'Untagged'} Folders
+                  {selectedDirectory.tag || 'Untagged'} Repositories
                 </h1>
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                   {selectedDirectory.path}
@@ -512,7 +594,7 @@ const Repositories = () => {
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 color: 'var(--accent-primary)'
               }}>
-                {repositories.length} {repositories.length === 1 ? 'folder' : 'folders'}
+                {searchQuery ? `${filteredRepositories.length}/${repositories.length}` : repositories.length} {repositories.length === 1 ? 'repository' : 'repositories'}
               </span>
             )}
           </div>
@@ -547,20 +629,69 @@ const Repositories = () => {
           </div>
         </div>
 
-        {/* Folders Table */}
-        {repositories.length > 0 ? (
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search repositories by name, path, branch, or remote... (Ctrl+K)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50"
+              style={{
+                backgroundColor: 'var(--bg-secondary)',
+                borderColor: 'var(--border-primary)',
+                color: 'var(--text-primary)',
+                focusRingColor: 'var(--accent-primary)'
+              }}
+            />
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors hover:bg-black/10"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Found {filteredRepositories.length} repository{filteredRepositories.length !== 1 ? 'ies' : ''} matching "{searchQuery}"
+            </div>
+          )}
+        </div>
+
+        {/* Repositories Table */}
+        {filteredRepositories.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b" style={{ borderColor: 'var(--border)' }}>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Folder</th>
-                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Type</th>
+                  <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Repository</th>
                   <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Status</th>
                   <th className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-secondary)' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {repositories.map((folder) => (
+                {filteredRepositories.map((folder) => (
                   <tr 
                     key={folder.path} 
                     className="border-b hover:bg-opacity-50 transition-colors cursor-pointer"
@@ -569,11 +700,7 @@ const Repositories = () => {
                   >
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        {folder.isGitRepository ? (
-                          <GitBranch className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
-                        ) : (
-                          <Folder className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
-                        )}
+                        <GitBranch className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
                         <div>
                           <div className="font-medium" style={{ color: 'var(--text-primary)' }}>
                             {folder.name}
@@ -585,42 +712,21 @@ const Repositories = () => {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="text-sm px-2 py-1 rounded-full" style={{
-                        backgroundColor: folder.isGitRepository 
-                          ? 'rgba(16, 185, 129, 0.1)' 
-                          : 'rgba(107, 114, 128, 0.1)',
-                        color: folder.isGitRepository 
-                          ? 'var(--success)' 
-                          : 'var(--text-secondary)'
-                      }}>
-                        {folder.isGitRepository ? 'Git Repository' : 'Regular Folder'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
                       <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        {folder.isGitRepository ? 'Click to view details' : 'Not a repository'}
+                        Click to view details
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (folder.isGitRepository) {
-                            loadRepositoryInfo(folder.path, selectedDirectory.tag)
-                          }
+                          loadRepositoryInfo(folder.path, selectedDirectory.tag)
                         }}
-                        disabled={!folder.isGitRepository}
-                        className="px-3 py-1 rounded text-sm transition-all duration-300 disabled:opacity-50"
+                        className="px-3 py-1 rounded text-sm transition-all duration-300"
                         style={{
-                          backgroundColor: folder.isGitRepository 
-                            ? 'rgba(59, 130, 246, 0.1)' 
-                            : 'rgba(107, 114, 128, 0.1)',
-                          border: folder.isGitRepository 
-                            ? '1px solid rgba(59, 130, 246, 0.2)' 
-                            : '1px solid rgba(107, 114, 128, 0.2)',
-                          color: folder.isGitRepository 
-                            ? 'var(--accent-primary)' 
-                            : 'var(--text-secondary)'
+                          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                          border: '1px solid rgba(59, 130, 246, 0.2)',
+                          color: 'var(--accent-primary)'
                         }}
                       >
                         View Details
@@ -633,24 +739,40 @@ const Repositories = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <Folder className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
+            <GitBranch className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
             <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-              No Folders Found
+              {searchQuery ? 'No Matching Repositories' : 'No Repositories Found'}
             </h3>
             <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-              No folders found in {selectedDirectory.path}
+              {searchQuery 
+                ? `No repositories match your search for "${searchQuery}"`
+                : `No Git repositories found in ${selectedDirectory.path}`
+              }
             </p>
-            <button
-              onClick={() => loadFoldersForDirectory(selectedDirectory)}
-              className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
-              style={{
-                backgroundColor: 'var(--accent-primary)',
-                color: 'white'
-              }}
-            >
-              <RefreshCw className="w-4 h-4 inline mr-2" />
-              Retry Scan
-            </button>
+            {searchQuery ? (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: 'var(--accent-primary)',
+                  color: 'white'
+                }}
+              >
+                Clear Search
+              </button>
+            ) : (
+              <button
+                onClick={() => loadFoldersForDirectory(selectedDirectory)}
+                className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: 'var(--accent-primary)',
+                  color: 'white'
+                }}
+              >
+                <RefreshCw className="w-4 h-4 inline mr-2" />
+                Retry Scan
+              </button>
+            )}
           </div>
         )}
 

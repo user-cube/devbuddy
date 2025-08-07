@@ -115,9 +115,8 @@ const Bookmarks = () => {
       if (window.electronAPI) {
         const data = await window.electronAPI.getBookmarks()
         setBookmarks(data)
-        // Expand all categories by default
-        const expanded = new Set(data.categories?.map(cat => cat.id) || [])
-        setExpandedCategories(expanded)
+        // Start with all categories collapsed
+        setExpandedCategories(new Set())
       }
     } catch (error) {
       console.error('Error loading bookmarks:', error)
@@ -296,9 +295,8 @@ const Bookmarks = () => {
       const categoriesWithResults = filteredBookmarks.map(cat => cat.id)
       setExpandedCategories(new Set(categoriesWithResults))
     } else {
-      // Restore original expanded state when search is cleared
-      const originalExpanded = new Set(bookmarks.categories?.map(cat => cat.id) || [])
-      setExpandedCategories(originalExpanded)
+      // Keep categories collapsed when search is cleared
+      setExpandedCategories(new Set())
     }
   }, [searchQuery, filteredBookmarks])
 

@@ -1367,3 +1367,22 @@ ipcMain.handle('open-repository-in-editor', async (event, repoPath) => {
     throw error;
   }
 });
+
+// Cache handlers
+ipcMain.handle('get-repositories-cache-status', async () => {
+  try {
+    return await repositoriesService.getCacheStatus();
+  } catch (error) {
+    console.error('Error getting repositories cache status:', error);
+    return { repositoryCount: 0, lastUpdated: null };
+  }
+});
+
+ipcMain.handle('refresh-repositories-cache-in-background', async () => {
+  try {
+    return await repositoriesService.refreshCacheInBackground();
+  } catch (error) {
+    console.error('Error refreshing repositories cache:', error);
+    return { success: false, error: error.message };
+  }
+});

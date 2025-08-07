@@ -11,6 +11,7 @@ const execAsync = promisify(exec)
 class RepositoriesService {
   constructor() {
     this.configPath = path.join(app.getPath('userData'), 'repositories-config.json')
+    this.repositoriesCachePath = path.join(app.getPath('userData'), 'repositories.yaml')
     this.cacheService = require('./cache')
     this.defaultConfig = {
       enabled: false,
@@ -48,6 +49,114 @@ class RepositoriesService {
     }
   }
 
+  async loadRepositoriesCache() {
+    try {
+      const data = await fs.readFile(this.repositoriesCachePath, 'utf8')
+      const cache = yaml.load(data)
+      return cache || { repositories: [], lastUpdated: null }
+    } catch (error) {
+      // Return empty cache if file doesn't exist
+      return { repositories: [], lastUpdated: null }
+    }
+  }
+
+  async saveRepositoriesCache(repositories) {
+    try {
+      // Ensure directory exists
+      const dir = path.dirname(this.repositoriesCachePath)
+      await fs.mkdir(dir, { recursive: true })
+      
+      const cacheData = {
+        repositories: repositories,
+        lastUpdated: new Date().toISOString()
+      }
+      
+      const yamlData = yaml.dump(cacheData, { 
+        indent: 2,
+        lineWidth: 120,
+        noRefs: true
+      })
+      await fs.writeFile(this.repositoriesCachePath, yamlData)
+      return { success: true }
+    } catch (error) {
+      console.error('Error saving repositories cache:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  async getCachedRepositories() {
+    const cache = await this.loadRepositoriesCache()
+    return cache.repositories || []
+  }
+
+  async updateRepositoryInCache(repoPath, repoInfo) {
+    try {
+      const cache = await this.loadRepositoriesCache()
+      const existingIndex = cache.repositories.findIndex(repo => repo.path === repoPath)
+      
+      if (existingIndex >= 0) {
+        // Update existing repository
+        cache.repositories[existingIndex] = { ...cache.repositories[existingIndex], ...repoInfo }
+      } else {
+        // Add new repository
+        cache.repositories.push(repoInfo)
+      }
+      
+      await this.saveRepositoriesCache(cache.repositories)
+      return { success: true }
+    } catch (error) {
+      console.error('Error updating repository in cache:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  async refreshCacheInBackground() {
+    try {
+      console.log('Starting background cache refresh...')
+      const config = await this.getConfig()
+      
+      if (!config.enabled || !config.directories) {
+        return { success: true, message: 'No directories configured' }
+      }
+
+      const allRepositories = []
+      
+      for (const dirConfig of config.directories) {
+        if (dirConfig.enabled && dirConfig.path) {
+          try {
+            const repositories = await this.scanDirectory(dirConfig.path, 0, config.scanDepth || 3, [], dirConfig.tag)
+            allRepositories.push(...repositories)
+          } catch (error) {
+            console.error(`Error scanning directory ${dirConfig.path}:`, error)
+          }
+        }
+      }
+
+      // Save all repositories to cache
+      await this.saveRepositoriesCache(allRepositories)
+      console.log(`Background cache refresh completed. Found ${allRepositories.length} repositories.`)
+      
+      return { success: true, count: allRepositories.length }
+    } catch (error) {
+      console.error('Error in background cache refresh:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  async getCacheStatus() {
+    try {
+      const cache = await this.loadRepositoriesCache()
+      return {
+        repositoryCount: cache.repositories?.length || 0,
+        lastUpdated: cache.lastUpdated,
+        cachePath: this.repositoriesCachePath
+      }
+    } catch (error) {
+      console.error('Error getting cache status:', error)
+      return { repositoryCount: 0, lastUpdated: null, cachePath: this.repositoriesCachePath }
+    }
+  }
+
   async scanForRepositories(directories, maxDepth = 3) {
     const allRepositories = []
     
@@ -65,10 +174,31 @@ class RepositoriesService {
     return allRepositories
   }
 
-  async getFoldersInDirectory(directoryPath) {
+  async getFoldersInDirectory(directoryPath, useCache = true) {
     try {
+      // First, try to load from cache if enabled
+      if (useCache) {
+        const cachedRepos = await this.getCachedRepositories()
+        const directoryRepos = cachedRepos.filter(repo => 
+          repo.path.startsWith(directoryPath) && 
+          path.dirname(repo.path) === directoryPath
+        )
+        
+        if (directoryRepos.length > 0) {
+          console.log(`Loaded ${directoryRepos.length} repositories from cache for ${directoryPath}`)
+          return directoryRepos.map(repo => ({
+            name: repo.name,
+            path: repo.path,
+            isGitRepository: true
+          }))
+        }
+      }
+
+      // If no cache or cache miss, scan directory
+      console.log(`Scanning directory for repositories: ${directoryPath}`)
       const items = await fs.readdir(directoryPath)
       const folders = []
+      const newRepos = []
       
       for (const item of items) {
         const fullPath = path.join(directoryPath, item)
@@ -82,22 +212,61 @@ class RepositoriesService {
             let isGitRepository = false
             
             try {
-              await fs.access(gitPath)
-              isGitRepository = true
+              const gitStat = await fs.stat(gitPath)
+              // Check if .git is a directory (not a file)
+              if (gitStat.isDirectory()) {
+                // Additional check: verify it's a valid Git repository by checking for HEAD file
+                const headPath = path.join(gitPath, 'HEAD')
+                try {
+                  await fs.access(headPath)
+                  // Additional check: verify it's a valid Git repository by trying to initialize simple-git
+                  const simpleGit = require('simple-git')
+                  const git = simpleGit(fullPath)
+                  try {
+                    await git.status()
+                    isGitRepository = true
+                  } catch (gitError) {
+                    console.log(`Directory ${fullPath} has .git but is not a valid Git repository:`, gitError.message)
+                  }
+                } catch {
+                  // HEAD file doesn't exist, not a valid Git repository
+                }
+              }
             } catch {
-              // Not a Git repository
+              // .git doesn't exist or is not accessible
             }
             
-            folders.push({
-              name: item,
-              path: fullPath,
-              isGitRepository
-            })
+            // Only include Git repositories
+            if (isGitRepository) {
+              console.log(`Found Git repository: ${item} at ${fullPath}`)
+              const repoInfo = {
+                name: item,
+                path: fullPath,
+                isGitRepository
+              }
+              folders.push(repoInfo)
+              newRepos.push(repoInfo)
+            } else {
+              // Log specifically for directories that might be problematic
+              if (item.includes('XDG_CONFIG_HOME') || item.includes('CONFIG')) {
+                console.log(`Skipped problematic directory: ${item} at ${fullPath} (not a valid Git repository)`)
+              } else {
+                console.log(`Skipped non-Git directory: ${item} at ${fullPath}`)
+              }
+            }
           }
         } catch (error) {
           // Skip items we can't access
           continue
         }
+      }
+      
+      // Update cache with new repositories found
+      if (newRepos.length > 0) {
+        for (const repo of newRepos) {
+          await this.updateRepositoryInCache(repo.path, repo)
+        }
+        console.log(`Updated cache with ${newRepos.length} new repositories`)
       }
       
       return folders
@@ -123,14 +292,44 @@ class RepositoriesService {
             // Check if this directory is a Git repository
             const gitPath = path.join(fullPath, '.git')
             try {
-              await fs.access(gitPath)
-              // This is a Git repository
-              const repoInfo = await this.getRepositoryInfo(fullPath, tag)
-              if (repoInfo) {
-                repositories.push(repoInfo)
+              const gitStat = await fs.stat(gitPath)
+              // Check if .git is a directory (not a file)
+              if (gitStat.isDirectory()) {
+                // Additional check: verify it's a valid Git repository by checking for HEAD file
+                const headPath = path.join(gitPath, 'HEAD')
+                try {
+                  await fs.access(headPath)
+                  // Additional check: verify it's a valid Git repository by trying to initialize simple-git
+                  const simpleGit = require('simple-git')
+                  const git = simpleGit(fullPath)
+                  try {
+                    await git.status()
+                    // This is a valid Git repository
+                    const repoInfo = await this.getRepositoryInfo(fullPath, tag)
+                    if (repoInfo) {
+                      repositories.push(repoInfo)
+                    }
+                  } catch (gitError) {
+                    console.log(`Directory ${fullPath} has .git but is not a valid Git repository:`, gitError.message)
+                    // Continue scanning subdirectories
+                    if (currentDepth < maxDepth) {
+                      await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag)
+                    }
+                  }
+                } catch {
+                  // HEAD file doesn't exist, not a valid Git repository, continue scanning
+                  if (currentDepth < maxDepth) {
+                    await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag)
+                  }
+                }
+              } else {
+                // .git exists but is not a directory, continue scanning
+                if (currentDepth < maxDepth) {
+                  await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag)
+                }
               }
             } catch {
-              // Not a Git repository, continue scanning
+              // .git doesn't exist or is not accessible, continue scanning
               if (currentDepth < maxDepth) {
                 await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag)
               }

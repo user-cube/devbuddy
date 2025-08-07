@@ -141,10 +141,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateRedirectorPort: (newPort) => ipcRenderer.invoke('update-redirector-port', newPort),
   
   // Repositories service
-  getRepositoriesConfig: () => ipcRenderer.invoke('get-repositories-config'),
-  updateRepositoriesConfig: (config) => ipcRenderer.invoke('update-repositories-config', config),
-  getRepositories: () => ipcRenderer.invoke('get-repositories'),
-  getRepositoriesForDirectory: (directoryPath, tag) => ipcRenderer.invoke('get-repositories-for-directory', directoryPath, tag),
+      getRepositoriesConfig: () => ipcRenderer.invoke('get-repositories-config'),
+    updateRepositoriesConfig: (config) => ipcRenderer.invoke('update-repositories-config', config),
+    getRepositories: () => ipcRenderer.invoke('get-repositories'),
+    getRepositoriesForDirectory: (directoryPath, tag) => ipcRenderer.invoke('get-repositories-for-directory', directoryPath, tag),
+    getRepositoriesCacheStatus: () => ipcRenderer.invoke('get-repositories-cache-status'),
+    refreshRepositoriesCacheInBackground: () => ipcRenderer.invoke('refresh-repositories-cache-in-background'),
   getFoldersInDirectory: (directoryPath) => ipcRenderer.invoke('get-folders-in-directory', directoryPath),
   getRepositoryInfo: (folderPath, tag) => ipcRenderer.invoke('get-repository-info', folderPath, tag),
   getRepositoryCommits: (folderPath) => ipcRenderer.invoke('get-repository-commits', folderPath),
