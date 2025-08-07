@@ -1,29 +1,29 @@
-const https = require('https')
-const ConfigService = require('./config.js')
-const CacheService = require('./cache.js')
+const https = require('https');
+const ConfigService = require('./config.js');
+const CacheService = require('./cache.js');
 
 class JiraService {
-  constructor() {
-    this.configService = new ConfigService()
-    this.cacheService = new CacheService()
+  constructor () {
+    this.configService = new ConfigService();
+    this.cacheService = new CacheService();
   }
 
-  getConfig() {
-    return this.configService.getJiraConfig()
+  getConfig () {
+    return this.configService.getJiraConfig();
   }
 
-  async makeRequest(endpoint, options = {}) {
-    const config = this.getConfig()
-    
+  async makeRequest (endpoint, options = {}) {
+    const config = this.getConfig();
+
     if (!config.enabled || !config.apiToken || !config.baseUrl) {
-      throw new Error('Jira integration not configured')
+      throw new Error('Jira integration not configured');
     }
 
-    const url = `${config.baseUrl}/rest/api/3${endpoint}`
-    
+    const url = `${config.baseUrl}/rest/api/3${endpoint}`;
+
     // Parse URL to get hostname and path
-    const urlObj = new URL(url)
-    
+    const urlObj = new URL(url);
+
     const requestOptions = {
       hostname: urlObj.hostname,
       path: urlObj.pathname + urlObj.search,
@@ -33,179 +33,179 @@ class JiraService {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
-    }
+    };
 
     if (options.body) {
-      requestOptions.headers['Content-Length'] = Buffer.byteLength(options.body)
+      requestOptions.headers['Content-Length'] = Buffer.byteLength(options.body);
     }
 
     return new Promise((resolve, reject) => {
       const req = https.request(requestOptions, (res) => {
-        let data = ''
-        
+        let data = '';
+
         res.on('data', (chunk) => {
-          data += chunk
-        })
-        
+          data += chunk;
+        });
+
         res.on('end', () => {
           try {
-            const jsonData = JSON.parse(data)
-            
+            const jsonData = JSON.parse(data);
+
             if (res.statusCode >= 200 && res.statusCode < 300) {
-              resolve(jsonData)
+              resolve(jsonData);
             } else {
-              reject(new Error(`Jira API error: ${res.statusCode} - ${jsonData.errorMessages?.[0] || data}`))
+              reject(new Error(`Jira API error: ${res.statusCode} - ${jsonData.errorMessages?.[0] || data}`));
             }
           } catch (error) {
-            reject(new Error(`Failed to parse Jira API response: ${error.message}`))
+            reject(new Error(`Failed to parse Jira API response: ${error.message}`));
           }
-        })
-      })
+        });
+      });
 
       req.on('error', (error) => {
-        reject(new Error(`Jira API request failed: ${error.message}`))
-      })
+        reject(new Error(`Jira API request failed: ${error.message}`));
+      });
 
       if (options.body) {
-        req.write(options.body)
+        req.write(options.body);
       }
 
-      req.end()
-    })
+      req.end();
+    });
   }
 
-  async getIssues() {
+  async getIssues () {
     try {
-      const config = this.getConfig()
-      
+      const config = this.getConfig();
+
       if (!config.enabled) {
-        return []
+        return [];
       }
 
       // Check cache first
-      const cacheKey = `jira_issues_${config.username}`
-      const cachedData = this.cacheService.get(cacheKey)
+      const cacheKey = `jira_issues_${config.username}`;
+      const cachedData = this.cacheService.get(cacheKey);
       if (cachedData) {
-        console.log('Jira: Returning cached issues data')
-        return cachedData
+        console.log('Jira: Returning cached issues data');
+        return cachedData;
       }
 
       // Build JQL query with custom status filtering
-      let jql = 'assignee = currentUser() ORDER BY updated DESC'
-      
+      let jql = 'assignee = currentUser() ORDER BY updated DESC';
+
       // Add status filters
-      const statusConditions = []
-      
+      const statusConditions = [];
+
       // Add excluded statuses
       if (config.excludedStatuses && config.excludedStatuses.length > 0) {
-        const excludedConditions = config.excludedStatuses.map(status => `status != "${status}"`)
-        statusConditions.push(`(${excludedConditions.join(' AND ')})`)
-      }
-      
-      // Add included statuses (if specified)
-      if (config.includedStatuses && config.includedStatuses.length > 0) {
-        const includedConditions = config.includedStatuses.map(status => `status = "${status}"`)
-        statusConditions.push(`(${includedConditions.join(' OR ')})`)
-      }
-      
-      // Combine status conditions
-      if (statusConditions.length > 0) {
-        jql = `${statusConditions.join(' AND ')} AND ${jql}`
-      }
-      
-      // Add project filter if specified
-      if (config.projectKeys && config.projectKeys.length > 0) {
-        const projectFilter = config.projectKeys.map(key => `project = ${key}`).join(' OR ')
-        jql = `(${projectFilter}) AND ${jql}`
+        const excludedConditions = config.excludedStatuses.map(status => `status != "${status}"`);
+        statusConditions.push(`(${excludedConditions.join(' AND ')})`);
       }
 
-      const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${config.maxResults || 50}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog`
-      
-      const response = await this.makeRequest(endpoint)
-      const issues = response.issues || []
-      
+      // Add included statuses (if specified)
+      if (config.includedStatuses && config.includedStatuses.length > 0) {
+        const includedConditions = config.includedStatuses.map(status => `status = "${status}"`);
+        statusConditions.push(`(${includedConditions.join(' OR ')})`);
+      }
+
+      // Combine status conditions
+      if (statusConditions.length > 0) {
+        jql = `${statusConditions.join(' AND ')} AND ${jql}`;
+      }
+
+      // Add project filter if specified
+      if (config.projectKeys && config.projectKeys.length > 0) {
+        const projectFilter = config.projectKeys.map(key => `project = ${key}`).join(' OR ');
+        jql = `(${projectFilter}) AND ${jql}`;
+      }
+
+      const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${config.maxResults || 50}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog`;
+
+      const response = await this.makeRequest(endpoint);
+      const issues = response.issues || [];
+
       // Cache the result with warm cache for initial load
       if (this.cacheService.isEmpty()) {
         // First load - use warm cache with longer TTL
-        this.cacheService.setWarmCache(cacheKey, issues)
-        console.log('Jira: Using warm cache for initial load')
+        this.cacheService.setWarmCache(cacheKey, issues);
+        console.log('Jira: Using warm cache for initial load');
       } else {
         // Subsequent loads - use normal cache
-        this.cacheService.set(cacheKey, issues, config.refreshInterval * 1000)
+        this.cacheService.set(cacheKey, issues, config.refreshInterval * 1000);
       }
-      
-      return issues
+
+      return issues;
     } catch (error) {
-      console.error('Error fetching Jira issues:', error)
-      return []
+      console.error('Error fetching Jira issues:', error);
+      return [];
     }
   }
 
-  async getIssueDetails(issueKey) {
+  async getIssueDetails (issueKey) {
     try {
-      const endpoint = `/issue/${issueKey}?fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog,attachment,components,labels`
-      return await this.makeRequest(endpoint)
+      const endpoint = `/issue/${issueKey}?fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog,attachment,components,labels`;
+      return await this.makeRequest(endpoint);
     } catch (error) {
-      console.error('Error fetching issue details:', error)
-      return null
+      console.error('Error fetching issue details:', error);
+      return null;
     }
   }
 
-  async getIssueComments(issueKey) {
+  async getIssueComments (issueKey) {
     try {
-      const endpoint = `/issue/${issueKey}/comment`
-      const response = await this.makeRequest(endpoint)
-      return response.comments || []
+      const endpoint = `/issue/${issueKey}/comment`;
+      const response = await this.makeRequest(endpoint);
+      return response.comments || [];
     } catch (error) {
-      console.error('Error fetching issue comments:', error)
-      return []
+      console.error('Error fetching issue comments:', error);
+      return [];
     }
   }
 
-  async getIssueWorklog(issueKey) {
+  async getIssueWorklog (issueKey) {
     try {
-      const endpoint = `/issue/${issueKey}/worklog`
-      const response = await this.makeRequest(endpoint)
-      return response.worklogs || []
+      const endpoint = `/issue/${issueKey}/worklog`;
+      const response = await this.makeRequest(endpoint);
+      return response.worklogs || [];
     } catch (error) {
-      console.error('Error fetching issue worklog:', error)
-      return []
+      console.error('Error fetching issue worklog:', error);
+      return [];
     }
   }
 
-  async getIssueTransitions(issueKey) {
+  async getIssueTransitions (issueKey) {
     try {
-      const endpoint = `/issue/${issueKey}/transitions`
-      const response = await this.makeRequest(endpoint)
-      return response.transitions || []
+      const endpoint = `/issue/${issueKey}/transitions`;
+      const response = await this.makeRequest(endpoint);
+      return response.transitions || [];
     } catch (error) {
-      console.error('Error fetching issue transitions:', error)
-      return []
+      console.error('Error fetching issue transitions:', error);
+      return [];
     }
   }
 
-  async updateIssueStatus(issueKey, transitionId) {
+  async updateIssueStatus (issueKey, transitionId) {
     try {
-      const endpoint = `/issue/${issueKey}/transitions`
+      const endpoint = `/issue/${issueKey}/transitions`;
       const body = JSON.stringify({
         transition: {
           id: transitionId
         }
-      })
-      
+      });
+
       return await this.makeRequest(endpoint, {
         method: 'POST',
         body
-      })
+      });
     } catch (error) {
-      console.error('Error updating issue status:', error)
-      return false
+      console.error('Error updating issue status:', error);
+      return false;
     }
   }
 
-  async addComment(issueKey, comment) {
+  async addComment (issueKey, comment) {
     try {
-      const endpoint = `/issue/${issueKey}/comment`
+      const endpoint = `/issue/${issueKey}/comment`;
       const body = JSON.stringify({
         body: {
           type: 'doc',
@@ -222,203 +222,203 @@ class JiraService {
             }
           ]
         }
-      })
-      
+      });
+
       return await this.makeRequest(endpoint, {
         method: 'POST',
         body
-      })
+      });
     } catch (error) {
-      console.error('Error adding comment:', error)
-      return false
+      console.error('Error adding comment:', error);
+      return false;
     }
   }
 
-  async logWork(issueKey, timeSpent, comment = '') {
+  async logWork (issueKey, timeSpent, comment = '') {
     try {
-      const endpoint = `/issue/${issueKey}/worklog`
+      const endpoint = `/issue/${issueKey}/worklog`;
       const body = JSON.stringify({
         timeSpent: timeSpent,
         comment: comment
-      })
-      
+      });
+
       return await this.makeRequest(endpoint, {
         method: 'POST',
         body
-      })
+      });
     } catch (error) {
-      console.error('Error logging work:', error)
-      return false
+      console.error('Error logging work:', error);
+      return false;
     }
   }
 
-  async getUserInfo() {
+  async getUserInfo () {
     try {
-      const userInfo = await this.makeRequest('/myself')
-      return userInfo
+      const userInfo = await this.makeRequest('/myself');
+      return userInfo;
     } catch (error) {
-      console.error('Error fetching user info:', error)
-      return null
+      console.error('Error fetching user info:', error);
+      return null;
     }
   }
 
-  async getProjects() {
+  async getProjects () {
     try {
-      const response = await this.makeRequest('/project?expand=description,lead,url,projectKeys')
-      return response || []
+      const response = await this.makeRequest('/project?expand=description,lead,url,projectKeys');
+      return response || [];
     } catch (error) {
-      console.error('Error fetching projects:', error)
-      return []
+      console.error('Error fetching projects:', error);
+      return [];
     }
   }
 
-  async getProjectDetails(projectKey) {
+  async getProjectDetails (projectKey) {
     try {
-      const endpoint = `/project/${projectKey}`
-      return await this.makeRequest(endpoint)
+      const endpoint = `/project/${projectKey}`;
+      return await this.makeRequest(endpoint);
     } catch (error) {
-      console.error('Error fetching project details:', error)
-      return null
+      console.error('Error fetching project details:', error);
+      return null;
     }
   }
 
-  async searchIssues(jql, maxResults = 50) {
+  async searchIssues (jql, maxResults = 50) {
     try {
-      const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${maxResults}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated`
-      
-      const response = await this.makeRequest(endpoint)
-      return response.issues || []
+      const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${maxResults}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated`;
+
+      const response = await this.makeRequest(endpoint);
+      return response.issues || [];
     } catch (error) {
-      console.error('Error searching issues:', error)
-      return []
+      console.error('Error searching issues:', error);
+      return [];
     }
   }
 
-  async getIssuesByProject(projectKey, status = null) {
+  async getIssuesByProject (projectKey, status = null) {
     try {
-      let jql = `project = ${projectKey}`
+      let jql = `project = ${projectKey}`;
       if (status) {
-        jql += ` AND status = "${status}"`
+        jql += ` AND status = "${status}"`;
       }
-      jql += ' ORDER BY updated DESC'
-      
-      return await this.searchIssues(jql)
+      jql += ' ORDER BY updated DESC';
+
+      return await this.searchIssues(jql);
     } catch (error) {
-      console.error('Error fetching project issues:', error)
-      return []
+      console.error('Error fetching project issues:', error);
+      return [];
     }
   }
 
-  async getIssuesByStatus(status) {
+  async getIssuesByStatus (status) {
     try {
-      const jql = `status = "${status}" AND assignee = currentUser() ORDER BY updated DESC`
-      return await this.searchIssues(jql)
+      const jql = `status = "${status}" AND assignee = currentUser() ORDER BY updated DESC`;
+      return await this.searchIssues(jql);
     } catch (error) {
-      console.error('Error fetching issues by status:', error)
-      return []
+      console.error('Error fetching issues by status:', error);
+      return [];
     }
   }
 
-  async getIssuesByPriority(priority) {
+  async getIssuesByPriority (priority) {
     try {
-      const jql = `priority = "${priority}" AND assignee = currentUser() ORDER BY updated DESC`
-      return await this.searchIssues(jql)
+      const jql = `priority = "${priority}" AND assignee = currentUser() ORDER BY updated DESC`;
+      return await this.searchIssues(jql);
     } catch (error) {
-      console.error('Error fetching issues by priority:', error)
-      return []
+      console.error('Error fetching issues by priority:', error);
+      return [];
     }
   }
 
-  async getIssueTypes() {
+  async getIssueTypes () {
     try {
-      const response = await this.makeRequest('/issuetype')
-      return response || []
+      const response = await this.makeRequest('/issuetype');
+      return response || [];
     } catch (error) {
-      console.error('Error fetching issue types:', error)
-      return []
+      console.error('Error fetching issue types:', error);
+      return [];
     }
   }
 
-  async getStatuses() {
+  async getStatuses () {
     try {
-      const response = await this.makeRequest('/status')
-      return response || []
+      const response = await this.makeRequest('/status');
+      return response || [];
     } catch (error) {
-      console.error('Error fetching statuses:', error)
-      return []
+      console.error('Error fetching statuses:', error);
+      return [];
     }
   }
 
-  async getAvailableStatuses() {
+  async getAvailableStatuses () {
     try {
-      const config = this.getConfig()
-      
+      const config = this.getConfig();
+
       if (!config.enabled || !config.apiToken) {
-        return []
+        return [];
       }
 
       // Check cache first
-      const cacheKey = 'jira_available_statuses'
-      const cachedData = this.cacheService.get(cacheKey)
+      const cacheKey = 'jira_available_statuses';
+      const cachedData = this.cacheService.get(cacheKey);
       if (cachedData) {
-        return cachedData
+        return cachedData;
       }
 
       // Get all statuses
-      const statuses = await this.getStatuses()
-      
+      const statuses = await this.getStatuses();
+
       // Cache for 1 hour
-      this.cacheService.set(cacheKey, statuses, 60 * 60 * 1000)
-      
-      return statuses
+      this.cacheService.set(cacheKey, statuses, 60 * 60 * 1000);
+
+      return statuses;
     } catch (error) {
-      console.error('Error fetching available statuses:', error)
-      return []
+      console.error('Error fetching available statuses:', error);
+      return [];
     }
   }
 
-  async getStatusesByProject(projectKey) {
+  async getStatusesByProject (projectKey) {
     try {
-      const config = this.getConfig()
-      
+      const config = this.getConfig();
+
       if (!config.enabled || !config.apiToken) {
-        return []
+        return [];
       }
 
       // Check cache first
-      const cacheKey = `jira_statuses_${projectKey}`
-      const cachedData = this.cacheService.get(cacheKey)
+      const cacheKey = `jira_statuses_${projectKey}`;
+      const cachedData = this.cacheService.get(cacheKey);
       if (cachedData) {
-        return cachedData
+        return cachedData;
       }
 
       // Get project details to get workflow statuses
-      const projectDetails = await this.getProjectDetails(projectKey)
-      const statuses = projectDetails?.workflowStatuses || []
-      
+      const projectDetails = await this.getProjectDetails(projectKey);
+      const statuses = projectDetails?.workflowStatuses || [];
+
       // Cache for 1 hour
-      this.cacheService.set(cacheKey, statuses, 60 * 60 * 1000)
-      
-      return statuses
+      this.cacheService.set(cacheKey, statuses, 60 * 60 * 1000);
+
+      return statuses;
     } catch (error) {
-      console.error('Error fetching project statuses:', error)
-      return []
+      console.error('Error fetching project statuses:', error);
+      return [];
     }
   }
 
-  async getPriorities() {
+  async getPriorities () {
     try {
-      const response = await this.makeRequest('/priority')
-      return response || []
+      const response = await this.makeRequest('/priority');
+      return response || [];
     } catch (error) {
-      console.error('Error fetching priorities:', error)
-      return []
+      console.error('Error fetching priorities:', error);
+      return [];
     }
   }
 
-  async createIssue(projectKey, summary, description, issueType = 'Task') {
+  async createIssue (projectKey, summary, description, issueType = 'Task') {
     try {
-      const endpoint = '/issue'
+      const endpoint = '/issue';
       const body = JSON.stringify({
         fields: {
           project: {
@@ -444,17 +444,17 @@ class JiraService {
             name: issueType
           }
         }
-      })
-      
+      });
+
       return await this.makeRequest(endpoint, {
         method: 'POST',
         body
-      })
+      });
     } catch (error) {
-      console.error('Error creating issue:', error)
-      return null
+      console.error('Error creating issue:', error);
+      return null;
     }
   }
 }
 
-module.exports = JiraService 
+module.exports = JiraService;

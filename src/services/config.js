@@ -1,17 +1,17 @@
-const fs = require('fs')
-const path = require('path')
-const os = require('os')
-const yaml = require('js-yaml')
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const yaml = require('js-yaml');
 
 class ConfigService {
-  constructor() {
-    this.configDir = path.join(os.homedir(), '.devbuddy')
-    this.configPath = path.join(this.configDir, 'config.yaml')
-    this.shortcutsPath = path.join(this.configDir, 'shortcuts.yaml')
-    this.defaultConfig = this.getDefaultConfig()
+  constructor () {
+    this.configDir = path.join(os.homedir(), '.devbuddy');
+    this.configPath = path.join(this.configDir, 'config.yaml');
+    this.shortcutsPath = path.join(this.configDir, 'shortcuts.yaml');
+    this.defaultConfig = this.getDefaultConfig();
   }
 
-  getDefaultConfig() {
+  getDefaultConfig () {
     return {
       jira: {
         enabled: false,
@@ -72,10 +72,10 @@ class ConfigService {
         autoScan: true, // Auto scan on startup
         scanInterval: 3600 // Scan interval in seconds (1 hour)
       }
-    }
+    };
   }
 
-  getDefaultShortcuts() {
+  getDefaultShortcuts () {
     return {
       categories: [
         {
@@ -145,90 +145,90 @@ class ConfigService {
           ]
         }
       ]
-    }
+    };
   }
 
-  ensureConfigDir() {
+  ensureConfigDir () {
     if (!fs.existsSync(this.configDir)) {
-      fs.mkdirSync(this.configDir, { recursive: true })
+      fs.mkdirSync(this.configDir, { recursive: true });
     }
   }
 
-  loadConfig() {
+  loadConfig () {
     try {
-      this.ensureConfigDir()
-      
+      this.ensureConfigDir();
+
       if (!fs.existsSync(this.configPath)) {
         // Create default config if it doesn't exist
-        this.saveConfig(this.defaultConfig)
-        return this.defaultConfig
+        this.saveConfig(this.defaultConfig);
+        return this.defaultConfig;
       }
 
-      const configData = fs.readFileSync(this.configPath, 'utf8')
-      const config = yaml.load(configData)
-      
+      const configData = fs.readFileSync(this.configPath, 'utf8');
+      const config = yaml.load(configData);
+
       // Merge with default config to ensure all properties exist
-      return this.mergeWithDefaults(config)
+      return this.mergeWithDefaults(config);
     } catch (error) {
-      console.error('Error loading config:', error)
-      return this.defaultConfig
+      console.error('Error loading config:', error);
+      return this.defaultConfig;
     }
   }
 
-  saveConfig(config) {
+  saveConfig (config) {
     try {
-      this.ensureConfigDir()
-      const yamlData = yaml.dump(config, { 
+      this.ensureConfigDir();
+      const yamlData = yaml.dump(config, {
         indent: 2,
         lineWidth: 120,
         noRefs: true
-      })
-      fs.writeFileSync(this.configPath, yamlData, 'utf8')
-      return true
+      });
+      fs.writeFileSync(this.configPath, yamlData, 'utf8');
+      return true;
     } catch (error) {
-      console.error('Error saving config:', error)
-      return false
+      console.error('Error saving config:', error);
+      return false;
     }
   }
 
-  mergeWithDefaults(config) {
-    const merged = JSON.parse(JSON.stringify(this.defaultConfig))
-    
+  mergeWithDefaults (config) {
+    const merged = JSON.parse(JSON.stringify(this.defaultConfig));
+
     // Deep merge function
     const deepMerge = (target, source) => {
       for (const key in source) {
         if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-          target[key] = target[key] || {}
-          deepMerge(target[key], source[key])
+          target[key] = target[key] || {};
+          deepMerge(target[key], source[key]);
         } else {
-          target[key] = source[key]
+          target[key] = source[key];
         }
       }
-    }
+    };
 
-    deepMerge(merged, config)
-    return merged
+    deepMerge(merged, config);
+    return merged;
   }
 
-  updateConfig(updates) {
-    const currentConfig = this.loadConfig()
-    const updatedConfig = this.mergeWithDefaults({ ...currentConfig, ...updates })
-    return this.saveConfig(updatedConfig)
+  updateConfig (updates) {
+    const currentConfig = this.loadConfig();
+    const updatedConfig = this.mergeWithDefaults({ ...currentConfig, ...updates });
+    return this.saveConfig(updatedConfig);
   }
 
-  loadShortcuts() {
+  loadShortcuts () {
     try {
-      this.ensureConfigDir()
-      
+      this.ensureConfigDir();
+
       if (!fs.existsSync(this.shortcutsPath)) {
         // Create default shortcuts if it doesn't exist
-        this.saveShortcuts(this.getDefaultShortcuts())
-        return this.getDefaultShortcuts()
+        this.saveShortcuts(this.getDefaultShortcuts());
+        return this.getDefaultShortcuts();
       }
 
-      const shortcutsData = fs.readFileSync(this.shortcutsPath, 'utf8')
-      const shortcuts = yaml.load(shortcutsData)
-      
+      const shortcutsData = fs.readFileSync(this.shortcutsPath, 'utf8');
+      const shortcuts = yaml.load(shortcutsData);
+
       // Handle migration from old format to new format
       if (Array.isArray(shortcuts)) {
         // Convert old array format to new categorized format
@@ -242,47 +242,47 @@ class ConfigService {
               shortcuts: shortcuts
             }
           ]
-        }
-        this.saveShortcuts(migratedShortcuts)
-        return migratedShortcuts
+        };
+        this.saveShortcuts(migratedShortcuts);
+        return migratedShortcuts;
       }
-      
-      return shortcuts || this.getDefaultShortcuts()
+
+      return shortcuts || this.getDefaultShortcuts();
     } catch (error) {
-      console.error('Error loading shortcuts:', error)
-      return this.getDefaultShortcuts()
+      console.error('Error loading shortcuts:', error);
+      return this.getDefaultShortcuts();
     }
   }
 
-  saveShortcuts(shortcuts) {
+  saveShortcuts (shortcuts) {
     try {
-      this.ensureConfigDir()
-      const yamlData = yaml.dump(shortcuts, { 
+      this.ensureConfigDir();
+      const yamlData = yaml.dump(shortcuts, {
         indent: 2,
         lineWidth: 120,
         noRefs: true
-      })
-      fs.writeFileSync(this.shortcutsPath, yamlData, 'utf8')
-      return true
+      });
+      fs.writeFileSync(this.shortcutsPath, yamlData, 'utf8');
+      return true;
     } catch (error) {
-      console.error('Error saving shortcuts:', error)
-      return false
+      console.error('Error saving shortcuts:', error);
+      return false;
     }
   }
 
-  getShortcuts() {
-    return this.loadShortcuts()
+  getShortcuts () {
+    return this.loadShortcuts();
   }
 
-  updateShortcuts(shortcuts) {
-    return this.saveShortcuts(shortcuts)
+  updateShortcuts (shortcuts) {
+    return this.saveShortcuts(shortcuts);
   }
 
   // Helper methods for categorized shortcuts
-  getAllShortcuts() {
-    const shortcutsData = this.loadShortcuts()
-    const allShortcuts = []
-    
+  getAllShortcuts () {
+    const shortcutsData = this.loadShortcuts();
+    const allShortcuts = [];
+
     if (shortcutsData.categories) {
       shortcutsData.categories.forEach(category => {
         if (category.shortcuts) {
@@ -292,103 +292,103 @@ class ConfigService {
               category: category.name,
               categoryId: category.id,
               categoryColor: category.color
-            })
-          })
+            });
+          });
         }
-      })
+      });
     }
-    
-    return allShortcuts
+
+    return allShortcuts;
   }
 
-  addCategory(category) {
-    const shortcutsData = this.loadShortcuts()
+  addCategory (category) {
+    const shortcutsData = this.loadShortcuts();
     if (!shortcutsData.categories) {
-      shortcutsData.categories = []
+      shortcutsData.categories = [];
     }
-    
+
     // Generate unique ID if not provided
     if (!category.id) {
-      category.id = `category-${Date.now()}`
+      category.id = `category-${Date.now()}`;
     }
-    
-    shortcutsData.categories.push(category)
-    return this.saveShortcuts(shortcutsData)
+
+    shortcutsData.categories.push(category);
+    return this.saveShortcuts(shortcutsData);
   }
 
-  updateCategory(categoryId, updatedCategory) {
-    const shortcutsData = this.loadShortcuts()
+  updateCategory (categoryId, updatedCategory) {
+    const shortcutsData = this.loadShortcuts();
     if (shortcutsData.categories) {
-      const index = shortcutsData.categories.findIndex(cat => cat.id === categoryId)
+      const index = shortcutsData.categories.findIndex(cat => cat.id === categoryId);
       if (index !== -1) {
-        shortcutsData.categories[index] = { ...shortcutsData.categories[index], ...updatedCategory }
-        return this.saveShortcuts(shortcutsData)
+        shortcutsData.categories[index] = { ...shortcutsData.categories[index], ...updatedCategory };
+        return this.saveShortcuts(shortcutsData);
       }
     }
-    return false
+    return false;
   }
 
-  deleteCategory(categoryId) {
-    const shortcutsData = this.loadShortcuts()
+  deleteCategory (categoryId) {
+    const shortcutsData = this.loadShortcuts();
     if (shortcutsData.categories) {
-      shortcutsData.categories = shortcutsData.categories.filter(cat => cat.id !== categoryId)
-      return this.saveShortcuts(shortcutsData)
+      shortcutsData.categories = shortcutsData.categories.filter(cat => cat.id !== categoryId);
+      return this.saveShortcuts(shortcutsData);
     }
-    return false
+    return false;
   }
 
-  addShortcut(categoryId, shortcut) {
-    const shortcutsData = this.loadShortcuts()
+  addShortcut (categoryId, shortcut) {
+    const shortcutsData = this.loadShortcuts();
     if (shortcutsData.categories) {
-      const category = shortcutsData.categories.find(cat => cat.id === categoryId)
+      const category = shortcutsData.categories.find(cat => cat.id === categoryId);
       if (category) {
         if (!category.shortcuts) {
-          category.shortcuts = []
+          category.shortcuts = [];
         }
-        
+
         // Generate unique ID if not provided
         if (!shortcut.id) {
-          shortcut.id = `shortcut-${Date.now()}`
+          shortcut.id = `shortcut-${Date.now()}`;
         }
-        
-        category.shortcuts.push(shortcut)
-        return this.saveShortcuts(shortcutsData)
+
+        category.shortcuts.push(shortcut);
+        return this.saveShortcuts(shortcutsData);
       }
     }
-    return false
+    return false;
   }
 
-  updateShortcut(categoryId, shortcutId, updatedShortcut) {
-    const shortcutsData = this.loadShortcuts()
+  updateShortcut (categoryId, shortcutId, updatedShortcut) {
+    const shortcutsData = this.loadShortcuts();
     if (shortcutsData.categories) {
-      const category = shortcutsData.categories.find(cat => cat.id === categoryId)
+      const category = shortcutsData.categories.find(cat => cat.id === categoryId);
       if (category && category.shortcuts) {
-        const index = category.shortcuts.findIndex(shortcut => shortcut.id === shortcutId)
+        const index = category.shortcuts.findIndex(shortcut => shortcut.id === shortcutId);
         if (index !== -1) {
-          category.shortcuts[index] = { ...category.shortcuts[index], ...updatedShortcut }
-          return this.saveShortcuts(shortcutsData)
+          category.shortcuts[index] = { ...category.shortcuts[index], ...updatedShortcut };
+          return this.saveShortcuts(shortcutsData);
         }
       }
     }
-    return false
+    return false;
   }
 
-  deleteShortcut(categoryId, shortcutId) {
-    const shortcutsData = this.loadShortcuts()
+  deleteShortcut (categoryId, shortcutId) {
+    const shortcutsData = this.loadShortcuts();
     if (shortcutsData.categories) {
-      const category = shortcutsData.categories.find(cat => cat.id === categoryId)
+      const category = shortcutsData.categories.find(cat => cat.id === categoryId);
       if (category && category.shortcuts) {
-        category.shortcuts = category.shortcuts.filter(shortcut => shortcut.id !== shortcutId)
-        return this.saveShortcuts(shortcutsData)
+        category.shortcuts = category.shortcuts.filter(shortcut => shortcut.id !== shortcutId);
+        return this.saveShortcuts(shortcutsData);
       }
     }
-    return false
+    return false;
   }
 
-  getJiraConfig() {
-    const config = this.loadConfig()
-    const jiraConfig = config.jira || {}
-    
+  getJiraConfig () {
+    const config = this.loadConfig();
+    const jiraConfig = config.jira || {};
+
     // Ensure all required fields exist with defaults
     const completeConfig = {
       enabled: jiraConfig.enabled || false,
@@ -408,19 +408,19 @@ class ConfigService {
         review: ['Review', 'Testing', 'QA'],
         blocked: ['Blocked', 'On Hold', 'Waiting']
       }
-    }
-    
-    return completeConfig
+    };
+
+    return completeConfig;
   }
 
-  updateJiraConfig(jiraConfig) {
-    return this.updateConfig({ jira: jiraConfig })
+  updateJiraConfig (jiraConfig) {
+    return this.updateConfig({ jira: jiraConfig });
   }
 
-  getGithubConfig() {
-    const config = this.loadConfig()
-    const githubConfig = config.github || {}
-    
+  getGithubConfig () {
+    const config = this.loadConfig();
+    const githubConfig = config.github || {};
+
     // Ensure all required fields exist with defaults
     const completeConfig = {
       enabled: githubConfig.enabled || false,
@@ -432,19 +432,19 @@ class ConfigService {
       showDrafts: githubConfig.showDrafts !== undefined ? githubConfig.showDrafts : true,
       showClosed: githubConfig.showClosed || false,
       maxResults: githubConfig.maxResults || 50
-    }
-    
-    return completeConfig
+    };
+
+    return completeConfig;
   }
 
-  updateGithubConfig(githubConfig) {
-    return this.updateConfig({ github: githubConfig })
+  updateGithubConfig (githubConfig) {
+    return this.updateConfig({ github: githubConfig });
   }
 
-  getGitlabConfig() {
-    const config = this.loadConfig()
-    const gitlabConfig = config.gitlab || {}
-    
+  getGitlabConfig () {
+    const config = this.loadConfig();
+    const gitlabConfig = config.gitlab || {};
+
     // Ensure all required fields exist with defaults
     const completeConfig = {
       enabled: gitlabConfig.enabled || false,
@@ -456,117 +456,117 @@ class ConfigService {
       showDrafts: gitlabConfig.showDrafts !== undefined ? gitlabConfig.showDrafts : true,
       showClosed: gitlabConfig.showClosed || false,
       maxResults: gitlabConfig.maxResults || 50
-    }
-    
-    return completeConfig
+    };
+
+    return completeConfig;
   }
 
-  updateGitlabConfig(gitlabConfig) {
-    return this.updateConfig({ gitlab: gitlabConfig })
+  updateGitlabConfig (gitlabConfig) {
+    return this.updateConfig({ gitlab: gitlabConfig });
   }
 
-  getAppConfig() {
-    const config = this.loadConfig()
-    return config.app || {}
+  getAppConfig () {
+    const config = this.loadConfig();
+    return config.app || {};
   }
 
-  updateAppConfig(appConfig) {
-    return this.updateConfig({ app: appConfig })
+  updateAppConfig (appConfig) {
+    return this.updateConfig({ app: appConfig });
   }
 
-  getRepositoriesConfig() {
-    const config = this.loadConfig()
-    return config.repositories || this.getDefaultConfig().repositories
+  getRepositoriesConfig () {
+    const config = this.loadConfig();
+    return config.repositories || this.getDefaultConfig().repositories;
   }
 
-  updateRepositoriesConfig(repositoriesConfig) {
-    return this.updateConfig({ repositories: repositoriesConfig })
+  updateRepositoriesConfig (repositoriesConfig) {
+    return this.updateConfig({ repositories: repositoriesConfig });
   }
 
-  addRepository(repository) {
-    const config = this.loadConfig()
-    const repositories = config.repositories?.repositories || []
-    
+  addRepository (repository) {
+    const config = this.loadConfig();
+    const repositories = config.repositories?.repositories || [];
+
     // Check if repository already exists
-    const existingIndex = repositories.findIndex(repo => repo.path === repository.path)
-    
+    const existingIndex = repositories.findIndex(repo => repo.path === repository.path);
+
     if (existingIndex >= 0) {
       // Update existing repository
-      repositories[existingIndex] = { ...repositories[existingIndex], ...repository }
+      repositories[existingIndex] = { ...repositories[existingIndex], ...repository };
     } else {
       // Add new repository
-      repositories.push(repository)
+      repositories.push(repository);
     }
-    
-    return this.updateConfig({ 
-      repositories: { 
-        ...config.repositories, 
+
+    return this.updateConfig({
+      repositories: {
+        ...config.repositories,
         repositories,
         lastScan: new Date().toISOString()
-      } 
-    })
+      }
+    });
   }
 
-  removeRepository(repositoryPath) {
-    const config = this.loadConfig()
-    const repositories = config.repositories?.repositories || []
-    const filteredRepositories = repositories.filter(repo => repo.path !== repositoryPath)
-    
-    return this.updateConfig({ 
-      repositories: { 
-        ...config.repositories, 
+  removeRepository (repositoryPath) {
+    const config = this.loadConfig();
+    const repositories = config.repositories?.repositories || [];
+    const filteredRepositories = repositories.filter(repo => repo.path !== repositoryPath);
+
+    return this.updateConfig({
+      repositories: {
+        ...config.repositories,
         repositories: filteredRepositories,
         lastScan: new Date().toISOString()
-      } 
-    })
+      }
+    });
   }
 
-  clearRepositories() {
-    const config = this.loadConfig()
-    return this.updateConfig({ 
-      repositories: { 
-        ...config.repositories, 
+  clearRepositories () {
+    const config = this.loadConfig();
+    return this.updateConfig({
+      repositories: {
+        ...config.repositories,
         repositories: [],
         lastScan: new Date().toISOString()
-      } 
-    })
+      }
+    });
   }
 
-  isConfigured() {
-    const config = this.loadConfig()
-    const shortcuts = this.loadShortcuts()
-    
+  isConfigured () {
+    const config = this.loadConfig();
+    const shortcuts = this.loadShortcuts();
+
     // Consider configured if any service is enabled OR if there are shortcuts
-    return config.jira.enabled || config.github.enabled || config.gitlab.enabled || config.repositories?.enabled || shortcuts.length > 0
+    return config.jira.enabled || config.github.enabled || config.gitlab.enabled || config.repositories?.enabled || shortcuts.length > 0;
   }
 
-  validateConfig(config) {
-    const errors = []
+  validateConfig (config) {
+    const errors = [];
 
     // Validate Jira config
     if (config.jira.enabled) {
-      if (!config.jira.baseUrl) errors.push('Jira base URL is required')
-      if (!config.jira.apiToken) errors.push('Jira API token is required')
-      if (!config.jira.username) errors.push('Jira username is required')
+      if (!config.jira.baseUrl) errors.push('Jira base URL is required');
+      if (!config.jira.apiToken) errors.push('Jira API token is required');
+      if (!config.jira.username) errors.push('Jira username is required');
     }
 
     // Validate GitHub config
     if (config.github.enabled) {
-      if (!config.github.apiToken) errors.push('GitHub API token is required')
-      if (!config.github.username) errors.push('GitHub username is required')
+      if (!config.github.apiToken) errors.push('GitHub API token is required');
+      if (!config.github.username) errors.push('GitHub username is required');
     }
 
     // Validate GitLab config
     if (config.gitlab.enabled) {
-      if (!config.gitlab.apiToken) errors.push('GitLab API token is required')
-      if (!config.gitlab.username) errors.push('GitLab username is required')
+      if (!config.gitlab.apiToken) errors.push('GitLab API token is required');
+      if (!config.gitlab.username) errors.push('GitLab username is required');
     }
 
     return {
       isValid: errors.length === 0,
       errors
-    }
+    };
   }
 }
 
-module.exports = ConfigService 
+module.exports = ConfigService;
