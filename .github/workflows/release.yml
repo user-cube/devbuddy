@@ -9,17 +9,25 @@ permissions:
   contents: write
   packages: write
   issues: write
+  pull-requests: write
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/create-github-app-token@v2
+      id: app
+      with:
+        app-id: ${{ secrets.DEVOPS_BUDDY_APP_ID }}
+        private-key: ${{ secrets.DEVOPS_BUDDY_PRIVATE_KEY }}
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ steps.app.outputs.token }}
+        persist-credentials: false
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -30,13 +38,13 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Setup Git
+    - name: Setup Git (bot da App)
       run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git config --global user.name "${{ steps.app.outputs.app-slug }}[bot]"
+        git config --global user.email "${{ steps.app.outputs.app-slug }}[bot]@users.noreply.github.com"
 
     - name: Release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ steps.app.outputs.token }}
         NODE_ENV: production
       run: npm run release
