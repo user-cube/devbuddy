@@ -372,11 +372,23 @@ ipcMain.handle('get-config', () => {
 });
 
 ipcMain.handle('save-config', async (event, config) => {
-  const validation = configService.validateConfig(config);
-  if (!validation.isValid) {
-    throw new Error(`Configuration validation failed: ${validation.errors.join(', ')}`);
+  try {
+    const validation = configService.validateConfig(config);
+    if (!validation.isValid) {
+      console.warn('Configuration validation warnings:', validation.errors);
+      // Don't throw error, just log warnings
+    }
+    
+    const success = configService.saveConfig(config);
+    if (success) {
+      return { success: true, message: 'Configuration saved successfully' };
+    } else {
+      throw new Error('Failed to save configuration');
+    }
+  } catch (error) {
+    console.error('Error saving config:', error);
+    throw error;
   }
-  return configService.saveConfig(config);
 });
 
 ipcMain.handle('is-configured', () => {
@@ -1283,7 +1295,22 @@ ipcMain.handle('import-config', async () => {
 // Repositories handlers
 ipcMain.handle('get-repositories-config', async () => {
   try {
-    return await repositoriesService.getConfig();
+    // Load from repositories.yml instead of repositories-config.json
+    const fs = require('fs').promises;
+    const path = require('path');
+    const os = require('os');
+    const yaml = require('js-yaml');
+    
+    const repositoriesConfigPath = path.join(os.homedir(), '.devbuddy', 'repositories.yml');
+    
+    try {
+      const data = await fs.readFile(repositoriesConfigPath, 'utf8');
+      const config = yaml.load(data);
+      return config || { enabled: false, directories: [], scanDepth: 3 };
+    } catch (error) {
+      // Return default config if file doesn't exist
+      return { enabled: false, directories: [], scanDepth: 3 };
+    }
   } catch (error) {
     console.error('Error getting repositories config:', error);
     throw error;
@@ -1292,8 +1319,47 @@ ipcMain.handle('get-repositories-config', async () => {
 
 ipcMain.handle('update-repositories-config', async (event, config) => {
   try {
-    const result = await repositoriesService.saveConfig(config);
-    return result;
+    // Save to repositories.yml instead of repositories-config.json
+    const fs = require('fs').promises;
+    const path = require('path');
+    const os = require('os');
+    const yaml = require('js-yaml');
+    
+    const repositoriesConfigPath = path.join(os.homedir(), '.devbuddy', 'repositories.yml');
+    
+    // Ensure config directory exists
+    const configDir = path.dirname(repositoriesConfigPath);
+    await fs.mkdir(configDir, { recursive: true });
+    
+    // Load existing config to preserve repositories list
+    let existingConfig = {};
+    try {
+      if (await fs.access(repositoriesConfigPath).then(() => true).catch(() => false)) {
+        const data = await fs.readFile(repositoriesConfigPath, 'utf8');
+        existingConfig = yaml.load(data) || {};
+      }
+    } catch (error) {
+      // If file doesn't exist or can't be read, start with empty config
+      existingConfig = {};
+    }
+    
+    // Update config with new settings while preserving repositories
+    const updatedConfig = {
+      ...existingConfig,
+      enabled: config.enabled,
+      scanDepth: config.scanDepth,
+      directories: config.directories
+      // Keep existing repositories and lastScan
+    };
+    
+    const yamlData = yaml.dump(updatedConfig, { 
+      indent: 2,
+      lineWidth: 120,
+      noRefs: true
+    });
+    
+    await fs.writeFile(repositoriesConfigPath, yamlData);
+    return { success: true };
   } catch (error) {
     console.error('Error updating repositories config:', error);
     throw error;
@@ -1302,14 +1368,10 @@ ipcMain.handle('update-repositories-config', async (event, config) => {
 
 ipcMain.handle('get-repositories', async () => {
   try {
-    const config = await repositoriesService.getConfig();
-    if (!config.enabled || !config.directories || config.directories.length === 0) {
-      return [];
-    }
-    return await repositoriesService.scanForRepositories(config.directories, config.scanDepth);
+    return await repositoriesService.getCachedRepositories();
   } catch (error) {
     console.error('Error getting repositories:', error);
-    throw error;
+    return [];
   }
 });
 
@@ -1369,20 +1431,20 @@ ipcMain.handle('open-repository-in-editor', async (event, repoPath) => {
 });
 
 // Cache handlers
-ipcMain.handle('get-repositories-cache-status', async () => {
-  try {
-    return await repositoriesService.getCacheStatus();
-  } catch (error) {
-    console.error('Error getting repositories cache status:', error);
-    return { repositoryCount: 0, lastUpdated: null };
-  }
-});
+  ipcMain.handle('get-repositories-cache-status', async () => {
+    try {
+      return await repositoriesService.getCacheStatus();
+    } catch (error) {
+      console.error('Error getting repositories status:', error);
+      return { repositoryCount: 0, lastUpdated: null };
+    }
+  });
 
-ipcMain.handle('refresh-repositories-cache-in-background', async () => {
-  try {
-    return await repositoriesService.refreshCacheInBackground();
-  } catch (error) {
-    console.error('Error refreshing repositories cache:', error);
-    return { success: false, error: error.message };
-  }
-});
+  ipcMain.handle('refresh-repositories-cache-in-background', async () => {
+    try {
+      return await repositoriesService.refreshCacheInBackground();
+    } catch (error) {
+      console.error('Error refreshing repositories:', error);
+      return { success: false, error: error.message };
+    }
+  });

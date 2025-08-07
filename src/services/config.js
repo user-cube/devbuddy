@@ -63,6 +63,14 @@ class ConfigService {
         backgroundRefresh: true, // Enable background refresh by default
         redirectorPort: 10000, // Port for local redirector server
         defaultEditor: 'vscode' // Default editor: 'vscode' or 'cursor'
+      },
+      repositories: {
+        enabled: false,
+        directories: [],
+        repositories: [], // List of discovered repositories
+        lastScan: null, // Last scan timestamp
+        autoScan: true, // Auto scan on startup
+        scanInterval: 3600 // Scan interval in seconds (1 hour)
       }
     }
   }
@@ -466,12 +474,70 @@ class ConfigService {
     return this.updateConfig({ app: appConfig })
   }
 
+  getRepositoriesConfig() {
+    const config = this.loadConfig()
+    return config.repositories || this.getDefaultConfig().repositories
+  }
+
+  updateRepositoriesConfig(repositoriesConfig) {
+    return this.updateConfig({ repositories: repositoriesConfig })
+  }
+
+  addRepository(repository) {
+    const config = this.loadConfig()
+    const repositories = config.repositories?.repositories || []
+    
+    // Check if repository already exists
+    const existingIndex = repositories.findIndex(repo => repo.path === repository.path)
+    
+    if (existingIndex >= 0) {
+      // Update existing repository
+      repositories[existingIndex] = { ...repositories[existingIndex], ...repository }
+    } else {
+      // Add new repository
+      repositories.push(repository)
+    }
+    
+    return this.updateConfig({ 
+      repositories: { 
+        ...config.repositories, 
+        repositories,
+        lastScan: new Date().toISOString()
+      } 
+    })
+  }
+
+  removeRepository(repositoryPath) {
+    const config = this.loadConfig()
+    const repositories = config.repositories?.repositories || []
+    const filteredRepositories = repositories.filter(repo => repo.path !== repositoryPath)
+    
+    return this.updateConfig({ 
+      repositories: { 
+        ...config.repositories, 
+        repositories: filteredRepositories,
+        lastScan: new Date().toISOString()
+      } 
+    })
+  }
+
+  clearRepositories() {
+    const config = this.loadConfig()
+    return this.updateConfig({ 
+      repositories: { 
+        ...config.repositories, 
+        repositories: [],
+        lastScan: new Date().toISOString()
+      } 
+    })
+  }
+
   isConfigured() {
     const config = this.loadConfig()
     const shortcuts = this.loadShortcuts()
     
     // Consider configured if any service is enabled OR if there are shortcuts
-    return config.jira.enabled || config.github.enabled || config.gitlab.enabled || shortcuts.length > 0
+    return config.jira.enabled || config.github.enabled || config.gitlab.enabled || config.repositories?.enabled || shortcuts.length > 0
   }
 
   validateConfig(config) {

@@ -5,14 +5,16 @@ const { exec } = require('child_process')
 const { promisify } = require('util')
 const yaml = require('js-yaml')
 const app = require('electron').app
+const os = require('os')
 
 const execAsync = promisify(exec)
 
 class RepositoriesService {
   constructor() {
     this.configPath = path.join(app.getPath('userData'), 'repositories-config.json')
-    this.repositoriesCachePath = path.join(app.getPath('userData'), 'repositories.yaml')
+    this.repositoriesConfigPath = path.join(os.homedir(), '.devbuddy', 'repositories.yml')
     this.cacheService = require('./cache')
+    this.configService = require('./config')
     this.defaultConfig = {
       enabled: false,
       directories: [],
@@ -49,70 +51,92 @@ class RepositoriesService {
     }
   }
 
-  async loadRepositoriesCache() {
+  async loadRepositoriesFromConfig() {
     try {
-      const data = await fs.readFile(this.repositoriesCachePath, 'utf8')
-      const cache = yaml.load(data)
-      return cache || { repositories: [], lastUpdated: null }
+      // Ensure config directory exists
+      const configDir = path.dirname(this.repositoriesConfigPath)
+      await fs.mkdir(configDir, { recursive: true })
+      
+      if (!(await fs.access(this.repositoriesConfigPath).then(() => true).catch(() => false))) {
+        // File doesn't exist, return empty array
+        return []
+      }
+      
+      const data = await fs.readFile(this.repositoriesConfigPath, 'utf8')
+      const config = yaml.load(data)
+      return config?.repositories || []
     } catch (error) {
-      // Return empty cache if file doesn't exist
-      return { repositories: [], lastUpdated: null }
+      console.error('Error loading repositories from config:', error)
+      return []
     }
   }
 
-  async saveRepositoriesCache(repositories) {
+  async saveRepositoriesToConfig(repositories) {
     try {
-      // Ensure directory exists
-      const dir = path.dirname(this.repositoriesCachePath)
-      await fs.mkdir(dir, { recursive: true })
+      // Ensure config directory exists
+      const configDir = path.dirname(this.repositoriesConfigPath)
+      await fs.mkdir(configDir, { recursive: true })
       
-      const cacheData = {
-        repositories: repositories,
-        lastUpdated: new Date().toISOString()
+      // Load existing config to preserve other settings
+      let existingConfig = {}
+      try {
+        if (await fs.access(this.repositoriesConfigPath).then(() => true).catch(() => false)) {
+          const data = await fs.readFile(this.repositoriesConfigPath, 'utf8')
+          existingConfig = yaml.load(data) || {}
+        }
+      } catch (error) {
+        // If file doesn't exist or can't be read, start with empty config
+        existingConfig = {}
       }
       
-      const yamlData = yaml.dump(cacheData, { 
+      // Update config with repositories and last scan time
+      const updatedConfig = {
+        ...existingConfig,
+        repositories: repositories,
+        lastScan: new Date().toISOString()
+      }
+      
+      const yamlData = yaml.dump(updatedConfig, { 
         indent: 2,
         lineWidth: 120,
         noRefs: true
       })
-      await fs.writeFile(this.repositoriesCachePath, yamlData)
+      await fs.writeFile(this.repositoriesConfigPath, yamlData)
       return { success: true }
     } catch (error) {
-      console.error('Error saving repositories cache:', error)
+      console.error('Error saving repositories to config:', error)
       return { success: false, error: error.message }
     }
   }
 
   async getCachedRepositories() {
-    const cache = await this.loadRepositoriesCache()
-    return cache.repositories || []
+    return await this.loadRepositoriesFromConfig()
   }
 
   async updateRepositoryInCache(repoPath, repoInfo) {
     try {
-      const cache = await this.loadRepositoriesCache()
-      const existingIndex = cache.repositories.findIndex(repo => repo.path === repoPath)
+      const repositories = await this.loadRepositoriesFromConfig()
+      const existingIndex = repositories.findIndex(repo => repo.path === repoPath)
       
       if (existingIndex >= 0) {
         // Update existing repository
-        cache.repositories[existingIndex] = { ...cache.repositories[existingIndex], ...repoInfo }
+        repositories[existingIndex] = { ...repositories[existingIndex], ...repoInfo }
       } else {
         // Add new repository
-        cache.repositories.push(repoInfo)
+        repositories.push(repoInfo)
       }
       
-      await this.saveRepositoriesCache(cache.repositories)
+      await this.saveRepositoriesToConfig(repositories)
       return { success: true }
     } catch (error) {
-      console.error('Error updating repository in cache:', error)
+      console.error('Error updating repository in config:', error)
       return { success: false, error: error.message }
     }
   }
 
   async refreshCacheInBackground() {
     try {
-      console.log('Starting background cache refresh...')
+      console.log('Starting background repositories scan...')
       const config = await this.getConfig()
       
       if (!config.enabled || !config.directories) {
@@ -132,28 +156,44 @@ class RepositoriesService {
         }
       }
 
-      // Save all repositories to cache
-      await this.saveRepositoriesCache(allRepositories)
-      console.log(`Background cache refresh completed. Found ${allRepositories.length} repositories.`)
+      // Save all repositories to repositories.yml
+      await this.saveRepositoriesToConfig(allRepositories)
+      console.log(`Background repositories scan completed. Found ${allRepositories.length} repositories.`)
       
       return { success: true, count: allRepositories.length }
     } catch (error) {
-      console.error('Error in background cache refresh:', error)
+      console.error('Error in background repositories scan:', error)
       return { success: false, error: error.message }
     }
   }
 
   async getCacheStatus() {
     try {
-      const cache = await this.loadRepositoriesCache()
+      const repositories = await this.loadRepositoriesFromConfig()
+      
+      // Try to get last scan time from the file
+      let lastScan = null
+      try {
+        const configDir = path.dirname(this.repositoriesConfigPath)
+        await fs.mkdir(configDir, { recursive: true })
+        
+        if (await fs.access(this.repositoriesConfigPath).then(() => true).catch(() => false)) {
+          const data = await fs.readFile(this.repositoriesConfigPath, 'utf8')
+          const config = yaml.load(data)
+          lastScan = config?.lastScan
+        }
+      } catch (error) {
+        // Ignore error, lastScan will remain null
+      }
+      
       return {
-        repositoryCount: cache.repositories?.length || 0,
-        lastUpdated: cache.lastUpdated,
-        cachePath: this.repositoriesCachePath
+        repositoryCount: repositories.length,
+        lastUpdated: lastScan,
+        cachePath: this.repositoriesConfigPath
       }
     } catch (error) {
       console.error('Error getting cache status:', error)
-      return { repositoryCount: 0, lastUpdated: null, cachePath: this.repositoriesCachePath }
+      return { repositoryCount: 0, lastUpdated: null, cachePath: this.repositoriesConfigPath }
     }
   }
 
@@ -176,7 +216,7 @@ class RepositoriesService {
 
   async getFoldersInDirectory(directoryPath, useCache = true) {
     try {
-      // First, try to load from cache if enabled
+      // First, try to load from repositories.yml if enabled
       if (useCache) {
         const cachedRepos = await this.getCachedRepositories()
         const directoryRepos = cachedRepos.filter(repo => 
@@ -185,7 +225,7 @@ class RepositoriesService {
         )
         
         if (directoryRepos.length > 0) {
-          console.log(`Loaded ${directoryRepos.length} repositories from cache for ${directoryPath}`)
+          console.log(`Loaded ${directoryRepos.length} repositories from repositories.yml for ${directoryPath}`)
           return directoryRepos.map(repo => ({
             name: repo.name,
             path: repo.path,
@@ -194,7 +234,7 @@ class RepositoriesService {
         }
       }
 
-      // If no cache or cache miss, scan directory
+      // If no repositories.yml data or cache miss, scan directory
       console.log(`Scanning directory for repositories: ${directoryPath}`)
       const items = await fs.readdir(directoryPath)
       const folders = []
@@ -261,12 +301,12 @@ class RepositoriesService {
         }
       }
       
-      // Update cache with new repositories found
+      // Update repositories.yml with new repositories found
       if (newRepos.length > 0) {
         for (const repo of newRepos) {
           await this.updateRepositoryInCache(repo.path, repo)
         }
-        console.log(`Updated cache with ${newRepos.length} new repositories`)
+        console.log(`Updated repositories.yml with ${newRepos.length} new repositories`)
       }
       
       return folders
