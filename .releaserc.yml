@@ -18,12 +18,6 @@ plugins:
   - assets:
     - path: "dist/*.AppImage"
       label: "Linux AppImage"
-    successComment: |
-      🎉 This change has been released in version ${nextRelease.version}.
-      • Tag: ${nextRelease.gitTag}
-      • Release notes: ${releases[0].url}
-    releasedLabels:
-    - "released<% if (nextRelease.channel) { %>@<%= nextRelease.channel %><% } %>"
 
 # Commit CHANGELOG and package version bump
 - - "@semantic-release/git"
