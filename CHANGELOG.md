@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.1](https://github.com/user-cube/devbuddy/compare/v1.0.0...v1.0.1) (2025-08-07)
+
+
+### Bug Fixes
+
+* Fix node version ([fad0cd5](https://github.com/user-cube/devbuddy/commit/fad0cd5069fb61472ca165547fd277949867e396))
+* Generate archives on build ([756e840](https://github.com/user-cube/devbuddy/commit/756e840031557a24b7944f1dc932e10a47124e05))
+
 # 1.0.0 (2025-08-07)
 
 
