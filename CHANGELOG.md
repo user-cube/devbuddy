@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+## [1.0.4](https://github.com/user-cube/devbuddy/compare/v1.0.3...v1.0.4) (2025-08-07)
+
+
+### Bug Fixes
+
+* update semantic release config ([#7](https://github.com/user-cube/devbuddy/issues/7)) ([6f1e740](https://github.com/user-cube/devbuddy/commit/6f1e7403605472343c9814439bd2c8885f509b6c))
+
 ## [1.0.3](https://github.com/user-cube/devbuddy/compare/v1.0.2...v1.0.3) (2025-08-07)
 
 
