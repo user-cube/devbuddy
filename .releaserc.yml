@@ -8,16 +8,28 @@ plugins:
 - "@semantic-release/commit-analyzer"
 - "@semantic-release/release-notes-generator"
 - "@semantic-release/changelog"
+
 - - "@semantic-release/exec"
   - prepareCmd: "npm run dist"
-- "@semantic-release/github"
-- "@semantic-release/git"
 
-# Additional configuration
+- - "@semantic-release/github"
+  - assets:
+    - path: "dist/*.AppImage"
+      label: "Linux AppImage"
+
+- - "@semantic-release/git"
+  - assets:
+    - "CHANGELOG.md"
+    - "package.json"
+    - "package-lock.json"
+    message: "chore(release): ${nextRelease.version} [skip ci]
+
+
+      ${nextRelease.notes}"
+
 tagFormat: "v${version}"
 preset: "angular"
 
-# Release notes configuration
 releaseNotes:
   preset: "angular"
   parserOpts:
@@ -29,9 +41,8 @@ releaseNotes:
     commitGroupsSort: "title"
     commitsSort: "header"
 
-# Changelog configuration
 changelogFile: "CHANGELOG.md"
-changelogTitle: "# Changelog
+changelogTitle: |
+  # Changelog
 
-
-  All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines."
+  All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
