@@ -336,13 +336,13 @@ const Home = ({ currentTime }) => {
     // Navigate to corresponding pages
     switch (action) {
       case 'jira':
-        window.location.href = '/jira'
+        window.location.hash = '#/jira'
         break
       case 'github':
-        window.location.href = '/github'
+        window.location.hash = '#/github'
         break
       case 'gitlab':
-        window.location.href = '/gitlab'
+        window.location.hash = '#/gitlab'
         break
       case 'overview':
       case 'assigned':
@@ -596,7 +596,7 @@ const Home = ({ currentTime }) => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.location.href = '/bookmarks'}
+                  onClick={() => window.location.hash = '#/bookmarks'}
                   className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                   style={{
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -608,7 +608,7 @@ const Home = ({ currentTime }) => {
                   Add
                 </button>
                 <button
-                  onClick={() => window.location.href = '/bookmarks'}
+                  onClick={() => window.location.hash = '#/bookmarks'}
                   className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                   style={{
                     backgroundColor: 'rgba(107, 114, 128, 0.1)',
@@ -641,7 +641,7 @@ const Home = ({ currentTime }) => {
                   Create your first bookmark to get quick access to your favorite resources
                 </p>
                 <button
-                  onClick={() => window.location.href = '/bookmarks'}
+                  onClick={() => window.location.hash = '#/bookmarks'}
                   className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
                   style={{
                     backgroundColor: 'var(--accent-primary)',
@@ -805,7 +805,7 @@ const Home = ({ currentTime }) => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => window.location.href = '/bookmarks'}
+                onClick={() => window.location.hash = '#/bookmarks'}
                 className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                 style={{
                   backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -816,7 +816,7 @@ const Home = ({ currentTime }) => {
                 Bookmarks
               </button>
               <button
-                onClick={() => window.location.href = '/jira'}
+                onClick={() => window.location.hash = '#/jira'}
                 className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                 style={{
                   backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -827,7 +827,7 @@ const Home = ({ currentTime }) => {
                 Jira
               </button>
               <button
-                onClick={() => window.location.href = '/github'}
+                onClick={() => window.location.hash = '#/github'}
                 className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                 style={{
                   backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -838,7 +838,7 @@ const Home = ({ currentTime }) => {
                 GitHub
               </button>
               <button
-                onClick={() => window.location.href = '/gitlab'}
+                onClick={() => window.location.hash = '#/gitlab'}
                 className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                 style={{
                   backgroundColor: 'rgba(245, 101, 101, 0.1)',
@@ -849,7 +849,7 @@ const Home = ({ currentTime }) => {
                 GitLab
               </button>
               <button
-                onClick={() => window.location.href = '/repositories'}
+                onClick={() => window.location.hash = '#/repositories'}
                 className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                 style={{
                   backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -860,7 +860,7 @@ const Home = ({ currentTime }) => {
                 Repositories
               </button>
               <button
-                onClick={() => window.location.href = '/config'}
+                onClick={() => window.location.hash = '#/config'}
                 className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                 style={{
                   backgroundColor: 'rgba(107, 114, 128, 0.1)',

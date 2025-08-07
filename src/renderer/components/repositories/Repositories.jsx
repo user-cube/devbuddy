@@ -332,7 +332,7 @@ const Repositories = () => {
             Enable repositories in settings to view your local repositories
           </p>
           <button
-            onClick={() => window.location.href = '/config'}
+            onClick={() => window.location.hash = '#/config'}
             className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
             style={{
               backgroundColor: 'var(--accent-primary)',
@@ -384,7 +384,7 @@ const Repositories = () => {
             </button>
             
             <button
-              onClick={() => window.location.href = '/config'}
+              onClick={() => window.location.hash = '#/config'}
               className="p-3 rounded-lg transition-all duration-300 hover:scale-105"
               style={{
                 backgroundColor: 'rgba(107, 114, 128, 0.1)',
@@ -450,7 +450,7 @@ const Repositories = () => {
               Add directories in settings to scan for repositories
             </p>
             <button
-              onClick={() => window.location.href = '/config'}
+              onClick={() => window.location.hash = '#/config'}
               className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
               style={{
                 backgroundColor: 'var(--accent-primary)',
@@ -533,7 +533,7 @@ const Repositories = () => {
             </button>
             
             <button
-              onClick={() => window.location.href = '/config'}
+              onClick={() => window.location.hash = '#/config'}
               className="p-3 rounded-lg transition-all duration-300 hover:scale-105"
               style={{
                 backgroundColor: 'rgba(107, 114, 128, 0.1)',
@@ -716,7 +716,7 @@ const Repositories = () => {
           </button>
           
           <button
-            onClick={() => window.location.href = '/config'}
+            onClick={() => window.location.hash = '#/config'}
             className="p-3 rounded-lg transition-all duration-300 hover:scale-105"
             style={{
               backgroundColor: 'rgba(107, 114, 128, 0.1)',

@@ -67,7 +67,7 @@ const ProtectedRoute = ({ integration, children }) => {
             Please enable it in the Configuration page to access this feature.
           </p>
           <button
-            onClick={() => window.location.href = '/config'}
+            onClick={() => window.location.hash = '#/config'}
             className="btn-primary flex items-center gap-2 px-6 py-3 mx-auto"
           >
             <Settings className="w-5 h-5" />
