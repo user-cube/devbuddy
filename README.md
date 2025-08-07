@@ -29,17 +29,20 @@ A modern desktop application to streamline your development workflow. Built with
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd devbuddy
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Run the application:
+
 ```bash
 # Development mode (with hot reload)
 npm run dev
@@ -66,6 +69,7 @@ On first run, DevBuddy will automatically redirect you to the configuration page
 3. **Test**: Visit `http://localhost:10000/jira` in your browser
 
 **Optional - Custom domain setup:**
+
 - **Configure your /etc/hosts**:
   ```bash
   sudo ./scripts/setup-hosts.sh
@@ -84,18 +88,20 @@ DevBuddy can scan and manage your local Git repositories:
    - Last modification date
    - Git status and branch information
    - Commit history and recent activity
-3. **Quick Actions**: 
+3. **Quick Actions**:
    - Open repository in file explorer
    - Open repository in configured editor (VS Code or Cursor)
 4. **Editor Configuration**: Choose between VS Code and Cursor as default editor
 
 **Repository Setup:**
+
 1. Go to **Configuration** → **Local Repositories**
 2. Add directories to scan (e.g., `~/projects`, `~/workspace`)
 3. Configure default editor in **App Settings**
 4. View and manage repositories in the **Repositories** page
 
 **Supported Editors:**
+
 - **VS Code**: Uses `code` command with fallback to system default
 - **Cursor**: Uses `cursor` command with fallback to VS Code
 - **Cross-platform**: Works on macOS, Windows, and Linux
@@ -103,18 +109,21 @@ DevBuddy can scan and manage your local Git repositories:
 ## Key Features
 
 ### 🚀 **Smart Caching System**
+
 - **Warm Cache**: Initial data loads are cached for 30 minutes for faster startup
 - **TTL Management**: Configurable cache expiration per service
 - **Cache Statistics**: Monitor cache performance and usage
 - **Manual Cache Control**: Clear cache per service or globally
 
 ### 🔄 **Background Refresh**
+
 - **Automatic Updates**: Data refreshes automatically based on configured intervals
 - **Minimized Operation**: Continues working even when the app is minimized
 - **Smart Timing**: Uses the minimum refresh interval from all enabled services
 - **Manual Trigger**: Force refresh data at any time
 
 ### 🎯 **Jira Status Filtering**
+
 - **Custom Status Configuration**: Dedicated page for managing Jira status filters
 - **Exclude Statuses**: Hide completed, closed, or irrelevant statuses
 - **Include Statuses**: Whitelist mode to show only specific statuses
@@ -123,6 +132,7 @@ DevBuddy can scan and manage your local Git repositories:
 - **Real-time Updates**: Changes apply immediately with cache refresh
 
 ### 🏠 **Enhanced Dashboard**
+
 - **Integration Status Overview**: Visual cards showing enabled/disabled integrations with data counts
 - **Activity Summary**: Today's focus, items in review, and last update information
 - **Recent Items**: Latest Jira issues, GitHub PRs, and GitLab MRs with detailed information
@@ -130,6 +140,7 @@ DevBuddy can scan and manage your local Git repositories:
 - **Background Refresh Status**: Visual indicators for automatic data updates
 
 ### 🎨 **Enhanced UI/UX**
+
 - **Sticky Footer**: Save buttons always visible without scrolling
 - **Dark/Light Theme**: Full theme support with CSS variables
 - **Toast Notifications**: Modern notification system with auto-dismiss and manual close
@@ -140,12 +151,14 @@ DevBuddy can scan and manage your local Git repositories:
 - **Integration Status Cards**: Visual indicators for enabled/disabled integrations
 
 ### 🔄 **Real-time Updates**
+
 - **Dynamic Navigation**: Sidebar and keyboard shortcuts update when integrations are enabled/disabled
 - **Configuration Sync**: Changes apply immediately across all components
 - **Protected Routes**: Automatic redirection when accessing disabled integration pages
 - **Status Indicators**: Visual feedback for unsaved changes and integration status
 
 ### 📁 **Configuration Import/Export**
+
 - **Export Configuration**: Save all settings to JSON file with timestamp
 - **Import Configuration**: Load settings from file with automatic backup
 - **Backup Protection**: Automatic backup before each import
@@ -153,6 +166,7 @@ DevBuddy can scan and manage your local Git repositories:
 - **Validation**: Robust error checking and format validation
 
 ### 📂 **Local Repository Management**
+
 - **Directory Scanning**: Automatically scan configured directories for Git repositories
 - **Repository Information**: Display repository name, path, language, and last modification date
 - **Editor Integration**: Open repositories in VS Code or Cursor with configurable default
@@ -164,6 +178,7 @@ DevBuddy can scan and manage your local Git repositories:
 ## Development
 
 ### Project Structure
+
 ```
 devbuddy/
 ├── src/
@@ -233,12 +248,14 @@ devbuddy/
 DevBuddy supports importing and exporting configurations for backup and sharing:
 
 **Export Configuration:**
+
 - Exports all settings to a JSON file
 - Includes: integrations, shortcuts, redirects, app preferences
 - Default save location: Desktop with timestamp
 - File format: `devbuddy-config-YYYY-MM-DD.json`
 
 **Import Configuration:**
+
 - Imports settings from JSON file
 - Automatic backup of current configuration
 - Validation of file format and structure
@@ -246,24 +263,38 @@ DevBuddy supports importing and exporting configurations for backup and sharing:
 - Backup location: `~/.devbuddy/backups/`
 
 **Backup Protection:**
+
 - Automatic backup before each import
 - Unique backup files with timestamps
 - Safe rollback capability
 - Version compatibility checking
 
 **Export File Format:**
+
 ```json
 {
   "version": "1.0.0",
   "exportedAt": "2024-01-15T10:30:00.000Z",
   "config": {
-    "jira": { /* Jira integration settings */ },
-    "github": { /* GitHub integration settings */ },
-    "gitlab": { /* GitLab integration settings */ },
-    "app": { /* Application preferences */ }
+    "jira": {
+      /* Jira integration settings */
+    },
+    "github": {
+      /* GitHub integration settings */
+    },
+    "gitlab": {
+      /* GitLab integration settings */
+    },
+    "app": {
+      /* Application preferences */
+    }
   },
-  "shortcuts": [ /* Local shortcuts configuration */ ],
-  "redirects": { /* Local redirect rules */ }
+  "shortcuts": [
+    /* Local shortcuts configuration */
+  ],
+  "redirects": {
+    /* Local redirect rules */
+  }
 }
 ```
 
@@ -272,17 +303,20 @@ DevBuddy supports importing and exporting configurations for backup and sharing:
 Keyboard shortcuts are dynamic and update automatically based on enabled integrations:
 
 **Base Navigation:**
+
 - `Ctrl/Cmd + 1`: Navigate to Home
 - `Ctrl/Cmd + 2`: Navigate to Bookmarks
 - `Ctrl/Cmd + 3`: Navigate to Redirects
 
 **Integration Navigation (dynamic):**
+
 - `Ctrl/Cmd + 4`: Navigate to Jira (if enabled)
 - `Ctrl/Cmd + 5`: Navigate to GitHub (if enabled)
 - `Ctrl/Cmd + 6`: Navigate to GitLab (if enabled)
 - `Ctrl/Cmd + 7`: Navigate to Repositories
 
 **Configuration:**
+
 - `Ctrl/Cmd + 8`: Navigate to Configuration
 - `Escape`: Return to Home
 
@@ -346,7 +380,7 @@ app:
   backgroundRefresh: true
   updateInterval: 300
   redirectorPort: 10000
-  defaultEditor: "vscode"  # "vscode" or "cursor"
+  defaultEditor: "vscode" # "vscode" or "cursor"
 ```
 
 ### Jira Status Configuration
@@ -360,11 +394,13 @@ DevBuddy provides advanced status filtering for Jira with a dedicated configurat
 - **Dark Mode Support**: Fully compatible with dark/light themes
 
 **Access Status Configuration:**
+
 1. **From Jira page**: Click "Status Filters" button in the header
 2. **From Configuration**: Click "Configure Statuses" in Jira section
 3. **Direct navigation**: Go to `/config?showJiraStatus=true`
 
 **Features:**
+
 - **Search & Filter**: Find statuses quickly with search functionality
 - **Visual Indicators**: Color-coded status cards (excluded/hidden/visible)
 - **Bulk Actions**: Clear all excluded or included statuses
@@ -401,12 +437,14 @@ devbuddy.local:
 ```
 
 With this configuration:
+
 - `http://localhost:10000/jira` → `https://jira.atlassian.net` (works immediately)
 - `http://localhost:10000/github` → `https://github.com` (works immediately)
 - `http://devbuddy.local:10000/jira` → `https://jira.atlassian.net` (requires /etc/hosts setup)
 - `http://devbuddy.local:10000/github` → `https://github.com` (requires /etc/hosts setup)
 
 **Requirements:**
+
 - Redirector server starts automatically when DevBuddy launches
 - Server runs on configurable port (default: 10000, no sudo required)
 - For `localhost` URLs: No additional setup required
@@ -420,26 +458,30 @@ Configure local repository scanning and management:
 repositories:
   enabled: true
   paths: ["~/projects", "~/workspace", "/path/to/other/repos"]
-  scanInterval: 300  # Scan interval in seconds
+  scanInterval: 300 # Scan interval in seconds
 ```
 
 **Configuration Options:**
+
 - **enabled**: Enable/disable repository scanning
 - **paths**: Array of directories to scan for Git repositories
 - **scanInterval**: How often to rescan directories (in seconds)
 
 **Supported Path Formats:**
+
 - **Home directory**: `~/projects`, `~/workspace`
 - **Absolute paths**: `/Users/username/projects`, `C:\Users\username\projects`
 - **Relative paths**: `./repos`, `../workspace`
 
 **Editor Configuration:**
+
 ```yaml
 app:
-  defaultEditor: "vscode"  # "vscode" or "cursor"
+  defaultEditor: "vscode" # "vscode" or "cursor"
 ```
 
 **Editor Fallback Chain:**
+
 - **macOS**: Primary editor → Secondary editor → TextEdit
 - **Windows**: Primary editor → Secondary editor → Notepad
 - **Linux**: Primary editor → Secondary editor → nano
@@ -496,6 +538,7 @@ python scripts/generate-icons-python.py
 ```
 
 This creates icons for:
+
 - **macOS**: `.icns` files with @2x support
 - **Windows**: `.ico` files
 - **Linux**: PNG icons in various sizes

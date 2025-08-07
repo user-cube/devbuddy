@@ -9,7 +9,8 @@ import {
   Save,
   X,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Search
 } from 'lucide-react'
 import Toast from '../layout/Toast'
 import IconSelector from '../common/IconSelector'
@@ -23,6 +24,8 @@ const Bookmarks = () => {
   const [editingBookmark, setEditingBookmark] = useState(null)
   const [showAddCategory, setShowAddCategory] = useState(false)
   const [showAddBookmark, setShowAddBookmark] = useState(null) // categoryId
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchInputRef = React.useRef(null)
 
   const getBookmarkIcon = (bookmark) => {
     if (bookmark.filePath) {
@@ -236,6 +239,82 @@ const Bookmarks = () => {
     }
   }
 
+  // Filter bookmarks based on search query
+  const filterBookmarks = (categories, query) => {
+    if (!query.trim()) return categories
+
+    const searchTerm = query.toLowerCase()
+    
+    return categories.map(category => {
+      const filteredBookmarks = category.bookmarks?.filter(bookmark => {
+        const name = bookmark.name?.toLowerCase() || ''
+        const description = bookmark.description?.toLowerCase() || ''
+        const url = bookmark.url?.toLowerCase() || ''
+        const filePath = bookmark.filePath?.toLowerCase() || ''
+        
+        return name.includes(searchTerm) || 
+               description.includes(searchTerm) || 
+               url.includes(searchTerm) || 
+               filePath.includes(searchTerm)
+      }) || []
+
+      return {
+        ...category,
+        bookmarks: filteredBookmarks
+      }
+    }).filter(category => category.bookmarks.length > 0)
+  }
+
+  // Highlight search terms in text
+  const highlightSearchTerm = (text, searchTerm) => {
+    if (!searchTerm.trim() || !text) return text
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+    const parts = text.split(regex)
+    
+    return parts.map((part, index) => {
+      if (part.toLowerCase() === searchTerm.toLowerCase()) {
+        return (
+          <span 
+            key={index} 
+            className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded"
+            style={{ backgroundColor: 'rgba(255, 255, 0, 0.3)' }}
+          >
+            {part}
+          </span>
+        )
+      }
+      return part
+    })
+  }
+
+  const filteredBookmarks = filterBookmarks(bookmarks.categories || [], searchQuery)
+
+  // Auto-expand categories when searching
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const categoriesWithResults = filteredBookmarks.map(cat => cat.id)
+      setExpandedCategories(new Set(categoriesWithResults))
+    } else {
+      // Restore original expanded state when search is cleared
+      const originalExpanded = new Set(bookmarks.categories?.map(cat => cat.id) || [])
+      setExpandedCategories(originalExpanded)
+    }
+  }, [searchQuery, filteredBookmarks])
+
+  // Keyboard shortcut for search (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   if (loading) {
     return (
       <div className="p-8">
@@ -264,9 +343,44 @@ const Bookmarks = () => {
               </div>
             </div>
 
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search bookmarks by name, description, URL, or file path... (Ctrl+K)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50"
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderColor: 'var(--border-primary)',
+                    color: 'var(--text-primary)',
+                    focusRingColor: 'var(--accent-primary)'
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors hover:bg-black/10"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  Found {filteredBookmarks.reduce((total, cat) => total + (cat.bookmarks?.length || 0), 0)} bookmarks matching "{searchQuery}"
+                </div>
+              )}
+            </div>
+
             {/* Categories */}
             <div className="space-y-6">
-              {bookmarks.categories?.map((category) => (
+              {filteredBookmarks.map((category) => (
                 <div
                   key={category.id}
                   className="card"
@@ -277,31 +391,31 @@ const Bookmarks = () => {
                 >
                   {/* Category Header */}
                   <div className="flex items-center justify-between p-4">
-                                       <div className="flex items-center gap-3">
-                     <button
-                       onClick={() => toggleCategory(category.id)}
-                       className="p-1 rounded transition-colors hover:bg-black/10"
-                     >
-                       {expandedCategories.has(category.id) ? (
-                         <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-                       ) : (
-                         <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-                       )}
-                     </button>
-                     <i 
-                       className={`fas fa-${category.icon || 'folder'} text-lg`}
-                       style={{ color: category.color || '#6b7280' }}
-                     ></i>
-                     <h3 className="text-lg font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
-                       {category.name}
-                     </h3>
-                     <span className="text-sm px-3 py-1 rounded-full" style={{
-                       backgroundColor: 'rgba(107, 114, 128, 0.2)',
-                       color: 'var(--text-muted)'
-                     }}>
-                       {category.bookmarks?.length || 0} bookmarks
-                     </span>
-                   </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => toggleCategory(category.id)}
+                        className="p-1 rounded transition-colors hover:bg-black/10"
+                      >
+                        {expandedCategories.has(category.id) ? (
+                          <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                        ) : (
+                          <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                        )}
+                      </button>
+                      <i 
+                        className={`fas fa-${category.icon || 'folder'} text-lg`}
+                        style={{ color: category.color || '#6b7280' }}
+                      ></i>
+                      <h3 className="text-lg font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
+                        {category.name}
+                      </h3>
+                      <span className="text-sm px-3 py-1 rounded-full" style={{
+                        backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                        color: 'var(--text-muted)'
+                      }}>
+                        {category.bookmarks?.length || 0} bookmarks
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setShowAddBookmark(category.id)}
@@ -342,72 +456,71 @@ const Bookmarks = () => {
                     </div>
                   </div>
 
-                                     {/* Category Content */}
-                   {expandedCategories.has(category.id) && (
-                     <div className="px-4 pb-6">
+                  {/* Category Content */}
+                  {expandedCategories.has(category.id) && (
+                    <div className="px-4 pb-6">
                       {category.bookmarks?.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {category.bookmarks.map((bookmark) => (
-                                                       <div
-                             key={bookmark.id}
-                             className="p-4 rounded-lg transition-all duration-300 hover:scale-105 cursor-pointer h-28 flex flex-col justify-between"
-                             style={{
-                               backgroundColor: 'var(--bg-tertiary)',
-                               border: '1px solid var(--border-primary)'
-                             }}
-                             onClick={() => handleOpenBookmark(bookmark.id)}
-                           >
-                             <div className="flex items-start justify-between">
-                               <div className="flex-1 min-w-0">
-                                 <div className="flex items-center gap-2 mb-1">
-                                   <i 
-                                     className={`${getBookmarkIcon(bookmark)} text-sm`}
-                                     style={{ 
-                                       color: bookmark.filePath ? 'var(--success)' : 'var(--accent-primary)'
-                                     }}
-                                   ></i>
-                                   <span 
-                                     className="text-sm font-medium block truncate" 
-                                     style={{ color: 'var(--text-primary)' }}
-                                     title={bookmark.name}
-                                   >
-                                     {truncateText(bookmark.name, 25)}
-                                   </span>
-                                 </div>
-                               </div>
-                               <div className="flex items-center gap-1 flex-shrink-0 ml-3">
-                                 <button
-                                   onClick={(e) => {
-                                     e.stopPropagation()
-                                     setEditingBookmark({ categoryId: category.id, bookmark })
-                                   }}
-                                   className="p-1.5 rounded transition-colors hover:bg-black/10"
-                                   style={{ color: 'var(--text-muted)' }}
-                                   title="Edit bookmark"
-                                 >
-                                   <Edit className="w-3.5 h-3.5" />
-                                 </button>
-                                 <button
-                                   onClick={(e) => {
-                                     e.stopPropagation()
-                                     handleDeleteBookmark(category.id, bookmark.id)
-                                   }}
-                                   className="p-1.5 rounded transition-colors hover:bg-black/10"
-                                   style={{ color: 'var(--text-muted)' }}
-                                   title="Delete bookmark"
-                                 >
-                                   <Trash2 className="w-3.5 h-3.5" />
-                                 </button>
-                               </div>
-                             </div>
-                                                          <p 
-                              className="text-xs mt-2 truncate" 
-                              style={{ color: 'var(--text-secondary)' }}
-                              title={bookmark.description || bookmark.url || bookmark.filePath}
+                            <div
+                              key={bookmark.id}
+                              className="p-4 rounded-lg transition-all duration-300 hover:scale-105 cursor-pointer h-28 flex flex-col justify-between"
+                              style={{
+                                backgroundColor: 'var(--bg-tertiary)',
+                                border: '1px solid var(--border-primary)'
+                              }}
+                              onClick={() => handleOpenBookmark(bookmark.id)}
                             >
-                              {truncateText(bookmark.description || bookmark.url || bookmark.filePath, 50)}
-                            </p>
-
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <i 
+                                      className={`${getBookmarkIcon(bookmark)} text-sm`}
+                                      style={{ 
+                                        color: bookmark.filePath ? 'var(--success)' : 'var(--accent-primary)'
+                                      }}
+                                    ></i>
+                                    <span 
+                                      className="text-sm font-medium block truncate" 
+                                      style={{ color: 'var(--text-primary)' }}
+                                      title={bookmark.name}
+                                    >
+                                      {searchQuery ? highlightSearchTerm(truncateText(bookmark.name, 25), searchQuery) : truncateText(bookmark.name, 25)}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0 ml-3">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setEditingBookmark({ categoryId: category.id, bookmark })
+                                    }}
+                                    className="p-1.5 rounded transition-colors hover:bg-black/10"
+                                    style={{ color: 'var(--text-muted)' }}
+                                    title="Edit bookmark"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleDeleteBookmark(category.id, bookmark.id)
+                                    }}
+                                    className="p-1.5 rounded transition-colors hover:bg-black/10"
+                                    style={{ color: 'var(--text-muted)' }}
+                                    title="Delete bookmark"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                              <p 
+                                className="text-xs mt-2 truncate" 
+                                style={{ color: 'var(--text-secondary)' }}
+                                title={bookmark.description || bookmark.url || bookmark.filePath}
+                              >
+                                {searchQuery ? highlightSearchTerm(truncateText(bookmark.description || bookmark.url || bookmark.filePath, 50), searchQuery) : truncateText(bookmark.description || bookmark.url || bookmark.filePath, 50)}
+                              </p>
                             </div>
                           ))}
                         </div>
@@ -421,7 +534,26 @@ const Bookmarks = () => {
                 </div>
               ))}
 
-              {(!bookmarks.categories || bookmarks.categories.length === 0) && (
+              {searchQuery && filteredBookmarks.length === 0 && (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
+                  <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                    No Results Found
+                  </h3>
+                  <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
+                    No bookmarks match your search for "{searchQuery}"
+                  </p>
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="btn-primary flex items-center gap-2 mx-auto"
+                  >
+                    <X className="w-4 h-4" />
+                    Clear Search
+                  </button>
+                </div>
+              )}
+
+              {(!bookmarks.categories || bookmarks.categories.length === 0) && !searchQuery && (
                 <div className="text-center py-12">
                   <Bookmark className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
                   <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
