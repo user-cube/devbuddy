@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Settings } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
 import JiraStatusConfig from './JiraStatusConfig'
 import Toast from '../layout/Toast'
+import Loading from '../layout/Loading'
 import ImportExportInfo from './ImportExportInfo'
 import JiraConfig from './JiraConfig'
 import GitHubConfig from './GitHubConfig'
@@ -14,6 +15,7 @@ import ConfigurationActions from './ConfigurationActions'
 
 const Configuration = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const [config, setConfig] = useState(null)
   const [repositoriesConfig, setRepositoriesConfig] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -163,24 +165,7 @@ const Configuration = () => {
   }
 
   if (loading || !config) {
-    return (
-      <div className="p-8">
-        <div className="text-center">
-          <div 
-            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
-            style={{ borderColor: 'var(--accent-primary)' }}
-          ></div>
-          <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>
-            {loading ? 'Loading configuration...' : 'Configuration not available'}
-          </p>
-          {!window.electronAPI && (
-            <p className="mt-2 text-sm" style={{ color: 'var(--error)' }}>
-              Electron API not available. Make sure you're running the app with Electron.
-            </p>
-          )}
-        </div>
-      </div>
-    )
+    return <Loading fullScreen message={loading ? 'Loading configuration...' : 'Configuration not available'} />
   }
 
   return (
@@ -190,9 +175,12 @@ const Configuration = () => {
         <div className="p-8">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-8">
-              <Settings className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
-              <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Configuration</h1>
+              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <Settings className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
+                <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Configuration</h1>
+              </div>
+
             </div>
 
             <div className="space-y-8">

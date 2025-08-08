@@ -36,7 +36,6 @@ const GitHub = () => {
       if (forceReload) {
         try {
           await window.electronAPI.clearGithubCache()
-          console.log('GitHub cache cleared for force reload')
         } catch (error) {
           console.error('Error clearing GitHub cache:', error)
         }

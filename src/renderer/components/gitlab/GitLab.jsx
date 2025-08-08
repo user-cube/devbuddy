@@ -37,7 +37,6 @@ const GitLab = () => {
       if (forceReload) {
         try {
           await window.electronAPI.clearGitlabCache()
-          console.log('GitLab cache cleared for force reload')
         } catch (error) {
           console.error('Error clearing GitLab cache:', error)
         }

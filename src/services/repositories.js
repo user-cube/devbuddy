@@ -22,6 +22,33 @@ class RepositoriesService {
     };
   }
 
+  async mapWithConcurrency(items, concurrency, iterator) {
+    const results = new Array(items.length);
+    let nextIndex = 0;
+    let active = 0;
+    return new Promise((resolve, reject) => {
+      const startNext = () => {
+        while (active < concurrency && nextIndex < items.length) {
+          const current = nextIndex++;
+          active++;
+          Promise.resolve(iterator(items[current], current))
+            .then(res => { results[current] = res; })
+            .catch(reject)
+            .finally(() => {
+              active--;
+              if (nextIndex >= items.length && active === 0) {
+                resolve(results);
+              } else {
+                startNext();
+              }
+            });
+        }
+      };
+      if (items.length === 0) resolve([]);
+      else startNext();
+    });
+  }
+
   async getConfig () {
     try {
       const data = await fs.readFile(this.configPath, 'utf8');
@@ -136,7 +163,7 @@ class RepositoriesService {
 
   async refreshCacheInBackground () {
     try {
-      console.log('Starting background repositories scan...');
+      console.log('🔄 Starting background repositories scan...');
       const config = await this.getConfig();
 
       if (!config.enabled || !config.directories) {
@@ -145,25 +172,27 @@ class RepositoriesService {
 
       const allRepositories = [];
 
-      for (const dirConfig of config.directories) {
-        if (dirConfig.enabled && dirConfig.path) {
-          try {
-            const repositories = await this.scanDirectory(dirConfig.path, 0, config.scanDepth || 3, [], dirConfig.tag);
-            allRepositories.push(...repositories);
-          } catch {
-            console.error(`Error scanning directory ${dirConfig.path}`);
-          }
+      const dirsToScan = config.directories.filter(d => d.enabled && d.path);
+      const CONCURRENCY = 8;
+      await this.mapWithConcurrency(dirsToScan, CONCURRENCY, async (dirConfig) => {
+        try {
+          console.log(`📂 Scanning directory: ${dirConfig.path} (tag=${dirConfig.tag || 'none'})`);
+          const repositories = await this.scanDirectory(dirConfig.path, 0, config.scanDepth || 3, [], dirConfig.tag);
+          console.log(`✅ Found ${repositories.length} repositories in ${dirConfig.path}`);
+          allRepositories.push(...repositories);
+        } catch (e) {
+          console.error(`❌ Error scanning directory ${dirConfig.path}:`, e?.message || e);
         }
-      }
+      });
 
       // Save all repositories to repositories.yml
       await this.saveRepositoriesToConfig(allRepositories);
-      console.log(`Background repositories scan completed. Found ${allRepositories.length} repositories.`);
+      console.log(`✅ Background repositories scan completed. Found ${allRepositories.length} repositories.`);
 
       return { success: true, count: allRepositories.length };
-    } catch {
-      console.error('Error in background repositories scan');
-      return { success: false, error: 'Unknown error' };
+    } catch (e) {
+      console.error('❌ Error in background repositories scan:', e?.message || e);
+      return { success: false, error: e?.message || 'Unknown error' };
     }
   }
 
@@ -236,70 +265,30 @@ class RepositoriesService {
 
       // If no repositories.yml data or cache miss, scan directory
       console.log(`Scanning directory for repositories: ${directoryPath}`);
-      const items = await fs.readdir(directoryPath);
+      const items = await fs.readdir(directoryPath, { withFileTypes: true });
       const folders = [];
       const newRepos = [];
 
-      for (const item of items) {
+      const shouldIgnore = (name) => (
+        name === 'node_modules' || name === '.git' || name === '.venv' || name === 'venv' ||
+        name === 'dist' || name === 'build' || name === '.cache' || name === 'target'
+      );
+
+      const dirEntries = items.filter(d => d.isDirectory() && !shouldIgnore(d.name));
+      const CONCURRENCY = 64;
+      await this.mapWithConcurrency(dirEntries, CONCURRENCY, async (dirent) => {
+        const item = dirent.name;
         const fullPath = path.join(directoryPath, item);
-
         try {
-          const stat = await fs.stat(fullPath);
-
-          if (stat.isDirectory()) {
-            // Check if this directory is a Git repository
-            const gitPath = path.join(fullPath, '.git');
-            let isGitRepository = false;
-
-            try {
-              const gitStat = await fs.stat(gitPath);
-              // Check if .git is a directory (not a file)
-              if (gitStat.isDirectory()) {
-                // Additional check: verify it's a valid Git repository by checking for HEAD file
-                const headPath = path.join(gitPath, 'HEAD');
-                try {
-                  await fs.access(headPath);
-                  // Additional check: verify it's a valid Git repository by trying to initialize simple-git
-                  const simpleGit = require('simple-git');
-                  const git = simpleGit(fullPath);
-                  try {
-                    await git.status();
-                    isGitRepository = true;
-                  } catch (gitError) {
-                    console.log(`Directory ${fullPath} has .git but is not a valid Git repository:`, gitError.message);
-                  }
-                } catch {
-                  // HEAD file doesn't exist, not a valid Git repository
-                }
-              }
-            } catch {
-              // .git doesn't exist or is not accessible
-            }
-
-            // Only include Git repositories
-            if (isGitRepository) {
-              console.log(`Found Git repository: ${item} at ${fullPath}`);
-              const repoInfo = {
-                name: item,
-                path: fullPath,
-                isGitRepository
-              };
-              folders.push(repoInfo);
-              newRepos.push(repoInfo);
-            } else {
-              // Log specifically for directories that might be problematic
-              if (item.includes('XDG_CONFIG_HOME') || item.includes('CONFIG')) {
-                console.log(`Skipped problematic directory: ${item} at ${fullPath} (not a valid Git repository)`);
-              } else {
-                console.log(`Skipped non-Git directory: ${item} at ${fullPath}`);
-              }
-            }
-          }
+          const headPath = path.join(fullPath, '.git', 'HEAD');
+          await fs.access(headPath);
+          const repoInfo = { name: item, path: fullPath, isGitRepository: true };
+          folders.push(repoInfo);
+          newRepos.push(repoInfo);
         } catch {
-          // Skip items we can't access
-          continue;
+          // not a git repo
         }
-      }
+      });
 
       // Update repositories.yml with new repositories found
       if (newRepos.length > 0) {
@@ -320,66 +309,30 @@ class RepositoriesService {
     if (currentDepth > maxDepth) return repositories;
 
     try {
-      const items = await fs.readdir(dirPath);
+      const items = await fs.readdir(dirPath, { withFileTypes: true });
+      const shouldIgnore = (name) => (
+        name === 'node_modules' || name === '.git' || name === '.venv' || name === 'venv' ||
+        name === 'dist' || name === 'build' || name === '.cache' || name === 'target'
+      );
 
-      for (const item of items) {
+      const dirEntries = items.filter(d => d.isDirectory() && !shouldIgnore(d.name));
+      const CONCURRENCY = 32;
+      await this.mapWithConcurrency(dirEntries, CONCURRENCY, async (dirent) => {
+        const item = dirent.name;
         const fullPath = path.join(dirPath, item);
-
         try {
-          const stat = await fs.stat(fullPath);
-
-          if (stat.isDirectory()) {
-            // Check if this directory is a Git repository
-            const gitPath = path.join(fullPath, '.git');
-            try {
-              const gitStat = await fs.stat(gitPath);
-              // Check if .git is a directory (not a file)
-              if (gitStat.isDirectory()) {
-                // Additional check: verify it's a valid Git repository by checking for HEAD file
-                const headPath = path.join(gitPath, 'HEAD');
-                try {
-                  await fs.access(headPath);
-                  // Additional check: verify it's a valid Git repository by trying to initialize simple-git
-                  const simpleGit = require('simple-git');
-                  const git = simpleGit(fullPath);
-                  try {
-                    await git.status();
-                    // This is a valid Git repository
-                    const repoInfo = await this.getRepositoryInfo(fullPath, tag);
-                    if (repoInfo) {
-                      repositories.push(repoInfo);
-                    }
-                  } catch (gitError) {
-                    console.log(`Directory ${fullPath} has .git but is not a valid Git repository:`, gitError.message);
-                    // Continue scanning subdirectories
-                    if (currentDepth < maxDepth) {
-                      await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag);
-                    }
-                  }
-                } catch {
-                  // HEAD file doesn't exist, not a valid Git repository, continue scanning
-                  if (currentDepth < maxDepth) {
-                    await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag);
-                  }
-                }
-              } else {
-                // .git exists but is not a directory, continue scanning
-                if (currentDepth < maxDepth) {
-                  await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag);
-                }
-              }
-            } catch {
-              // .git doesn't exist or is not accessible, continue scanning
-              if (currentDepth < maxDepth) {
-                await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag);
-              }
-            }
-          }
+          const headPath = path.join(fullPath, '.git', 'HEAD');
+          await fs.access(headPath);
+          const repoInfo = await this.getRepositoryInfo(fullPath, tag);
+          if (repoInfo) repositories.push(repoInfo);
         } catch {
-          // Skip items we can't access
-          continue;
+          if (currentDepth < maxDepth) {
+            try {
+              await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag);
+            } catch {}
+          }
         }
-      }
+      });
     } catch {
       console.error(`Error scanning directory ${dirPath}`);
     }

@@ -233,6 +233,30 @@ const Repositories = () => {
     }
   }
 
+  const rescanAndReloadCurrent = async () => {
+    try {
+      setIsRefreshingRepositories(true)
+      const result = await window.electronAPI.refreshRepositoriesCacheInBackground()
+      if (!result?.success) {
+        setMessage({ type: 'error', text: `Failed to refresh repositories: ${result?.error || 'Unknown error'}` })
+        return
+      }
+      const cacheStatusData = await window.electronAPI.getRepositoriesCacheStatus()
+      setCacheStatus(cacheStatusData)
+      if (selectedDirectory) {
+        await loadFoldersForDirectory(selectedDirectory)
+      } else {
+        await loadConfig()
+      }
+      setMessage({ type: 'success', text: `Repositories scan completed. Found ${result.count} repositories.` })
+    } catch (error) {
+      console.error('Error refreshing repositories:', error)
+      setMessage({ type: 'error', text: 'Failed to refresh repositories' })
+    } finally {
+      setIsRefreshingRepositories(false)
+    }
+  }
+
   if (loading) {
     return <RepositoriesLoading selectedFolder={selectedFolder} selectedDirectory={selectedDirectory} />
   }
@@ -264,11 +288,12 @@ const Repositories = () => {
             : 'No directories configured'
           }
           cacheStatus={cacheStatus}
-          onRefresh={refreshRepositoriesInBackground}
+          onRefresh={rescanAndReloadCurrent}
           onRefreshConfig={loadConfig}
           onSettings={() => window.location.hash = '#/config'}
           loading={loading}
           isRefreshingRepositories={isRefreshingRepositories}
+          onBack={null}
         />
 
         <RepositoriesDirectories 
@@ -297,11 +322,12 @@ const Repositories = () => {
           title={`${selectedDirectory.tag || 'Untagged'} Repositories`}
           subtitle={selectedDirectory.path}
           cacheStatus={cacheStatus}
-          onRefresh={() => loadFoldersForDirectory(selectedDirectory)}
+          onRefresh={rescanAndReloadCurrent}
           onRefreshConfig={loadConfig}
           onSettings={() => window.location.hash = '#/config'}
           loading={loading}
           isRefreshingRepositories={isRefreshingRepositories}
+          onBack={goBackToDirectories}
         />
 
         <RepositoriesSearch 

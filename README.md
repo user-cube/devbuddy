@@ -137,14 +137,14 @@ On first run, DevBuddy will automatically redirect you to the configuration page
 
 For comprehensive documentation, setup guides, and development information, visit:
 
-**[📚 DevBuddy Wiki](https://github.com/user-cube/devbuddy.wiki)**
+**[📚 DevBuddy Wiki](https://github.com/user-cube/devbuddy/wiki)**
 
 ### Quick Documentation Index
 
-- **[01. Installation Guide](https://github.com/user-cube/devbuddy.wiki/Installation.md)** - Complete setup instructions
-- **[02. First Run Setup](https://github.com/user-cube/devbuddy.wiki/First-Run-Setup.md)** - Initial configuration
-- **[10. Project Organization](https://github.com/user-cube/devbuddy.wiki/Project-Organization.md)** - Project structure
-- **[12. Component Architecture](https://github.com/user-cube/devbuddy.wiki/Component-Architecture.md)** - Technical architecture
+- **[01. Installation Guide](https://github.com/user-cube/devbuddy/wiki/01-installation)** - Complete setup instructions
+- **[02. First Run Setup](https://github.com/user-cube/devbuddy/wiki/02-first-run-setup)** - Initial configuration
+- **[10. Project Organization](https://github.com/user-cube/devbuddy/wiki/09-project-organization)** - Project structure
+- **[12. Component Architecture](https://github.com/user-cube/devbuddy/wiki/10-project-structure)** - Technical architecture
 
 ## 🎯 Use Cases
 

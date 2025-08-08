@@ -536,8 +536,30 @@ class ConfigService {
     const config = this.loadConfig();
     const shortcuts = this.loadShortcuts();
 
+    // Determine if there are any user shortcuts present (supports both old array format and new categorized format)
+    let hasAnyShortcuts = false;
+    if (Array.isArray(shortcuts)) {
+      // Old format (array) implies user-provided shortcuts
+      hasAnyShortcuts = shortcuts.length > 0;
+    } else if (shortcuts && Array.isArray(shortcuts.categories)) {
+      // Only consider shortcuts if they differ from the built-in defaults
+      const defaultShortcuts = this.getDefaultShortcuts();
+      const isDefault = JSON.stringify(shortcuts) === JSON.stringify(defaultShortcuts);
+      if (!isDefault) {
+        hasAnyShortcuts = shortcuts.categories.some(
+          category => Array.isArray(category.shortcuts) && category.shortcuts.length > 0
+        );
+      }
+    }
+
     // Consider configured if any service is enabled OR if there are shortcuts
-    return config.jira.enabled || config.github.enabled || config.gitlab.enabled || config.repositories?.enabled || shortcuts.length > 0;
+    return (
+      config.jira.enabled ||
+      config.github.enabled ||
+      config.gitlab.enabled ||
+      (config.repositories && config.repositories.enabled) ||
+      hasAnyShortcuts
+    );
   }
 
   validateConfig (config) {

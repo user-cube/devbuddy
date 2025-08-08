@@ -1,17 +1,12 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Search,
-  RefreshCw,
-  Filter
-} from 'lucide-react'
+import { Search, RefreshCw, Filter } from 'lucide-react'
 
 const JiraFilters = ({ 
   searchQuery, 
   setSearchQuery, 
   filter, 
   setFilter, 
-  onRefresh, 
   onForceRefresh, 
   onTestConnection 
 }) => {
@@ -52,27 +47,6 @@ const JiraFilters = ({
         <option value="in-progress">In Progress</option>
       </select>
 
-      <button
-        onClick={onRefresh}
-        className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
-        style={{
-          backgroundColor: 'rgba(59, 130, 246, 0.2)',
-          border: '1px solid rgba(59, 130, 246, 0.3)',
-          color: 'var(--accent-primary)'
-        }}
-        onMouseEnter={(e) => {
-          e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.3)'
-          e.target.style.transform = 'translateY(-1px)'
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
-          e.target.style.transform = 'translateY(0)'
-        }}
-        title="Refresh (use cache if available)"
-      >
-        <RefreshCw className="w-4 h-4" />
-      </button>
-      
       <button
         onClick={onForceRefresh}
         className="px-4 py-2 rounded-lg font-medium transition-all duration-300"

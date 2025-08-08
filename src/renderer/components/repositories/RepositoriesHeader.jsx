@@ -2,7 +2,8 @@ import React from 'react'
 import {
   Folder,
   RefreshCw,
-  Settings
+  Settings,
+  ArrowLeft
 } from 'lucide-react'
 
 const RepositoriesHeader = ({ 
@@ -13,11 +14,26 @@ const RepositoriesHeader = ({
   onRefreshConfig, 
   onSettings, 
   loading, 
-  isRefreshingRepositories 
+  isRefreshingRepositories,
+  onBack
 }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <div className="flex items-center gap-3">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="p-2 rounded-lg transition-all duration-300 hover:scale-105"
+            style={{
+              backgroundColor: 'rgba(107, 114, 128, 0.1)',
+              border: '1px solid rgba(107, 114, 128, 0.2)',
+              color: 'var(--text-secondary)'
+            }}
+            title="Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        )}
         <Folder className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{title}</h1>

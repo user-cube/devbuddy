@@ -1196,13 +1196,29 @@ ipcMain.handle('export-config', async () => {
     const config = configService.loadConfig();
     const shortcuts = configService.loadShortcuts();
     const redirects = redirectorService.getRedirects();
+    const bookmarks = bookmarksService.getBookmarks();
+
+    // Read repositories configuration from repositories.yml (separate from main config)
+    let repositoriesConfig = { enabled: false, directories: [], scanDepth: 3, repositories: [], lastScan: null };
+    try {
+      const yaml = require('js-yaml');
+      const repositoriesConfigPath = path.join(os.homedir(), '.devbuddy', 'repositories.yml');
+      if (fs.existsSync(repositoriesConfigPath)) {
+        const data = fs.readFileSync(repositoriesConfigPath, 'utf8');
+        repositoriesConfig = yaml.load(data) || repositoriesConfig;
+      }
+    } catch (error) {
+      console.warn('Unable to read repositories configuration for export:', error.message);
+    }
     
     const exportData = {
       version: '1.0.0',
       exportedAt: new Date().toISOString(),
       config,
       shortcuts,
-      redirects
+      redirects,
+      bookmarks,
+      repositoriesConfig
     };
 
     // Get desktop path for default save location
@@ -1249,9 +1265,9 @@ ipcMain.handle('import-config', async () => {
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const importData = JSON.parse(fileContent);
 
-    // Validate import data structure
-    if (!importData.config || !importData.shortcuts || !importData.redirects) {
-      return { success: false, error: 'Invalid configuration file format' };
+    // Validate minimal import data structure (require config; others optional for compatibility)
+    if (!importData.config) {
+      return { success: false, error: 'Invalid configuration file format (missing config)' };
     }
 
     // Validate version compatibility
@@ -1271,15 +1287,60 @@ ipcMain.handle('import-config', async () => {
     const currentConfig = {
       config: configService.loadConfig(),
       shortcuts: configService.loadShortcuts(),
-      redirects: redirectorService.getRedirects()
+      redirects: redirectorService.getRedirects(),
+      bookmarks: (() => { try { return bookmarksService.getBookmarks(); } catch { return null } })(),
+      repositoriesConfig: (() => {
+        try {
+          const yaml = require('js-yaml');
+          const repositoriesConfigPath = path.join(os.homedir(), '.devbuddy', 'repositories.yml');
+          if (fs.existsSync(repositoriesConfigPath)) {
+            const data = fs.readFileSync(repositoriesConfigPath, 'utf8');
+            return yaml.load(data) || { enabled: false, directories: [], scanDepth: 3 };
+          }
+        } catch (_) {}
+        return { enabled: false, directories: [], scanDepth: 3 };
+      })()
     };
 
     fs.writeFileSync(backupPath, JSON.stringify(currentConfig, null, 2));
 
     // Import new configuration
     configService.saveConfig(importData.config);
-    configService.saveShortcuts(importData.shortcuts);
-    redirectorService.updateRedirects(importData.redirects);
+    if (importData.shortcuts) configService.saveShortcuts(importData.shortcuts);
+    if (importData.redirects) redirectorService.updateRedirects(importData.redirects);
+
+    // Import bookmarks (preferred). If absent, try migrating from shortcuts
+    try {
+      if (importData.bookmarks) {
+        bookmarksService.updateBookmarks(importData.bookmarks);
+      } else if (importData.shortcuts) {
+        bookmarksService.migrateFromShortcuts(importData.shortcuts);
+      }
+    } catch (error) {
+      console.error('Error importing bookmarks:', error);
+      // continue
+    }
+    
+    // Import repositories configuration if present
+    try {
+      if (importData.repositoriesConfig) {
+        const yaml = require('js-yaml');
+        const repositoriesConfigPath = path.join(os.homedir(), '.devbuddy', 'repositories.yml');
+        const configDir = path.dirname(repositoriesConfigPath);
+        if (!fs.existsSync(configDir)) {
+          fs.mkdirSync(configDir, { recursive: true });
+        }
+        const yamlData = yaml.dump(importData.repositoriesConfig, {
+          indent: 2,
+          lineWidth: 120,
+          noRefs: true
+        });
+        fs.writeFileSync(repositoriesConfigPath, yamlData, 'utf8');
+      }
+    } catch (error) {
+      console.error('Error importing repositories configuration:', error);
+      // Do not fail the whole import; proceed with other parts
+    }
 
     return { 
       success: true, 
