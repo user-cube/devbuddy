@@ -39,7 +39,6 @@ const Jira = () => {
       if (forceReload) {
         try {
           await window.electronAPI.clearJiraCache()
-          console.log('Jira cache cleared for force reload')
         } catch (error) {
           console.error('Error clearing Jira cache:', error)
         }

@@ -29,6 +29,20 @@ export const ThemeProvider = ({ children }) => {
     loadTheme()
   }, [])
 
+  const applyThemeToDom = (value) => {
+    try {
+      document.documentElement.setAttribute('data-theme', value)
+      // Also toggle Tailwind dark class for components that rely on it
+      if (value === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    } catch (e) {
+      // no-op
+    }
+  }
+
   const toggleTheme = async () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark'
     setTheme(newTheme)
@@ -50,8 +64,7 @@ export const ThemeProvider = ({ children }) => {
       console.error('Error saving theme:', error)
     }
 
-    // Apply theme to document
-    document.documentElement.setAttribute('data-theme', newTheme)
+    applyThemeToDom(newTheme)
   }
 
   const setThemeValue = async (newTheme) => {
@@ -74,13 +87,12 @@ export const ThemeProvider = ({ children }) => {
       console.error('Error saving theme:', error)
     }
 
-    // Apply theme to document
-    document.documentElement.setAttribute('data-theme', newTheme)
+    applyThemeToDom(newTheme)
   }
 
   // Apply theme to document when theme changes
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
+    applyThemeToDom(theme)
   }, [theme])
 
   const value = {

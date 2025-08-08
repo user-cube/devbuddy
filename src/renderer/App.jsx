@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NavigationProvider } from './contexts/NavigationContext';
+import Loading from './components/layout/Loading';
 import Sidebar from './components/layout/Sidebar';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import Home from './components/home/Home';
@@ -12,6 +13,9 @@ import Configuration from './components/configuration/Configuration';
 import Bookmarks from './components/bookmarks/Bookmarks';
 import Redirects from './components/redirects/Redirects';
 import Repositories from './components/repositories/Repositories';
+import Onboarding from './components/onboarding/Onboarding';
+import GuidedSetup from './components/onboarding/GuidedSetup';
+import { useOnboarding } from './hooks/useOnboarding';
 
 function App () {
   const [currentTime, setCurrentTime] = useState('');
@@ -20,23 +24,23 @@ function App () {
   const [config, setConfig] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const onboardingHook = useOnboarding();
+  const shouldShowOnboarding = onboardingHook?.shouldShowOnboarding || (() => false);
+  const onboardingLoading = onboardingHook?.loading || false;
+  const isFirstRun = onboardingHook?.isFirstRun || false;
+  const hasSeenOnboarding = onboardingHook?.hasSeenOnboarding || false;
 
-  useEffect(() => {
+    useEffect(() => {
     // Check if app is configured and load config
     const checkConfiguration = async () => {
       try {
         if (window.electronAPI) {
-          const configured = await window.electronAPI.isConfigured();
-          setIsConfigured(configured);
+                  const configured = await window.electronAPI.isConfigured();
+        setIsConfigured(configured);
 
           // Load configuration for dynamic navigation
           const configData = await window.electronAPI.getConfig();
           setConfig(configData);
-
-          // Only redirect to config if we're on the home page and not configured
-          if (!configured && location.pathname === '/') {
-            navigate('/config');
-          }
         }
       } catch {
         // Error checking configuration
@@ -75,6 +79,21 @@ function App () {
       window.removeEventListener('config-changed', handleConfigChange);
     };
   }, [navigate, location.pathname]);
+
+  // Handle redirects after both configuration and onboarding are loaded
+  useEffect(() => {
+    if (!loading && !onboardingLoading) {
+      // Only redirect to config if we're on the home page, not configured, and not showing onboarding or guided setup
+      if (
+        !isConfigured &&
+        location.pathname === '/' &&
+        !(isFirstRun && !hasSeenOnboarding) &&
+        location.pathname !== '/guided-setup'
+      ) {
+        navigate('/config');
+      }
+    }
+  }, [loading, onboardingLoading, isConfigured, isFirstRun, hasSeenOnboarding, location.pathname, navigate]);
 
   useEffect(() => {
     // Listen for app initialization events
@@ -145,15 +164,26 @@ function App () {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [navigate, config]);
 
-  if (loading) {
+  // Redirect to onboarding if it's the first run and user hasn't seen it
+  useEffect(() => {    
+    if (!loading && !onboardingLoading && isFirstRun && !hasSeenOnboarding && location.pathname !== '/onboarding' && location.pathname !== '/guided-setup') {
+      navigate('/onboarding');
+    }
+  }, [loading, onboardingLoading, isFirstRun, hasSeenOnboarding, location.pathname, navigate, isConfigured]);
+
+  if (loading || onboardingLoading) {
     return (
       <ThemeProvider>
-        <div className="flex h-screen items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: 'var(--accent-primary)' }}></div>
-            <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Loading DevBuddy...</p>
-          </div>
-        </div>
+        <Loading fullScreen message="Loading DevBuddy..." />
+      </ThemeProvider>
+    );
+  }
+
+  // Show onboarding as a full-screen experience
+  if (location.pathname === '/onboarding') {
+    return (
+      <ThemeProvider>
+        <Onboarding />
       </ThemeProvider>
     );
   }
@@ -190,6 +220,7 @@ function App () {
                 </ProtectedRoute>
               } />
               <Route path="/config" element={<Configuration />} />
+              <Route path="/guided-setup" element={<GuidedSetup />} />
             </Routes>
           </main>
         </div>

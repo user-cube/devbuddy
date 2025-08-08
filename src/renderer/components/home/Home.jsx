@@ -53,7 +53,6 @@ const Home = ({ currentTime }) => {
     loadConfig();
     
     const handleBackgroundRefreshCompleted = (event, data) => {
-      console.log('Background refresh completed:', data);
       setLastRefreshNotification({
         timestamp: data.timestamp,
         services: data.services
@@ -271,7 +270,6 @@ const Home = ({ currentTime }) => {
     if (window.electronAPI) {
       try {
         const result = await window.electronAPI.openBookmark(bookmarkId)
-        console.log('Bookmark result:', result)
       } catch (error) {
         console.error('Error opening bookmark:', error)
       }
@@ -301,7 +299,6 @@ const Home = ({ currentTime }) => {
 
   const handleQuickAction = (action) => {
     // Handle quick actions for integrations
-    console.log('Quick action:', action)
     
     // Navigate to corresponding pages
     switch (action) {
@@ -322,10 +319,10 @@ const Home = ({ currentTime }) => {
       case 'review':
       case 'priority':
         // These are stats cards, could show detailed view or filter
-        console.log(`Stats action: ${action}`)
         break
       default:
-        console.log('Unknown action:', action)
+        // no-op
+        break
     }
   }
 

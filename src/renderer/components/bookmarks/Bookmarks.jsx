@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Bookmark, FolderPlus, Search, X } from 'lucide-react'
 import Toast from '../layout/Toast'
+import Loading from '../layout/Loading'
 import BookmarkSearch from './BookmarkSearch'
 import CategoryCard from './CategoryCard'
 import CategoryModal from './CategoryModal'
@@ -179,17 +180,7 @@ const Bookmarks = () => {
   }, [])
 
   if (loading) {
-    return (
-      <div className="p-8">
-        <div className="text-center">
-          <div 
-            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
-            style={{ borderColor: 'var(--accent-primary)' }}
-          ></div>
-          <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Loading bookmarks...</p>
-        </div>
-      </div>
-    )
+    return <Loading fullScreen message="Loading bookmarks..." />
   }
 
   return (
