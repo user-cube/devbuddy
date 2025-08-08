@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+# [1.2.0](https://github.com/user-cube/devbuddy/compare/v1.1.0...v1.2.0) (2025-08-08)
+
+
+### Features
+
+* Onboarding; Setup; Loading pages; Refresh ([#12](https://github.com/user-cube/devbuddy/issues/12)) ([d4e6e0d](https://github.com/user-cube/devbuddy/commit/d4e6e0d7c31bf6f65de27a1cc09a36d6d143b509))
+
 # [1.1.0](https://github.com/user-cube/devbuddy/compare/v1.0.4...v1.1.0) (2025-08-08)
 
 
