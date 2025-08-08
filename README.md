@@ -174,6 +174,18 @@ DevBuddy can scan and manage your local Git repositories:
 - **Cross-platform Support**: Works seamlessly on macOS, Windows, and Linux
 - **Smart Fallbacks**: Automatic fallback to alternative editors if primary editor is unavailable
 - **Repository Statistics**: Track repository count, languages used, and modification patterns
+- **Git History Visualization**: View commit history with interactive Git graph
+- **Repository Search**: Search repositories by name, path, branch, or remote URL
+- **Status Monitoring**: Real-time repository status (up-to-date, has changes, behind remote)
+
+### 🏗️ **Modular Component Architecture**
+
+- **GitLab Integration**: Modular components for merge request management with filtering and statistics
+- **GitHub Integration**: Refactored components for pull request tracking and review management
+- **Jira Integration**: Componentized issue management with custom status filtering and statistics
+- **Home Dashboard**: Modular dashboard with integration status, activity feeds, and quick actions
+- **Redirects Management**: Componentized local redirect configuration with server status monitoring
+- **Repository Management**: Modular repository scanning, details, and Git history visualization
 
 ## Development
 
@@ -182,54 +194,112 @@ DevBuddy can scan and manage your local Git repositories:
 ```
 devbuddy/
 ├── src/
-│   ├── main.js                           # Main Electron process with background refresh
-│   ├── preload.js                        # Preload script for secure IPC
-│   ├── background.js                     # Background tasks and services
-│   ├── renderer/                         # React application
-│   │   ├── main.jsx                      # React entry point
-│   │   ├── App.jsx                       # Main App component with navigation context
-│   │   ├── index.html                    # HTML template
-│   │   ├── index.css                     # Tailwind CSS imports
-│   │   ├── contexts/                     # React contexts
-│   │   │   ├── ThemeContext.jsx          # Theme management
-│   │   │   └── NavigationContext.jsx     # Navigation state management
-│   │   └── components/                   # React components (organized by feature)
-│   │       ├── home/                     # Home page components
-│   │       │   ├── Home.jsx              # Enhanced dashboard with integration status
-│   │       │   └── ShortcutCard.jsx
-│   │       ├── layout/                   # Layout components
-│   │       │   ├── Sidebar.jsx           # Dynamic navigation with integration status
+│   ├── main.js                                   # Main Electron process with background refresh
+│   ├── preload.js                                # Preload script for secure IPC
+│   ├── background.js                             # Background tasks and services
+│   ├── renderer/                                 # React application
+│   │   ├── main.jsx                              # React entry point
+│   │   ├── App.jsx                               # Main App component with navigation context
+│   │   ├── index.html                            # HTML template
+│   │   ├── index.css                             # Tailwind CSS imports
+│   │   ├── contexts/                             # React contexts
+│   │   │   ├── ThemeContext.jsx                  # Theme management
+│   │   │   └── NavigationContext.jsx             # Navigation state management
+│   │   └── components/                           # React components (organized by feature)
+│   │       ├── home/                             # Home page components (refactored)
+│   │       │   ├── Home.jsx                      # Main orchestrator component (375 lines)
+│   │       │   ├── HomeHeader.jsx                # Header with time and refresh controls
+│   │       │   ├── HomeStats.jsx                 # Statistics cards
+│   │       │   ├── HomeIntegrationStatus.jsx     # Integration status overview
+│   │       │   ├── HomeBookmarks.jsx             # Bookmarks section
+│   │       │   ├── HomeRecentActivity.jsx        # Recent activity feed
+│   │       │   ├── HomeQuickActions.jsx          # Quick action buttons
+│   │       │   ├── HomeLoading.jsx               # Loading state
+│   │       │   ├── HomeError.jsx                 # Error state
+│   │       │   ├── HomeUtils.jsx                 # Utility functions
+│   │       │   └── index.js                      # Centralized exports
+│   │       ├── layout/                           # Layout components
+│   │       │   ├── Sidebar.jsx                   # Dynamic navigation with integration status
 │   │       │   ├── ThemeToggle.jsx
-│   │       │   ├── Toast.jsx             # Toast notification system
-│   │       │   └── ProtectedRoute.jsx    # Route protection for disabled integrations
-│   │       ├── configuration/            # Configuration pages
-│   │       │   ├── Configuration.jsx     # Main configuration with import/export and toast
-│   │       │   └── JiraStatusConfig.jsx  # Jira status filtering with dark mode support
-│   │       ├── jira/                     # Jira page components
-│   │       │   └── Jira.jsx              # Jira issues with status filter navigation
-│   │       ├── github/                   # GitHub page components
-│   │       │   └── GitHub.jsx
-│   │       ├── gitlab/                   # GitLab page components
-│   │       │   └── GitLab.jsx
-│   │       └── repositories/             # Repository management components
-│   │           └── Repositories.jsx      # Repository listing with editor integration
-│   ├── services/                         # API services with caching
-│   │   ├── config.js                     # Configuration management
-│   │   ├── cache.js                      # Cache service with TTL
-│   │   ├── jira.js                       # Jira service with status filtering
-│   │   ├── github.js                     # GitHub service
-│   │   ├── gitlab.js                     # GitLab service
-│   │   ├── repositories.js               # Local repository management
-│   │   └── redirector.js                 # Local redirect service
-│   └── assets/                           # App assets
-├── scripts/                              # Build and utility scripts
-│   └── generate-icons-python.py          # Icon generation for all platforms
-├── assets/                               # Root assets directory
-├── package.json                          # Project configuration
-├── vite.config.js                        # Vite configuration
-├── tailwind.config.js                    # Tailwind CSS configuration
-├── postcss.config.cjs                    # PostCSS configuration
-└── README.md                             # This file
+│   │       │   ├── Toast.jsx                     # Toast notification system
+│   │       │   └── ProtectedRoute.jsx            # Route protection for disabled integrations
+│   │       ├── configuration/                    # Configuration pages
+│   │       │   ├── Configuration.jsx             # Main configuration with import/export and toast
+│   │       │   └── JiraStatusConfig.jsx          # Jira status filtering with dark mode support
+│   │       ├── jira/                             # Jira page components (refactored)
+│   │       │   ├── Jira.jsx                      # Main orchestrator component (149 lines)
+│   │       │   ├── JiraHeader.jsx                # Header with title and description
+│   │       │   ├── JiraStats.jsx                 # Statistics cards
+│   │       │   ├── JiraFilters.jsx               # Search and filter controls
+│   │       │   ├── JiraIssueCard.jsx             # Individual issue card
+│   │       │   ├── JiraLoading.jsx               # Loading state
+│   │       │   ├── JiraError.jsx                 # Error state
+│   │       │   ├── JiraEmpty.jsx                 # Empty state
+│   │       │   ├── JiraUtils.jsx                 # Utility functions
+│   │       │   └── index.js                      # Centralized exports
+│   │       ├── github/                           # GitHub page components (refactored)
+│   │       │   ├── GitHub.jsx                    # Main orchestrator component (145 lines)
+│   │       │   ├── GitHubHeader.jsx              # Header with title and description
+│   │       │   ├── GitHubStats.jsx               # Statistics cards
+│   │       │   ├── GitHubFilters.jsx             # Search and filter controls
+│   │       │   ├── GitHubPRCard.jsx              # Individual PR card
+│   │       │   ├── GitHubLoading.jsx             # Loading state
+│   │       │   ├── GitHubError.jsx               # Error state
+│   │       │   ├── GitHubEmpty.jsx               # Empty state
+│   │       │   ├── GitHubUtils.js                # Utility functions
+│   │       │   └── index.js                      # Centralized exports
+│   │       ├── gitlab/                           # GitLab page components (refactored)
+│   │       │   ├── GitLab.jsx                    # Main orchestrator component (145 lines)
+│   │       │   ├── GitLabHeader.jsx              # Header with title and description
+│   │       │   ├── GitLabStats.jsx               # Statistics cards
+│   │       │   ├── GitLabFilters.jsx             # Search and filter controls
+│   │       │   ├── GitLabMRCard.jsx              # Individual MR card
+│   │       │   ├── GitLabLoading.jsx             # Loading state
+│   │       │   ├── GitLabError.jsx               # Error state
+│   │       │   ├── GitLabEmpty.jsx               # Empty state
+│   │       │   ├── GitLabUtils.js                # Utility functions
+│   │       │   └── index.js                      # Centralized exports
+│   │       ├── redirects/                        # Redirects components (refactored)
+│   │       │   ├── Redirects.jsx                 # Main orchestrator component (435 lines)
+│   │       │   ├── RedirectsHeader.jsx           # Header with title and description
+│   │       │   ├── RedirectsMessage.jsx          # Success/error message display
+│   │       │   ├── RedirectsServerStatus.jsx     # Server status and controls
+│   │       │   ├── RedirectsDomainCard.jsx       # Domain card with redirects
+│   │       │   ├── RedirectsPathRow.jsx          # Individual redirect path row
+│   │       │   ├── RedirectsEmpty.jsx            # Empty state
+│   │       │   ├── RedirectsLoading.jsx          # Loading state
+│   │       │   ├── RedirectsUtils.jsx            # Utility functions
+│   │       │   └── index.js                      # Centralized exports
+│   │       └── repositories/                     # Repository management components (refactored)
+│   │           ├── Repositories.jsx              # Main orchestrator component (354 lines)
+│   │           ├── RepositoriesHeader.jsx        # Header with title and controls
+│   │           ├── RepositoriesDirectories.jsx   # List of configured directories
+│   │           ├── RepositoriesSearch.jsx        # Search bar with keyboard shortcuts
+│   │           ├── RepositoriesFolders.jsx       # Grid of repository folders
+│   │           ├── RepositoriesDetails.jsx       # Detailed repository information
+│   │           ├── RepositoriesLoading.jsx       # Loading state
+│   │           ├── RepositoriesError.jsx         # Error state
+│   │           ├── RepositoriesDisabled.jsx      # Disabled state
+│   │           ├── GitGraph.jsx                  # Git commit history visualization
+│   │           ├── RepositoriesUtils.jsx         # Utility functions
+│   │           └── index.js                      # Centralized exports
+│   ├── services/                                 # API services with caching
+│   │   ├── config.js                             # Configuration management
+│   │   ├── cache.js                              # Cache service with TTL
+│   │   ├── jira.js                               # Jira service with status filtering
+│   │   ├── github.js                             # GitHub service
+│   │   ├── gitlab.js                             # GitLab service
+│   │   ├── repositories.js                       # Local repository management
+│   │   └── redirector.js                         # Local redirect service
+│   └── assets/                                   # App assets
+├── scripts/                                      # Build and utility scripts
+│   └── generate-icons-python.py                  # Icon generation for all platforms
+├── assets/                                       # Root assets directory
+├── package.json                                  # Project configuration
+├── vite.config.js                                # Vite configuration
+├── tailwind.config.js                            # Tailwind CSS configuration
+├── postcss.config.cjs                            # PostCSS configuration
+└── README.md                                     # This file
 ```
 
 ### Available Scripts
@@ -546,42 +616,82 @@ This creates icons for:
 
 ## Roadmap
 
+### ✅ Completed Features
+
+#### Core Application
+
 - [x] Basic Electron app structure
 - [x] React + Tailwind CSS UI
 - [x] Sidebar navigation
-- [x] Home page with time display and bookmarks
-- [x] Jira API integration with status filtering
-- [x] GitHub API integration
-- [x] GitLab API integration
-- [x] Local shortcut configuration
 - [x] Background service architecture
 - [x] YAML-based configuration system
 - [x] Configuration management interface
 - [x] Setup wizard for first-time users
-- [x] Organized component structure by feature
 - [x] Intelligent caching system with TTL
 - [x] Background refresh for all services
-- [x] Custom Jira status filtering
 - [x] Sticky UI elements for better UX
 - [x] Dark/light theme support
 - [x] Icon generation for all platforms
-- [x] Local redirect system
 - [x] Toast notification system
 - [x] Dynamic navigation and keyboard shortcuts
-- [x] Enhanced dashboard with integration status
 - [x] Real-time configuration updates
 - [x] Protected routes for disabled integrations
 - [x] Dark mode compatibility for all components
 - [x] Configuration import/export with backup protection
+
+#### Component Architecture
+
+- [x] Organized component structure by feature
+- [x] **GitLab component refactoring** (565 → 145 lines, 74% reduction)
+- [x] **Home component refactoring** (982 → 375 lines, 62% reduction)
+- [x] **Jira component refactoring** (604 → 149 lines, 75% reduction)
+- [x] **Redirects component refactoring** (843 → 435 lines, 48% reduction)
+- [x] **Repositories component refactoring** (1070 → 354 lines, 67% reduction)
+- [x] Modular component architecture with consistent patterns
+- [x] Centralized exports and utility functions
+- [x] Component documentation and README files
+
+#### Integrations
+
+- [x] Jira API integration with status filtering
+- [x] GitHub API integration
+- [x] GitLab API integration
+- [x] Local shortcut configuration
+- [x] Local redirect system
 - [x] Local repository management and scanning
 - [x] Editor integration (VS Code and Cursor)
 - [x] Repository information display (language, last modified, etc.)
 - [x] Quick actions for repositories (open in file explorer, open in editor)
 - [x] Configurable default editor selection
+
+#### Enhanced Features
+
+- [x] Home page with time display and bookmarks
+- [x] Custom Jira status filtering
+- [x] Enhanced dashboard with integration status
+- [x] Git history visualization with interactive graphs
+- [x] Repository search and filtering
+- [x] Status monitoring for repositories
+
+### 🚧 Planned Features
+
+#### System Integration
+
 - [ ] System tray integration
 - [ ] Desktop notifications
 - [ ] Advanced theme customization
 - [ ] Keyboard shortcuts customization
+
+#### Repository Enhancements
+
 - [ ] Repository statistics and analytics
 - [ ] Git status integration (uncommitted changes, branches)
-- [ ] Repository search and filtering
+- [ ] Repository comparison and diff viewing
+- [ ] Branch management and switching
+
+#### Performance & UX
+
+- [ ] Virtual scrolling for large lists
+- [ ] Advanced search with filters
+- [ ] Bulk operations for repositories
+- [ ] Repository tagging and categorization
