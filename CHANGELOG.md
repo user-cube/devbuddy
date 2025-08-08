@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+# [1.1.0](https://github.com/user-cube/devbuddy/compare/v1.0.4...v1.1.0) (2025-08-08)
+
+
+### Features
+
+* Ui code refactor ([#10](https://github.com/user-cube/devbuddy/issues/10)) ([8642e13](https://github.com/user-cube/devbuddy/commit/8642e1381e1b968a61582caa44c0bdc99a68b364))
+
 ## [1.0.4](https://github.com/user-cube/devbuddy/compare/v1.0.3...v1.0.4) (2025-08-07)
 
 
