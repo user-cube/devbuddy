@@ -28,7 +28,7 @@ import {
   Heart,
   Folder
 } from 'lucide-react'
-import BookmarkCard from './BookmarkCard'
+import BookmarkCard from '../bookmarks/BookmarkCard'
 
 const Home = ({ currentTime }) => {
   const [shortcuts, setShortcuts] = useState([])
