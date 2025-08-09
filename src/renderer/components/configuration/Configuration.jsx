@@ -9,6 +9,7 @@ import ImportExportInfo from './ImportExportInfo'
 import JiraConfig from './JiraConfig'
 import GitHubConfig from './GitHubConfig'
 import GitLabConfig from './GitLabConfig'
+import BitbucketConfig from './BitbucketConfig'
 import RepositoriesConfig from './RepositoriesConfig'
 import AppSettings from './AppSettings'
 import ConfigurationActions from './ConfigurationActions'
@@ -195,6 +196,9 @@ const Configuration = () => {
 
               {/* GitLab Configuration */}
               <GitLabConfig config={config} updateConfig={updateConfig} />
+
+              {/* Bitbucket Configuration */}
+              <BitbucketConfig config={config} updateConfig={updateConfig} />
 
               {/* Repositories Configuration */}
               <RepositoriesConfig 

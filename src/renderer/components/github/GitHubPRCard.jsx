@@ -81,7 +81,18 @@ const GitHubPRCard = ({ pr, onClick }) => {
             </div>
             
             <div className="flex items-center gap-1">
-              <User className="w-4 h-4" />
+              {pr.user?.avatar_url && (
+                <img 
+                  src={pr.user.avatar_url} 
+                  alt={pr.user?.login || 'Author'}
+                  className="w-4 h-4 rounded-full"
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                    e.target.nextSibling.style.display = 'inline'
+                  }}
+                />
+              )}
+              <User className="w-4 h-4" style={{ display: pr.user?.avatar_url ? 'none' : 'inline' }} />
               <span>{pr.user?.login}</span>
             </div>
             

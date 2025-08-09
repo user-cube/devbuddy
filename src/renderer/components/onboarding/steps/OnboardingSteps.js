@@ -87,7 +87,8 @@ const steps = [
     integrations: [
       { name: 'Jira', icon: '🎯', description: 'Task management and issue tracking' },
       { name: 'GitHub', icon: '🐙', description: 'Pull request monitoring and reviews' },
-      { name: 'GitLab', icon: '🦊', description: 'Merge request tracking and management' }
+      { name: 'GitLab', icon: '🦊', description: 'Merge request tracking and management' },
+      { name: 'Bitbucket', icon: '🔵', description: 'Pull request monitoring and reviews' }
     ]
   },
   {

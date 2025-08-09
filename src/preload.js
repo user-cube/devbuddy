@@ -42,6 +42,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getGitlabConfig: () => ipcRenderer.invoke('get-gitlab-config'),
   updateGitlabConfig: (config) => ipcRenderer.invoke('update-gitlab-config', config),
   
+  getBitbucketConfig: () => ipcRenderer.invoke('get-bitbucket-config'),
+  updateBitbucketConfig: (config) => ipcRenderer.invoke('update-bitbucket-config', config),
+  
   getAppConfig: () => ipcRenderer.invoke('get-app-config'),
   updateAppConfig: (config) => ipcRenderer.invoke('update-app-config', config),
   
@@ -102,6 +105,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getGitlabMRsByProject: (projectId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-project', projectId, state),
   getGitlabMRsByGroup: (groupId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-group', groupId, state),
   
+  // Bitbucket service
+  getBitbucketPRs: () => ipcRenderer.invoke('get-bitbucket-prs'),
+  getBitbucketPRDetails: (prId, repoSlug) => ipcRenderer.invoke('get-bitbucket-pr-details', prId, repoSlug),
+  getBitbucketPRReviews: (prId, repoSlug) => ipcRenderer.invoke('get-bitbucket-pr-reviews', prId, repoSlug),
+  getBitbucketPRComments: (prId, repoSlug) => ipcRenderer.invoke('get-bitbucket-pr-comments', prId, repoSlug),
+  getBitbucketPRCommits: (prId, repoSlug) => ipcRenderer.invoke('get-bitbucket-pr-commits', prId, repoSlug),
+  getBitbucketPRChanges: (prId, repoSlug) => ipcRenderer.invoke('get-bitbucket-pr-changes', prId, repoSlug),
+  approveBitbucketPR: (prId, repoSlug) => ipcRenderer.invoke('approve-bitbucket-pr', prId, repoSlug),
+  mergeBitbucketPR: (prId, repoSlug, mergeStrategy) => ipcRenderer.invoke('merge-bitbucket-pr', prId, repoSlug, mergeStrategy),
+  closeBitbucketPR: (prId, repoSlug) => ipcRenderer.invoke('close-bitbucket-pr', prId, repoSlug),
+  getBitbucketUserInfo: () => ipcRenderer.invoke('get-bitbucket-user-info'),
+  testBitbucketConnection: () => ipcRenderer.invoke('test-bitbucket-connection'),
+  getBitbucketWorkspaces: () => ipcRenderer.invoke('get-bitbucket-workspaces'),
+  getBitbucketRepositories: (workspace) => ipcRenderer.invoke('get-bitbucket-repositories', workspace),
+  searchBitbucketPRs: (query) => ipcRenderer.invoke('search-bitbucket-prs', query),
+  getBitbucketPRsByRepository: (repoSlug, state) => ipcRenderer.invoke('get-bitbucket-prs-by-repository', repoSlug, state),
+  getBitbucketPRsByWorkspace: (workspace, state) => ipcRenderer.invoke('get-bitbucket-prs-by-workspace', workspace, state),
+  
   // App initialization
   isAppInitialized: () => ipcRenderer.invoke('is-app-initialized'),
   waitForInitialization: () => ipcRenderer.invoke('wait-for-initialization'),
@@ -120,8 +141,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Cache management
   clearCache: () => ipcRenderer.invoke('clear-cache'),
   clearGithubCache: () => ipcRenderer.invoke('clear-github-cache'),
-      clearGitlabCache: () => ipcRenderer.invoke('clear-gitlab-cache'),
-    clearJiraCache: () => ipcRenderer.invoke('clear-jira-cache'),
+  clearGitlabCache: () => ipcRenderer.invoke('clear-gitlab-cache'),
+  clearBitbucketCache: () => ipcRenderer.invoke('clear-bitbucket-cache'),
+  clearJiraCache: () => ipcRenderer.invoke('clear-jira-cache'),
     openJiraStatusConfig: () => ipcRenderer.invoke('open-jira-status-config'),
     getCacheStats: () => ipcRenderer.invoke('get-cache-stats'),
     exportConfig: () => ipcRenderer.invoke('export-config'),

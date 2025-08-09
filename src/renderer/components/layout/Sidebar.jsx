@@ -91,6 +91,12 @@ const Sidebar = ({ currentPath, isConfigured }) => {
       enabled: config?.gitlab?.enabled || false
     },
     { 
+      path: '/bitbucket', 
+      icon: Code, 
+      label: 'Bitbucket',
+      enabled: config?.bitbucket?.enabled || false
+    },
+    { 
       path: '/repositories', 
       icon: Folder, 
       label: 'Repositories',

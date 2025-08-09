@@ -7,6 +7,7 @@ const BookmarksService = require('./services/bookmarks.js');
 const RedirectorService = require('./services/redirector.js');
 const GitHubService = require('./services/github.js');
 const GitLabService = require('./services/gitlab.js');
+const BitbucketService = require('./services/bitbucket.js');
 const JiraService = require('./services/jira.js');
 const RepositoriesService = require('./services/repositories.js');
 const TasksService = require('./services/tasks.js');
@@ -17,6 +18,7 @@ const bookmarksService = new BookmarksService();
 const redirectorService = new RedirectorService();
 const githubService = new GitHubService();
 const gitlabService = new GitLabService();
+const bitbucketService = new BitbucketService();
 const jiraService = new JiraService();
 const repositoriesService = RepositoriesService;
 const tasksService = TasksService;
@@ -48,6 +50,7 @@ function startBackgroundRefresh() {
     config.app.updateInterval || 300, // Default 5 minutes
     config.github.refreshInterval || 300,
     config.gitlab.refreshInterval || 300,
+    config.bitbucket.refreshInterval || 300,
     config.jira.refreshInterval || 300
   ) * 1000; // Convert to milliseconds
 
@@ -104,6 +107,17 @@ async function performBackgroundRefresh() {
     promises.push(
       gitlabService.getMergeRequests().catch(err => {
         console.log('GitLab background refresh failed:', err.message);
+        return null;
+      })
+    );
+  }
+
+  // Refresh Bitbucket data if enabled
+  if (config.bitbucket.enabled && config.bitbucket.apiToken) {
+    console.log('🔄 Background refreshing Bitbucket data...');
+    promises.push(
+      bitbucketService.getPullRequests().catch(err => {
+        console.log('Bitbucket background refresh failed:', err.message);
         return null;
       })
     );
@@ -549,6 +563,14 @@ ipcMain.handle('get-gitlab-config', () => {
 
 ipcMain.handle('update-gitlab-config', async (event, gitlabConfig) => {
   return configService.updateGitlabConfig(gitlabConfig);
+});
+
+ipcMain.handle('get-bitbucket-config', () => {
+  return configService.getBitbucketConfig();
+});
+
+ipcMain.handle('update-bitbucket-config', async (event, bitbucketConfig) => {
+  return configService.updateBitbucketConfig(bitbucketConfig);
 });
 
 ipcMain.handle('get-app-config', () => {
@@ -1021,6 +1043,164 @@ ipcMain.handle('get-gitlab-mrs-by-group', async (event, groupId, state) => {
   }
 });
 
+// Bitbucket service
+ipcMain.handle('get-bitbucket-prs', async () => {
+  try {
+    return await bitbucketService.getPullRequests();
+  } catch (error) {
+    console.error('Error fetching Bitbucket PRs:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-pr-details', async (event, prId, repoSlug) => {
+  try {
+    return await bitbucketService.getPullRequestDetails(prId, repoSlug);
+  } catch (error) {
+    console.error('Error fetching Bitbucket PR details:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-pr-reviews', async (event, prId, repoSlug) => {
+  try {
+    return await bitbucketService.getPullRequestReviews(prId, repoSlug);
+  } catch (error) {
+    console.error('Error fetching Bitbucket PR reviews:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-pr-comments', async (event, prId, repoSlug) => {
+  try {
+    return await bitbucketService.getPullRequestComments(prId, repoSlug);
+  } catch (error) {
+    console.error('Error fetching Bitbucket PR comments:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-pr-commits', async (event, prId, repoSlug) => {
+  try {
+    return await bitbucketService.getPullRequestCommits(prId, repoSlug);
+  } catch (error) {
+    console.error('Error fetching Bitbucket PR commits:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-pr-changes', async (event, prId, repoSlug) => {
+  try {
+    return await bitbucketService.getPullRequestChanges(prId, repoSlug);
+  } catch (error) {
+    console.error('Error fetching Bitbucket PR changes:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('approve-bitbucket-pr', async (event, prId, repoSlug) => {
+  try {
+    return await bitbucketService.approvePullRequest(prId, repoSlug);
+  } catch (error) {
+    console.error('Error approving Bitbucket PR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('merge-bitbucket-pr', async (event, prId, repoSlug, mergeStrategy) => {
+  try {
+    return await bitbucketService.mergePullRequest(prId, repoSlug, mergeStrategy);
+  } catch (error) {
+    console.error('Error merging Bitbucket PR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('close-bitbucket-pr', async (event, prId, repoSlug) => {
+  try {
+    return await bitbucketService.closePullRequest(prId, repoSlug);
+  } catch (error) {
+    console.error('Error closing Bitbucket PR:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-user-info', async () => {
+  try {
+    return await bitbucketService.getUserInfo();
+  } catch (error) {
+    console.error('Error fetching Bitbucket user info:', error);
+    // Return a fallback instead of throwing
+    return {
+      username: 'unknown',
+      display_name: 'Unknown User',
+      account_id: 'unknown',
+      connection_method: 'error_fallback',
+      error: error.message
+    };
+  }
+});
+
+ipcMain.handle('test-bitbucket-connection', async () => {
+  try {
+    return await bitbucketService.testConnection();
+  } catch (error) {
+    console.error('Error testing Bitbucket connection:', error);
+    // Return a fallback instead of throwing
+    return {
+      display_name: 'Unknown User',
+      username: 'unknown',
+      connection_method: 'error_fallback',
+      error: error.message
+    };
+  }
+});
+
+ipcMain.handle('get-bitbucket-workspaces', async () => {
+  try {
+    return await bitbucketService.getWorkspaces();
+  } catch (error) {
+    console.error('Error fetching Bitbucket workspaces:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-repositories', async (event, workspace) => {
+  try {
+    return await bitbucketService.getRepositories(workspace);
+  } catch (error) {
+    console.error('Error fetching Bitbucket repositories:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('search-bitbucket-prs', async (event, query) => {
+  try {
+    return await bitbucketService.searchPullRequests(query);
+  } catch (error) {
+    console.error('Error searching Bitbucket PRs:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-prs-by-repository', async (event, repoSlug, state) => {
+  try {
+    return await bitbucketService.getPullRequestsByRepository(repoSlug, state);
+  } catch (error) {
+    console.error('Error fetching Bitbucket PRs by repository:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-bitbucket-prs-by-workspace', async (event, workspace, state) => {
+  try {
+    return await bitbucketService.getPullRequestsByWorkspace(workspace, state);
+  } catch (error) {
+    console.error('Error fetching Bitbucket PRs by workspace:', error);
+    throw error;
+  }
+});
+
 // App initialization
 ipcMain.handle('is-app-initialized', () => {
   return appInitialized;
@@ -1124,6 +1304,16 @@ ipcMain.handle('clear-gitlab-cache', async () => {
   }
 });
 
+ipcMain.handle('clear-bitbucket-cache', async () => {
+  try {
+    bitbucketService.cacheService.clear();
+    return { success: true, message: 'Bitbucket cache cleared successfully' };
+  } catch (error) {
+    console.error('Error clearing Bitbucket cache:', error);
+    throw error;
+  }
+});
+
 ipcMain.handle('clear-jira-cache', async () => {
   try {
     jiraService.cacheService.clear();
@@ -1149,6 +1339,7 @@ ipcMain.handle('get-cache-stats', async () => {
     return {
       github: githubService.cacheService.getStats(),
       gitlab: gitlabService.cacheService.getStats(),
+      bitbucket: bitbucketService.cacheService.getStats(),
       jira: jiraService.cacheService.getStats()
     };
   } catch (error) {
