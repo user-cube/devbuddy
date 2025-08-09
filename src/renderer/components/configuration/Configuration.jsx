@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import JiraStatusConfig from './JiraStatusConfig';
-import { Toast } from '../../hooks/useToast';
 import ToastComponent from '../layout/Toast';
 import Loading from '../layout/Loading';
 import ImportExportInfo from './ImportExportInfo';

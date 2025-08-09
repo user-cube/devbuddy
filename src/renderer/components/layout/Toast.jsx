@@ -110,7 +110,7 @@ export const ToastContainer = () => {
     const handleShowToast = (event) => {
       const { id, type, message, duration } = event.detail;
       setToasts(prev => [...prev, { id, type, message, duration }]);
-      
+
       // Auto remove after duration
       setTimeout(() => {
         setToasts(prev => prev.filter(toast => toast.id !== id));

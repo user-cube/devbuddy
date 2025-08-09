@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Bookmark, FolderPlus, Search, X } from 'lucide-react';
-import { Toast } from '../../hooks/useToast';
 import ToastComponent from '../layout/Toast';
 import Loading from '../layout/Loading';
 import BookmarkSearch from './BookmarkSearch';

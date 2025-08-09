@@ -1,21 +1,19 @@
 import { useState, useCallback } from 'react';
 
-let toastCallbacks = [];
-
 export const useToast = () => {
   const [toasts, setToasts] = useState([]);
 
   const showToast = useCallback((type, message, duration = 5000) => {
     const id = Date.now();
     const newToast = { id, type, message, duration };
-    
+
     setToasts(prev => [...prev, newToast]);
-    
+
     // Auto remove after duration
     setTimeout(() => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
     }, duration);
-    
+
     return id;
   }, []);
 
@@ -55,7 +53,7 @@ export const Toast = {
     window.dispatchEvent(event);
     return id;
   },
-  
+
   error: (message, duration = 5000) => {
     const id = Date.now();
     const event = new CustomEvent('show-toast', {
@@ -64,7 +62,7 @@ export const Toast = {
     window.dispatchEvent(event);
     return id;
   },
-  
+
   info: (message, duration = 5000) => {
     const id = Date.now();
     const event = new CustomEvent('show-toast', {

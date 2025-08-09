@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Toast } from '../../hooks/useToast';
 import ToastComponent from '../layout/Toast';
 import RepositoriesHeader from './RepositoriesHeader';
 import RepositoriesDirectories from './RepositoriesDirectories';

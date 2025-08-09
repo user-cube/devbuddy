@@ -8,7 +8,6 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { Toast } from '../../hooks/useToast';
 import ToastComponent from '../layout/Toast';
 
 const JiraStatusConfig = ({ config, updateConfig, onBack }) => {
