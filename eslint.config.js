@@ -1,9 +1,9 @@
-import js from '@eslint/js';
-import reactPlugin from 'eslint-plugin-react';
-import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+const js = require('@eslint/js');
+const reactPlugin = require('eslint-plugin-react');
+const reactHooksPlugin = require('eslint-plugin-react-hooks');
+const jsxA11yPlugin = require('eslint-plugin-jsx-a11y');
 
-export default [
+module.exports = [
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx}'],
