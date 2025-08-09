@@ -9,6 +9,7 @@ const GitHubService = require('./services/github.js');
 const GitLabService = require('./services/gitlab.js');
 const JiraService = require('./services/jira.js');
 const RepositoriesService = require('./services/repositories.js');
+const TasksService = require('./services/tasks.js');
 
 let mainWindow;
 const configService = new ConfigService();
@@ -18,6 +19,7 @@ const githubService = new GitHubService();
 const gitlabService = new GitLabService();
 const jiraService = new JiraService();
 const repositoriesService = RepositoriesService;
+const tasksService = TasksService;
 
 // Global state for app initialization
 let appInitialized = false;
@@ -1197,6 +1199,8 @@ ipcMain.handle('export-config', async () => {
     const shortcuts = configService.loadShortcuts();
     const redirects = redirectorService.getRedirects();
     const bookmarks = bookmarksService.getBookmarks();
+    const tasks = tasksService.getAllTasks();
+    const taskCategories = tasksService.getCategoryDetails();
 
     // Read repositories configuration from repositories.yml (separate from main config)
     let repositoriesConfig = { enabled: false, directories: [], scanDepth: 3, repositories: [], lastScan: null };
@@ -1218,7 +1222,9 @@ ipcMain.handle('export-config', async () => {
       shortcuts,
       redirects,
       bookmarks,
-      repositoriesConfig
+      repositoriesConfig,
+      tasks,
+      taskCategories
     };
 
     // Get desktop path for default save location
@@ -1288,6 +1294,7 @@ ipcMain.handle('import-config', async () => {
       config: configService.loadConfig(),
       shortcuts: configService.loadShortcuts(),
       redirects: redirectorService.getRedirects(),
+      tasks: tasksService.getAllTasks(),
       bookmarks: (() => { try { return bookmarksService.getBookmarks(); } catch { return null } })(),
       repositoriesConfig: (() => {
         try {
@@ -1339,6 +1346,27 @@ ipcMain.handle('import-config', async () => {
       }
     } catch (error) {
       console.error('Error importing repositories configuration:', error);
+      // Do not fail the whole import; proceed with other parts
+    }
+
+    // Import tasks and categories if present
+    try {
+      if (importData.taskCategories) {
+        // Import categories first
+        importData.taskCategories.forEach(category => {
+          try {
+            tasksService.createCategory(category);
+          } catch (error) {
+            console.warn('Error importing category:', category.name, error.message);
+          }
+        });
+      }
+      
+      if (importData.tasks) {
+        tasksService.saveTasks(importData.tasks);
+      }
+    } catch (error) {
+      console.error('Error importing tasks:', error);
       // Do not fail the whole import; proceed with other parts
     }
 
@@ -1509,3 +1537,176 @@ ipcMain.handle('open-repository-in-editor', async (event, repoPath) => {
       return { success: false, error: error.message };
     }
   });
+
+// Tasks handlers
+ipcMain.handle('get-tasks', async () => {
+  try {
+    return await tasksService.getAllTasks();
+  } catch (error) {
+    console.error('Error getting tasks:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-task-by-id', async (event, id) => {
+  try {
+    return await tasksService.getTaskById(id);
+  } catch (error) {
+    console.error('Error getting task by id:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('create-task', async (event, taskData) => {
+  try {
+    return await tasksService.createTask(taskData);
+  } catch (error) {
+    console.error('Error creating task:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-task', async (event, id, updates) => {
+  try {
+    return await tasksService.updateTask(id, updates);
+  } catch (error) {
+    console.error('Error updating task:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-task', async (event, id) => {
+  try {
+    return await tasksService.deleteTask(id);
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('toggle-task-complete', async (event, id) => {
+  try {
+    return await tasksService.toggleTaskComplete(id);
+  } catch (error) {
+    console.error('Error toggling task completion:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-tasks-by-priority', async (event, priority) => {
+  try {
+    return await tasksService.getTasksByPriority(priority);
+  } catch (error) {
+    console.error('Error getting tasks by priority:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-completed-tasks', async () => {
+  try {
+    return await tasksService.getCompletedTasks();
+  } catch (error) {
+    console.error('Error getting completed tasks:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-pending-tasks', async () => {
+  try {
+    return await tasksService.getPendingTasks();
+  } catch (error) {
+    console.error('Error getting pending tasks:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-overdue-tasks', async () => {
+  try {
+    return await tasksService.getOverdueTasks();
+  } catch (error) {
+    console.error('Error getting overdue tasks:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-tasks-due-today', async () => {
+  try {
+    return await tasksService.getTasksDueToday();
+  } catch (error) {
+    console.error('Error getting tasks due today:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-task-categories', async () => {
+  try {
+    return await tasksService.getCategories();
+  } catch (error) {
+    console.error('Error getting task categories:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-task-priorities', async () => {
+  try {
+    return await tasksService.getPriorities();
+  } catch (error) {
+    console.error('Error getting task priorities:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-task-stats', async () => {
+  try {
+    return await tasksService.getStats();
+  } catch (error) {
+    console.error('Error getting task stats:', error);
+    return { total: 0, completed: 0, pending: 0, overdue: 0, dueToday: 0, completionRate: 0 };
+  }
+});
+
+// Category handlers
+ipcMain.handle('get-task-category-details', async () => {
+  try {
+    return await tasksService.getCategoryDetails();
+  } catch (error) {
+    console.error('Error getting task category details:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('create-task-category', async (event, categoryData) => {
+  try {
+    return await tasksService.createCategory(categoryData);
+  } catch (error) {
+    console.error('Error creating task category:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-task-category', async (event, categoryId, updates) => {
+  try {
+    return await tasksService.updateCategory(categoryId, updates);
+  } catch (error) {
+    console.error('Error updating task category:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-task-category', async (event, categoryId) => {
+  try {
+    return await tasksService.deleteCategory(categoryId);
+  } catch (error) {
+    console.error('Error deleting task category:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-tasks-by-category', async (event, categoryId) => {
+  try {
+    return await tasksService.getTasksByCategory(categoryId);
+  } catch (error) {
+    console.error('Error getting tasks by category:', error);
+    return [];
+  }
+});
