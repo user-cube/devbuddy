@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+# [1.3.0](https://github.com/user-cube/devbuddy/compare/v1.2.0...v1.3.0) (2025-08-09)
+
+
+### Features
+
+* Add support for todo tasks ([#13](https://github.com/user-cube/devbuddy/issues/13)) ([7d38f80](https://github.com/user-cube/devbuddy/commit/7d38f80a03d149923eb28787bfb588a1ffc1bf9b))
+
 # [1.2.0](https://github.com/user-cube/devbuddy/compare/v1.1.0...v1.2.0) (2025-08-08)
 
 
