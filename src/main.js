@@ -1352,10 +1352,25 @@ ipcMain.handle('import-config', async () => {
     // Import tasks and categories if present
     try {
       if (importData.taskCategories) {
-        // Import categories first
+        // Import categories first - handle existing categories
         importData.taskCategories.forEach(category => {
           try {
-            tasksService.createCategory(category);
+            // Check if category already exists
+            const existingCategories = tasksService.getCategoryDetails();
+            const existingCategory = existingCategories.find(cat => cat.id === category.id);
+            
+            if (existingCategory) {
+              // Update existing category
+              tasksService.updateCategory(category.id, {
+                name: category.name,
+                description: category.description,
+                color: category.color,
+                icon: category.icon
+              });
+            } else {
+              // Create new category
+              tasksService.createCategory(category);
+            }
           } catch (error) {
             console.warn('Error importing category:', category.name, error.message);
           }
