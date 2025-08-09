@@ -119,6 +119,24 @@ const GuidedSetup = () => {
       ]
     },
     {
+      id: 'bitbucket',
+      title: 'Bitbucket Integration',
+      subtitle: 'Pull request monitoring and reviews',
+      description: 'Connect to Bitbucket to monitor pull requests and reviews.',
+      icon: GitBranch,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+      configKey: 'bitbucket',
+      fields: [
+        { key: 'enabled', type: 'toggle', label: 'Enable Bitbucket Integration', default: false },
+        { key: 'baseUrl', type: 'text', label: 'Bitbucket URL', placeholder: 'https://api.bitbucket.org' },
+        { key: 'apiToken', type: 'password', label: 'API Token', placeholder: 'Your Atlassian API token' },
+        { key: 'email', type: 'text', label: 'Email', placeholder: 'your-email@company.com' },
+        { key: 'username', type: 'text', label: 'Username', placeholder: 'your-bitbucket-username' },
+        { key: 'workspaces', type: 'text', label: 'Workspaces', placeholder: 'workspace1,workspace2' }
+      ]
+    },
+    {
       id: 'app-settings',
       title: 'App Settings',
       subtitle: 'General preferences and configuration',

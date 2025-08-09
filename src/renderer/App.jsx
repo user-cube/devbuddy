@@ -9,6 +9,7 @@ import Home from './components/home/Home';
 import Jira from './components/jira/Jira';
 import GitHub from './components/github/GitHub';
 import GitLab from './components/gitlab/GitLab';
+import Bitbucket from './components/bitbucket/Bitbucket';
 import Configuration from './components/configuration/Configuration';
 import Bookmarks from './components/bookmarks/Bookmarks';
 import Redirects from './components/redirects/Redirects';
@@ -65,6 +66,8 @@ function App () {
           } else if (currentPath === '/github' && !configData?.github?.enabled) {
             navigate('/');
           } else if (currentPath === '/gitlab' && !configData?.gitlab?.enabled) {
+            navigate('/');
+          } else if (currentPath === '/bitbucket' && !configData?.bitbucket?.enabled) {
             navigate('/');
           }
         }
@@ -146,6 +149,7 @@ function App () {
         if (config?.jira?.enabled) integrationRoutes.push('/jira');
         if (config?.github?.enabled) integrationRoutes.push('/github');
         if (config?.gitlab?.enabled) integrationRoutes.push('/gitlab');
+        if (config?.bitbucket?.enabled) integrationRoutes.push('/bitbucket');
 
         const routes = [...baseRoutes, ...integrationRoutes, '/config'];
         const index = parseInt(e.key) - 1;
@@ -213,6 +217,11 @@ function App () {
               <Route path="/gitlab" element={
                 <ProtectedRoute integration="gitlab">
                   <GitLab />
+                </ProtectedRoute>
+              } />
+              <Route path="/bitbucket" element={
+                <ProtectedRoute integration="bitbucket">
+                  <Bitbucket />
                 </ProtectedRoute>
               } />
               <Route path="/repositories" element={

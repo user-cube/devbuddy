@@ -55,6 +55,19 @@ class ConfigService {
         showClosed: false,
         maxResults: 50
       },
+      bitbucket: {
+        enabled: false,
+        baseUrl: 'https://api.bitbucket.org',
+        apiToken: '',
+        email: '',
+        username: '',
+        workspaces: [],
+        defaultWorkspace: '',
+        refreshInterval: 300, // 5 minutes
+        showDrafts: true,
+        showClosed: false,
+        maxResults: 50
+      },
       app: {
         theme: 'dark',
         autoStart: false,
@@ -463,6 +476,32 @@ class ConfigService {
 
   updateGitlabConfig (gitlabConfig) {
     return this.updateConfig({ gitlab: gitlabConfig });
+  }
+
+  getBitbucketConfig () {
+    const config = this.loadConfig();
+    const bitbucketConfig = config.bitbucket || {};
+
+    // Ensure all required fields exist with defaults
+    const completeConfig = {
+      enabled: bitbucketConfig.enabled || false,
+      baseUrl: bitbucketConfig.baseUrl || 'https://api.bitbucket.org',
+      apiToken: bitbucketConfig.apiToken || '',
+      email: bitbucketConfig.email || '',
+      username: bitbucketConfig.username || '',
+      workspaces: bitbucketConfig.workspaces || [],
+      defaultWorkspace: bitbucketConfig.defaultWorkspace || '',
+      refreshInterval: bitbucketConfig.refreshInterval || 300,
+      showDrafts: bitbucketConfig.showDrafts !== undefined ? bitbucketConfig.showDrafts : true,
+      showClosed: bitbucketConfig.showClosed || false,
+      maxResults: bitbucketConfig.maxResults || 50
+    };
+
+    return completeConfig;
+  }
+
+  updateBitbucketConfig (bitbucketConfig) {
+    return this.updateConfig({ bitbucket: bitbucketConfig });
   }
 
   getAppConfig () {

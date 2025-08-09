@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  GitMerge,
+  GitPullRequest,
   GitBranch,
   MessageSquare,
   Eye,
@@ -13,14 +13,16 @@ import {
   GitCommit,
   FileText
 } from 'lucide-react'
-import { formatDate, getStatusText, getStatusBackground, getStatusBorder, getStatusColor } from './GitLabUtils'
+import { formatDate, getStatusText, getStatusBackground, getStatusBorder, getStatusColor } from './BitbucketUtils'
 
-const GitLabMRCard = ({ mr, onClick }) => {
-  const getStatusIcon = (mr) => {
-    if (mr.work_in_progress) return <Clock className="w-4 h-4 text-yellow-500" />
-    if (mr.merged_at) return <CheckCircle className="w-4 h-4 text-green-500" />
-    if (mr.state === 'closed') return <XCircle className="w-4 h-4 text-red-500" />
-    return <GitMerge className="w-4 h-4 text-orange-500" />
+const BitbucketPRCard = ({ pullRequest, onClick }) => {
+  const pr = pullRequest
+
+  const getStatusIcon = (pr) => {
+    if (pr.is_draft || (typeof pr.is_draft === 'object' && pr.is_draft?.draft)) return <Clock className="w-4 h-4 text-yellow-500" />
+    if (pr.state === 'MERGED' || (typeof pr.state === 'object' && pr.state?.name === 'MERGED')) return <CheckCircle className="w-4 h-4 text-green-500" />
+    if (pr.state === 'CLOSED' || (typeof pr.state === 'object' && pr.state?.name === 'CLOSED')) return <XCircle className="w-4 h-4 text-red-500" />
+    return <GitPullRequest className="w-4 h-4 text-orange-500" />
   }
 
   return (
@@ -31,42 +33,44 @@ const GitLabMRCard = ({ mr, onClick }) => {
         border: '1px solid var(--border-primary)',
         boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1)'
       }}
-      onClick={() => onClick(mr)}
+      onClick={() => onClick(pr)}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            {getStatusIcon(mr)}
+            {getStatusIcon(pr)}
             <span 
               className="px-2 py-1 text-xs font-medium rounded-full"
               style={{
-                backgroundColor: getStatusBackground(mr),
-                color: getStatusColor(mr),
-                border: getStatusBorder(mr)
+                backgroundColor: getStatusBackground(pr),
+                color: getStatusColor(pr),
+                border: getStatusBorder(pr)
               }}
             >
-              {getStatusText(mr)}
+              {getStatusText(pr)}
             </span>
             <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              !{mr.iid}
+              #{typeof pr.id === 'string' || typeof pr.id === 'number' ? pr.id : pr.id?.id || 'unknown'}
             </span>
           </div>
           
           <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-            {mr.title}
+            {typeof pr.title === 'string' ? pr.title : pr.title?.name || 'Untitled Pull Request'}
           </h3>
           
           <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
             <div className="flex items-center gap-1">
               <GitBranch className="w-4 h-4" />
-              <span>{mr.source_branch} → {mr.target_branch}</span>
+              <span>
+                {typeof pr.source?.branch === 'string' ? pr.source.branch : pr.source?.branch?.name || 'unknown'} → {typeof pr.destination?.branch === 'string' ? pr.destination.branch : pr.destination?.branch?.name || 'unknown'}
+              </span>
             </div>
             
             <div className="flex items-center gap-1">
-              {mr.author?.avatar_url && (
+              {pr.author?.avatar_url && (
                 <img 
-                  src={mr.author.avatar_url} 
-                  alt={mr.author?.name || mr.author?.username || 'Author'}
+                  src={pr.author.avatar_url} 
+                  alt={typeof pr.author === 'string' ? pr.author : pr.author?.display_name || pr.author?.username || 'Author'}
                   className="w-4 h-4 rounded-full"
                   onError={(e) => {
                     e.target.style.display = 'none'
@@ -74,47 +78,43 @@ const GitLabMRCard = ({ mr, onClick }) => {
                   }}
                 />
               )}
-              <User className="w-4 h-4" style={{ display: mr.author?.avatar_url ? 'none' : 'inline' }} />
-              <span>{mr.author?.name || mr.author?.username}</span>
+              <User className="w-4 h-4" style={{ display: pr.author?.avatar_url ? 'none' : 'inline' }} />
+              <span>
+                {typeof pr.author === 'string' ? pr.author : 
+                 pr.author?.display_name || pr.author?.username || pr.author?.name || 'Unknown Author'}
+              </span>
             </div>
             
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              <span>{formatDate(mr.created_at)}</span>
+              <span>{formatDate(pr.created_on || pr.updated_on)}</span>
             </div>
             
-            {mr.assignees?.length > 0 && (
+            {pr.reviewers?.length > 0 && (
               <div className="flex items-center gap-1">
                 <User className="w-4 h-4" />
                 <span>Assigned</span>
               </div>
             )}
             
-            {mr.reviewers?.length > 0 && (
+            {pr.reviewers?.length > 0 && (
               <div className="flex items-center gap-1">
                 <Eye className="w-4 h-4" />
                 <span>Reviewer</span>
               </div>
             )}
             
-            {mr.user_notes_count > 0 && (
+            {pr.comment_count > 0 && (
               <div className="flex items-center gap-1">
                 <MessageSquare className="w-4 h-4" />
-                <span>{mr.user_notes_count}</span>
+                <span>{pr.comment_count}</span>
               </div>
             )}
             
-            {mr.commits_count > 0 && (
-              <div className="flex items-center gap-1">
-                <GitCommit className="w-4 h-4" />
-                <span>{mr.commits_count}</span>
-              </div>
-            )}
-            
-            {mr.changes_count > 0 && (
+            {pr.task_count > 0 && (
               <div className="flex items-center gap-1">
                 <FileText className="w-4 h-4" />
-                <span>{mr.changes_count} files</span>
+                <span>{pr.task_count} tasks</span>
               </div>
             )}
           </div>
@@ -126,4 +126,4 @@ const GitLabMRCard = ({ mr, onClick }) => {
   )
 }
 
-export default GitLabMRCard
+export default BitbucketPRCard

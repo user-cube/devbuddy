@@ -37,6 +37,14 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
       enabled: activeIntegrations.gitlab
     },
     {
+      key: 'bitbucket',
+      name: 'Bitbucket',
+      icon: GitPullRequest,
+      color: '#0052cc',
+      items: recentItems.bitbucket,
+      enabled: activeIntegrations.bitbucket
+    },
+    {
       key: 'repositories',
       name: 'Repositories',
       icon: Folder,
@@ -88,12 +96,13 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
                             {integration.key === 'jira' ? item.key :
                              integration.key === 'github' ? `#${item.number}` :
                              integration.key === 'gitlab' ? `!${item.iid}` :
+                             integration.key === 'bitbucket' ? `#${item.id}` :
                              item.name}
                           </span>
                         </div>
                         <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
                           {integration.key === 'jira' ? item.fields?.summary :
-                           integration.key === 'github' || integration.key === 'gitlab' ? item.title :
+                           integration.key === 'github' || integration.key === 'gitlab' || integration.key === 'bitbucket' ? item.title :
                            item.path}
                         </p>
                       </div>

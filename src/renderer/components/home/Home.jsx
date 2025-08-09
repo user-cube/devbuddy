@@ -107,6 +107,7 @@ const Home = ({ currentTime }) => {
           jira: configData?.jira?.enabled || false,
           github: configData?.github?.enabled || false,
           gitlab: configData?.gitlab?.enabled || false,
+          bitbucket: configData?.bitbucket?.enabled || false,
           repositories: repositoriesConfig?.enabled || false
         });
       }
@@ -135,6 +136,10 @@ const Home = ({ currentTime }) => {
         }),
         loadGitLabData().catch(err => {
           console.error('GitLab load failed:', err)
+          return null
+        }),
+        loadBitbucketData().catch(err => {
+          console.error('Bitbucket load failed:', err)
           return null
         }),
         loadRepositoriesData().catch(err => {
@@ -245,6 +250,32 @@ const Home = ({ currentTime }) => {
     }
   }
 
+  const loadBitbucketData = async () => {
+    try {
+      const config = await window.electronAPI.getBitbucketConfig()
+      if (config.enabled) {
+        const prs = await window.electronAPI.getBitbucketPRs()
+        
+        setStats(prev => ({
+          ...prev,
+          bitbucket: {
+            total: prs.length,
+            assigned: prs.filter(pr => pr.reviewers?.length > 0).length,
+            reviewing: prs.filter(pr => pr.participants?.length > 0).length,
+            draft: prs.filter(pr => pr.title?.toLowerCase().includes('[wip]') || pr.title?.toLowerCase().includes('[draft]')).length
+          }
+        }))
+        
+        setRecentItems(prev => ({
+          ...prev,
+          bitbucket: prs.slice(0, 3)
+        }))
+      }
+    } catch (error) {
+      console.error('Error loading Bitbucket data:', error)
+    }
+  }
+
   const loadRepositoriesData = async () => {
     try {
       const config = await window.electronAPI.getRepositoriesConfig()
@@ -286,6 +317,8 @@ const Home = ({ currentTime }) => {
         await window.electronAPI.openExternal(item.html_url)
       } else if (type === 'gitlab') {
         await window.electronAPI.openExternal(item.web_url)
+      } else if (type === 'bitbucket') {
+        await window.electronAPI.openExternal(item.links?.html?.href || item.url)
       } else if (type === 'repositories') {
         // For repositories, we can open the folder in file explorer
         await window.electronAPI.openRepository(item.path)
@@ -310,6 +343,9 @@ const Home = ({ currentTime }) => {
         break
       case 'gitlab':
         window.location.hash = '#/gitlab'
+        break
+      case 'bitbucket':
+        window.location.hash = '#/bitbucket'
         break
       case 'repositories':
         window.location.hash = '#/repositories'

@@ -27,6 +27,7 @@ const HomeIntegrationStatus = ({ activeIntegrations, stats, onQuickAction }) => 
     { key: 'jira', name: 'Jira', icon: GitBranch, color: '#3b82f6' },
     { key: 'github', name: 'GitHub', icon: GitPullRequest, color: '#10b981' },
     { key: 'gitlab', name: 'GitLab', icon: GitMerge, color: '#f56565' },
+    { key: 'bitbucket', name: 'Bitbucket', icon: GitPullRequest, color: '#0052cc' },
     { key: 'repositories', name: 'Repositories', icon: Folder, color: '#8b5cf6' }
   ]
 
