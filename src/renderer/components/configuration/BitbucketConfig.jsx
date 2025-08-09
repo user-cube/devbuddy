@@ -1,7 +1,9 @@
-import React from 'react'
-import { GitBranch } from 'lucide-react'
+import React, { useState } from 'react'
+import { GitBranch, ExternalLink, CheckCircle, XCircle, Info } from 'lucide-react'
 
 const BitbucketConfig = ({ config, updateConfig }) => {
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState(null)
   return (
     <div className="card">
       <div className="flex items-center gap-3 mb-6 pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
@@ -116,25 +118,6 @@ const BitbucketConfig = ({ config, updateConfig }) => {
                 Comma-separated list of workspace names
               </p>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Refresh Interval (seconds)</label>
-              <input
-                type="number"
-                min="60"
-                max="3600"
-                value={config?.bitbucket?.refreshInterval || 300}
-                onChange={(e) => updateConfig('bitbucket', 'refreshInterval', parseInt(e.target.value))}
-                className="w-full rounded-lg px-3 py-2 focus:outline-none"
-                style={{
-                  backgroundColor: 'var(--bg-tertiary)',
-                  border: '1px solid var(--border-primary)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            </div>
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Max Results</label>
               <input
@@ -151,104 +134,238 @@ const BitbucketConfig = ({ config, updateConfig }) => {
                 }}
               />
             </div>
-            <div className="flex items-end">
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={config?.bitbucket?.showDrafts || false}
-                    onChange={(e) => updateConfig('bitbucket', 'showDrafts', e.target.checked)}
-                    className="w-4 h-4 rounded"
-                    style={{
-                      backgroundColor: 'var(--bg-tertiary)',
-                      border: '1px solid var(--border-primary)',
-                      accentColor: 'var(--accent-primary)'
-                    }}
-                  />
-                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Show Drafts</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={config?.bitbucket?.showClosed || false}
-                    onChange={(e) => updateConfig('bitbucket', 'showClosed', e.target.checked)}
-                    className="w-4 h-4 rounded"
-                    style={{
-                      backgroundColor: 'var(--bg-tertiary)',
-                      border: '1px solid var(--border-primary)',
-                      accentColor: 'var(--accent-primary)'
-                    }}
-                  />
-                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Show Closed</span>
-                </label>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={config?.bitbucket?.showDrafts || false}
+                onChange={(e) => updateConfig('bitbucket', 'showDrafts', e.target.checked)}
+                className="w-4 h-4 rounded"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  accentColor: 'var(--accent-primary)'
+                }}
+              />
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Show Drafts</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={config?.bitbucket?.showClosed || false}
+                onChange={(e) => updateConfig('bitbucket', 'showClosed', e.target.checked)}
+                className="w-4 h-4 rounded"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  accentColor: 'var(--accent-primary)'
+                }}
+              />
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Show Closed</span>
+            </label>
+          </div>
+
+          {/* Test Connection */}
+          <div>
+            <button
+              onClick={async () => {
+                if (!config?.bitbucket?.apiToken || !config?.bitbucket?.email) {
+                  setTestResult({ success: false, message: 'Please enter your API token and email first' })
+                  return
+                }
+                
+                setTesting(true)
+                setTestResult(null)
+                
+                try {
+                  const userInfo = await window.electronAPI.getBitbucketUserInfo()
+                  if (userInfo) {
+                    setTestResult({ 
+                      success: true, 
+                      message: `Connection successful! Logged in as: ${userInfo.display_name || userInfo.username}` 
+                    })
+                  } else {
+                    setTestResult({ 
+                      success: false, 
+                      message: 'Connection failed. Please check your credentials and try again.' 
+                    })
+                  }
+                } catch (error) {
+                  setTestResult({ 
+                    success: false, 
+                    message: `Connection failed: ${error.message}` 
+                  })
+                } finally {
+                  setTesting(false)
+                }
+              }}
+              disabled={testing || !config?.bitbucket?.apiToken || !config?.bitbucket?.email}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+              style={{
+                backgroundColor: testing || !config?.bitbucket?.apiToken || !config?.bitbucket?.email ? 'var(--bg-primary)' : 'var(--accent-primary)',
+                color: testing || !config?.bitbucket?.apiToken || !config?.bitbucket?.email ? 'var(--text-muted)' : 'white',
+                border: '1px solid var(--border-primary)'
+              }}
+            >
+              {testing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Testing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Test Connection
+                </>
+              )}
+            </button>
+            
+            {testResult && (
+              <div className={`flex items-center gap-2 mt-2 p-2 rounded text-sm ${
+                testResult.success 
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+              }`}>
+                {testResult.success ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : (
+                  <XCircle className="w-4 h-4" />
+                )}
+                {testResult.message}
+              </div>
+            )}
+          </div>
+
+          {/* Token Setup Instructions */}
+          <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-primary)' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Info className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+              <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>How to get your Atlassian API Token</h3>
+            </div>
+            <ol className="text-sm space-y-2" style={{ color: 'var(--text-secondary)' }}>
+              <li className="flex items-start gap-2">
+                <span className="font-medium">1.</span>
+                <span>Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-1">Atlassian API Tokens <ExternalLink className="w-3 h-3" /></a></span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-medium">2.</span>
+                <span>Click "Create API token"</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-medium">3.</span>
+                <span>Give it a descriptive name (e.g., "DevBuddy")</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-medium">4.</span>
+                <span>Make sure it has access to <strong>Bitbucket</strong> product</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-medium">5.</span>
+                <span>The token will automatically have the required scopes</span>
+              </li>
+            </ol>
+            <div className="mt-3 ml-6">
+              <div className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">•</span>
+                  <code className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--accent-primary)' }}>read:account</code>
+                  <span>- Read account information</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">•</span>
+                  <code className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--accent-primary)' }}>read:user:bitbucket</code>
+                  <span>- Read user data</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">•</span>
+                  <code className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--accent-primary)' }}>read:repository:bitbucket</code>
+                  <span>- Read repository data</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">•</span>
+                  <code className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--accent-primary)' }}>read:pullrequest:bitbucket</code>
+                  <span>- Read pull request data</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">•</span>
+                  <code className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--accent-primary)' }}>read:workspace:bitbucket</code>
+                  <span>- Read workspace data</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-            <h4 className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Setup Instructions</h4>
-            <ol className="text-xs space-y-1" style={{ color: 'var(--text-secondary)' }}>
-              <li>1. Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener noreferrer" className="underline">Atlassian API Tokens</a></li>
-              <li>2. Create a new API token with appropriate permissions</li>
-              <li>3. Copy the generated token to the API Token field</li>
-              <li>4. Enter your <strong>Atlassian email address</strong> (must match the email used for the API token)</li>
-              <li>5. Enter your Bitbucket username</li>
-              <li>6. Optionally add workspace names (comma-separated)</li>
-            </ol>
-            
-            <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-primary)' }}>
-              <h5 className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Required API Token Scopes</h5>
-              <div className="text-xs space-y-1" style={{ color: 'var(--text-secondary)' }}>
-                <p className="mb-2">Make sure your API token has access to <strong>Bitbucket</strong> and includes these scopes:</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10b981' }}></span>
-                    <code className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>read:account</code>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10b981' }}></span>
-                    <code className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>read:user:bitbucket</code>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10b981' }}></span>
-                    <code className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>read:repository:bitbucket</code>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10b981' }}></span>
-                    <code className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>read:pullrequest:bitbucket</code>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10b981' }}></span>
-                    <code className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>read:workspace:bitbucket</code>
-                  </div>
-                </div>
-                <p className="mt-2 text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                  <strong>Note:</strong> If you get a 403 error, check that your token has access to the Bitbucket product and all required scopes.
-                </p>
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-primary)' }}>
-              <button
-                onClick={async () => {
-                  try {
-                    if (window.electronAPI) {
-                      const result = await window.electronAPI.testBitbucketConnection();
-                      alert('Connection successful! User: ' + result.display_name);
-                    }
-                  } catch (error) {
-                    alert('Connection failed: ' + error.message);
+          {/* Test Connection */}
+          <div>
+            <button
+              onClick={async () => {
+                if (!config?.bitbucket?.apiToken || !config?.bitbucket?.email) {
+                  setTestResult({ success: false, message: 'Please enter your API token and email first' })
+                  return
+                }
+                
+                setTesting(true)
+                setTestResult(null)
+                
+                try {
+                  const userInfo = await window.electronAPI.getBitbucketUserInfo()
+                  if (userInfo) {
+                    setTestResult({ 
+                      success: true, 
+                      message: `Connection successful! Logged in as: ${userInfo.display_name || userInfo.username}` 
+                    })
+                  } else {
+                    setTestResult({ 
+                      success: false, 
+                      message: 'Connection failed. Please check your credentials and try again.' 
+                    })
                   }
-                }}
-                className="px-4 py-2 rounded-lg text-sm transition-colors"
-                style={{
-                  backgroundColor: 'var(--accent-primary)',
-                  color: 'white'
-                }}
-              >
-                Test Connection
-              </button>
-            </div>
+                } catch (error) {
+                  setTestResult({ 
+                    success: false, 
+                    message: `Connection failed: ${error.message}` 
+                  })
+                } finally {
+                  setTesting(false)
+                }
+              }}
+              disabled={testing || !config?.bitbucket?.apiToken || !config?.bitbucket?.email}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+              style={{
+                backgroundColor: testing || !config?.bitbucket?.apiToken || !config?.bitbucket?.email ? 'var(--bg-primary)' : 'var(--accent-primary)',
+                color: testing || !config?.bitbucket?.apiToken || !config?.bitbucket?.email ? 'var(--text-muted)' : 'white',
+                border: '1px solid var(--border-primary)'
+              }}
+            >
+              {testing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Testing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Test Connection
+                </>
+              )}
+            </button>
+            
+            {testResult && (
+              <div className={`flex items-center gap-2 mt-2 p-2 rounded text-sm ${
+                testResult.success 
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+              }`}>
+                {testResult.success ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : (
+                  <XCircle className="w-4 h-4" />
+                )}
+                {testResult.message}
+              </div>
+            )}
           </div>
         </div>
       )}
