@@ -13,6 +13,7 @@ import Configuration from './components/configuration/Configuration';
 import Bookmarks from './components/bookmarks/Bookmarks';
 import Redirects from './components/redirects/Redirects';
 import Repositories from './components/repositories/Repositories';
+import Tasks from './components/tasks/Tasks';
 import Onboarding from './components/onboarding/Onboarding';
 import GuidedSetup from './components/onboarding/GuidedSetup';
 import { useOnboarding } from './hooks/useOnboarding';
@@ -25,18 +26,17 @@ function App () {
   const navigate = useNavigate();
   const location = useLocation();
   const onboardingHook = useOnboarding();
-  const shouldShowOnboarding = onboardingHook?.shouldShowOnboarding || (() => false);
   const onboardingLoading = onboardingHook?.loading || false;
   const isFirstRun = onboardingHook?.isFirstRun || false;
   const hasSeenOnboarding = onboardingHook?.hasSeenOnboarding || false;
 
-    useEffect(() => {
+  useEffect(() => {
     // Check if app is configured and load config
     const checkConfiguration = async () => {
       try {
         if (window.electronAPI) {
-                  const configured = await window.electronAPI.isConfigured();
-        setIsConfigured(configured);
+          const configured = await window.electronAPI.isConfigured();
+          setIsConfigured(configured);
 
           // Load configuration for dynamic navigation
           const configData = await window.electronAPI.getConfig();
@@ -165,7 +165,7 @@ function App () {
   }, [navigate, config]);
 
   // Redirect to onboarding if it's the first run and user hasn't seen it
-  useEffect(() => {    
+  useEffect(() => {
     if (!loading && !onboardingLoading && isFirstRun && !hasSeenOnboarding && location.pathname !== '/onboarding' && location.pathname !== '/guided-setup') {
       navigate('/onboarding');
     }
@@ -199,6 +199,7 @@ function App () {
               <Route path="/" element={<Home currentTime={currentTime} />} />
               <Route path="/bookmarks" element={<Bookmarks />} />
               <Route path="/redirects" element={<Redirects />} />
+              <Route path="/tasks" element={<Tasks />} />
               <Route path="/jira" element={
                 <ProtectedRoute integration="jira">
                   <Jira />

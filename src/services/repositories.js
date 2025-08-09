@@ -22,7 +22,7 @@ class RepositoriesService {
     };
   }
 
-  async mapWithConcurrency(items, concurrency, iterator) {
+  async mapWithConcurrency (items, concurrency, iterator) {
     const results = new Array(items.length);
     let nextIndex = 0;
     let active = 0;
@@ -329,7 +329,9 @@ class RepositoriesService {
           if (currentDepth < maxDepth) {
             try {
               await this.scanDirectory(fullPath, currentDepth + 1, maxDepth, repositories, tag);
-            } catch {}
+            } catch {
+              // Ignore errors when scanning subdirectories
+            }
           }
         }
       });

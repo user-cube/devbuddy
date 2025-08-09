@@ -4,6 +4,7 @@ import {
   Home, 
   Bookmark,
   Globe,
+  CheckSquare,
   GitBranch, 
   GitPullRequest, 
   GitMerge,
@@ -65,7 +66,8 @@ const Sidebar = ({ currentPath, isConfigured }) => {
   const baseNavItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks' },
-    { path: '/redirects', icon: Globe, label: 'Redirects' }
+    { path: '/redirects', icon: Globe, label: 'Redirects' },
+    { path: '/tasks', icon: CheckSquare, label: 'Tasks' }
   ]
 
   // Integration navigation items (only if enabled)

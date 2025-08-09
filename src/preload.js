@@ -153,4 +153,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openRepository: (repoPath) => ipcRenderer.invoke('open-repository', repoPath),
   openRepositoryInEditor: (repoPath) => ipcRenderer.invoke('open-repository-in-editor', repoPath),
   selectDirectory: () => ipcRenderer.invoke('select-folder'),
+  
+  // Tasks service
+  getTasks: () => ipcRenderer.invoke('get-tasks'),
+  getTaskById: (id) => ipcRenderer.invoke('get-task-by-id', id),
+  createTask: (taskData) => ipcRenderer.invoke('create-task', taskData),
+  updateTask: (id, updates) => ipcRenderer.invoke('update-task', id, updates),
+  deleteTask: (id) => ipcRenderer.invoke('delete-task', id),
+  toggleTaskComplete: (id) => ipcRenderer.invoke('toggle-task-complete', id),
+
+  getTasksByPriority: (priority) => ipcRenderer.invoke('get-tasks-by-priority', priority),
+  getCompletedTasks: () => ipcRenderer.invoke('get-completed-tasks'),
+  getPendingTasks: () => ipcRenderer.invoke('get-pending-tasks'),
+  getOverdueTasks: () => ipcRenderer.invoke('get-overdue-tasks'),
+  getTasksDueToday: () => ipcRenderer.invoke('get-tasks-due-today'),
+  getTaskCategories: () => ipcRenderer.invoke('get-task-categories'),
+  getTaskPriorities: () => ipcRenderer.invoke('get-task-priorities'),
+  getTaskStats: () => ipcRenderer.invoke('get-task-stats'),
+  
+  // Category management
+  getTaskCategoryDetails: () => ipcRenderer.invoke('get-task-category-details'),
+  createTaskCategory: (categoryData) => ipcRenderer.invoke('create-task-category', categoryData),
+  updateTaskCategory: (categoryId, updates) => ipcRenderer.invoke('update-task-category', categoryId, updates),
+  deleteTaskCategory: (categoryId) => ipcRenderer.invoke('delete-task-category', categoryId),
+  getTasksByCategory: (categoryId) => ipcRenderer.invoke('get-tasks-by-category', categoryId),
+
 }); 

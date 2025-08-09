@@ -8,6 +8,8 @@
 
 DevBuddy is a powerful desktop application built with Electron and React that helps developers manage their development workflow efficiently. It provides quick access to development tools, bookmarks, project information, and local repositories with intelligent caching and background data management.
 
+![devbuddy](docs/devbuddy.gif)
+
 ## ✨ Features
 
 ### 🔗 **Local Redirects**
