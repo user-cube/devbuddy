@@ -102,10 +102,10 @@ const BitbucketConfig = ({ config, updateConfig }) => {
               <input
                 type="text"
                 placeholder="workspace1,workspace2"
-                value={config?.bitbucket?.workspaces?.join(',') || ''}
+                value={Array.isArray(config?.bitbucket?.workspaces) ? config.bitbucket.workspaces.join(',') : ''}
                 onChange={(e) => {
                   const workspaces = e.target.value.split(',').map(w => w.trim()).filter(w => w);
-                  updateConfig('bitbucket', 'workspaces', workspaces);
+                  updateConfig('bitbucket', 'workspaces', workspaces || []);
                 }}
                 className="w-full rounded-lg px-3 py-2 focus:outline-none"
                 style={{
@@ -181,7 +181,19 @@ const BitbucketConfig = ({ config, updateConfig }) => {
                 
                 try {
                   const userInfo = await window.electronAPI.getBitbucketUserInfo()
-                  if (userInfo) {
+                  
+                  // Check if the response indicates an error
+                  if (userInfo && userInfo.error) {
+                    setTestResult({ 
+                      success: false, 
+                      message: `Connection failed: ${userInfo.error}` 
+                    })
+                  } else if (userInfo && (userInfo.username === 'unknown' || userInfo.connection_method?.includes('fallback'))) {
+                    setTestResult({ 
+                      success: false, 
+                      message: 'Connection failed. Please check your API token and email address.' 
+                    })
+                  } else if (userInfo) {
                     setTestResult({ 
                       success: true, 
                       message: `Connection successful! Logged in as: ${userInfo.display_name || userInfo.username}` 

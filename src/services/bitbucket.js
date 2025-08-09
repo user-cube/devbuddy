@@ -118,6 +118,7 @@ class BitbucketService {
         await this.testConnection();
       } catch (error) {
         console.error('Bitbucket: Connection test failed:', error);
+        // Don't fail the entire request, just return empty results
         return [];
       }
 
@@ -421,11 +422,37 @@ class BitbucketService {
             
             return fallbackUserInfo;
           } catch (repoError) {
-            throw error; // Throw original error
+            // Return error instead of fallback
+            const basicUserInfo = {
+              username: config.username || 'unknown',
+              display_name: config.username || 'Unknown User',
+              account_id: config.username || 'unknown',
+              connection_method: 'error_fallback',
+              error: 'Authentication failed. Please check your API token and email address.'
+            };
+            
+            // Cache the fallback result
+            const cacheKey = `bitbucket_user_${config.username || 'workspaces'}`;
+            this.cacheService.set(cacheKey, basicUserInfo, 3600); // Cache for 1 hour
+            
+            return basicUserInfo;
           }
         }
         
-        throw error;
+        // Return error instead of fallback
+        const basicUserInfo = {
+          username: 'unknown',
+          display_name: 'Unknown User',
+          account_id: 'unknown',
+          connection_method: 'error_fallback',
+          error: 'Authentication failed. Please check your API token and email address.'
+        };
+        
+        // Cache the fallback result
+        const cacheKey = `bitbucket_user_${config.username || 'workspaces'}`;
+        this.cacheService.set(cacheKey, basicUserInfo, 3600); // Cache for 1 hour
+        
+        return basicUserInfo;
       }
     }
   }
@@ -435,6 +462,17 @@ class BitbucketService {
       // Test with a simpler endpoint first
       try {
         const userInfo = await this.getUserInfo();
+        
+        // Check if getUserInfo returned an error
+        if (userInfo && userInfo.error) {
+          return { 
+            display_name: 'Unknown User', 
+            username: 'unknown', 
+            connection_method: 'error_fallback',
+            error: userInfo.error
+          };
+        }
+        
         return userInfo;
       } catch (userError) {
         // Try with workspaces endpoint as fallback
@@ -454,16 +492,35 @@ class BitbucketService {
               const repos = await this.makeRequest(`/repositories/${config.username}?pagelen=1`);
               return { display_name: config.username, username: config.username, connection_method: 'repositories' };
             } catch (repoError) {
-              throw userError; // Throw original error
+              // Return error instead of fallback
+              return { 
+                display_name: config.username || 'Unknown User', 
+                username: config.username || 'unknown', 
+                connection_method: 'error_fallback',
+                error: 'Authentication failed. Please check your API token and email address.'
+              };
             }
           } else {
-            throw userError;
+            // Return error instead of fallback
+            return { 
+              display_name: 'Unknown User', 
+              username: 'unknown', 
+              connection_method: 'error_fallback',
+              error: 'Authentication failed. Please check your API token and email address.'
+            };
           }
         }
       }
     } catch (error) {
       console.error('Bitbucket: Connection test failed:', error);
-      throw error;
+      // Return error instead of fallback
+      const config = this.getConfig();
+      return { 
+        display_name: config.username || 'Unknown User', 
+        username: config.username || 'unknown', 
+        connection_method: 'error_fallback',
+        error: 'Authentication failed. Please check your API token and email address.'
+      };
     }
   }
 

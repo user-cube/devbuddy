@@ -213,6 +213,9 @@ class ConfigService {
         if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
           target[key] = target[key] || {};
           deepMerge(target[key], source[key]);
+        } else if (Array.isArray(source[key])) {
+          // Ensure arrays are properly handled
+          target[key] = Array.isArray(source[key]) ? source[key] : [];
         } else {
           target[key] = source[key];
         }

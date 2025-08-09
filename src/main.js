@@ -1130,7 +1130,14 @@ ipcMain.handle('get-bitbucket-user-info', async () => {
     return await bitbucketService.getUserInfo();
   } catch (error) {
     console.error('Error fetching Bitbucket user info:', error);
-    throw error;
+    // Return a fallback instead of throwing
+    return {
+      username: 'unknown',
+      display_name: 'Unknown User',
+      account_id: 'unknown',
+      connection_method: 'error_fallback',
+      error: error.message
+    };
   }
 });
 
@@ -1139,7 +1146,13 @@ ipcMain.handle('test-bitbucket-connection', async () => {
     return await bitbucketService.testConnection();
   } catch (error) {
     console.error('Error testing Bitbucket connection:', error);
-    throw error;
+    // Return a fallback instead of throwing
+    return {
+      display_name: 'Unknown User',
+      username: 'unknown',
+      connection_method: 'error_fallback',
+      error: error.message
+    };
   }
 });
 
