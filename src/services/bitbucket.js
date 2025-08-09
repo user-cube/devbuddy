@@ -31,7 +31,7 @@ class BitbucketService {
 
     const authUser = config.email; // Must use email for Atlassian API Token
     const authHeader = `Basic ${Buffer.from(`${authUser}:${config.apiToken}`).toString('base64')}`;
-    
+
     const requestOptions = {
       hostname: urlObj.hostname,
       path: urlObj.pathname + urlObj.search,
@@ -66,7 +66,7 @@ class BitbucketService {
             if (res.statusCode >= 200 && res.statusCode < 300) {
               resolve(jsonData);
             } else if (res.statusCode === 401) {
-              reject(new Error(`Bitbucket authentication failed (401). Please check your email and API token. Make sure you're using your Atlassian email address.`));
+              reject(new Error('Bitbucket authentication failed (401). Please check your email and API token. Make sure you\'re using your Atlassian email address.'));
             } else if (res.statusCode === 403) {
               reject(new Error(`Bitbucket access denied (403). Your API token may not have the required permissions or access to Bitbucket. Error: ${jsonData.error?.message || data}`));
             } else {
@@ -91,7 +91,7 @@ class BitbucketService {
     });
   }
 
-    async getPullRequests () {
+  async getPullRequests () {
     try {
       const config = this.getConfig();
 
@@ -127,7 +127,7 @@ class BitbucketService {
         for (const workspace of config.workspaces) {
           try {
             const workspaceRepos = await this.makeRequest(`/repositories/${workspace}`);
-            
+
             if (workspaceRepos.values) {
               for (const repo of workspaceRepos.values.slice(0, 5)) { // Limit to first 5 repos per workspace
                 try {
@@ -148,12 +148,12 @@ class BitbucketService {
         // If no workspaces specified, get all accessible workspaces
         try {
           const workspaces = await this.makeRequest('/workspaces?pagelen=100');
-          
+
           if (workspaces.values) {
             for (const workspace of workspaces.values.slice(0, 3)) { // Limit to first 3 workspaces
               try {
                 const workspaceRepos = await this.makeRequest(`/repositories/${workspace.slug}`);
-                
+
                 if (workspaceRepos.values) {
                   for (const repo of workspaceRepos.values.slice(0, 3)) { // Limit to first 3 repos per workspace
                     try {
@@ -177,7 +177,7 @@ class BitbucketService {
       }
 
       // Remove duplicates and filter
-      const uniquePRs = prs.filter((pr, index, self) => 
+      const uniquePRs = prs.filter((pr, index, self) =>
         index === self.findIndex(p => p.id === pr.id)
       );
 
@@ -230,10 +230,10 @@ class BitbucketService {
       }
 
       const prDetails = await this.makeRequest(`/repositories/${repoSlug}/pullrequests/${prId}`);
-      
+
       // Cache the result
       this.cacheService.set(cacheKey, prDetails, 900); // Cache for 15 minutes
-      
+
       return prDetails;
     } catch (error) {
       console.error('Bitbucket: Error fetching PR details:', error);
@@ -252,10 +252,10 @@ class BitbucketService {
       }
 
       const reviews = await this.makeRequest(`/repositories/${repoSlug}/pullrequests/${prId}/participants`);
-      
+
       // Cache the result
       this.cacheService.set(cacheKey, reviews, 900); // Cache for 15 minutes
-      
+
       return reviews;
     } catch (error) {
       console.error('Bitbucket: Error fetching PR reviews:', error);
@@ -274,10 +274,10 @@ class BitbucketService {
       }
 
       const comments = await this.makeRequest(`/repositories/${repoSlug}/pullrequests/${prId}/comments`);
-      
+
       // Cache the result
       this.cacheService.set(cacheKey, comments, 600); // Cache for 10 minutes
-      
+
       return comments;
     } catch (error) {
       console.error('Bitbucket: Error fetching PR comments:', error);
@@ -296,10 +296,10 @@ class BitbucketService {
       }
 
       const commits = await this.makeRequest(`/repositories/${repoSlug}/pullrequests/${prId}/commits`);
-      
+
       // Cache the result
       this.cacheService.set(cacheKey, commits, 900); // Cache for 15 minutes
-      
+
       return commits;
     } catch (error) {
       console.error('Bitbucket: Error fetching PR commits:', error);
@@ -318,10 +318,10 @@ class BitbucketService {
       }
 
       const changes = await this.makeRequest(`/repositories/${repoSlug}/pullrequests/${prId}/diffstat`);
-      
+
       // Cache the result
       this.cacheService.set(cacheKey, changes, 900); // Cache for 15 minutes
-      
+
       return changes;
     } catch (error) {
       console.error('Bitbucket: Error fetching PR changes:', error);
@@ -368,7 +368,7 @@ class BitbucketService {
   async getUserInfo () {
     try {
       const config = this.getConfig();
-      
+
       // Check cache first
       const cacheKey = `bitbucket_user_${config.username || 'workspaces'}`;
       const cachedData = this.cacheService.get(cacheKey);
@@ -378,14 +378,14 @@ class BitbucketService {
       }
 
       const userInfo = await this.makeRequest('/user');
-      
+
       // Cache the result
       this.cacheService.set(cacheKey, userInfo, 3600); // Cache for 1 hour
-      
+
       return userInfo;
     } catch (error) {
       console.error('Bitbucket: Error fetching user info:', error);
-      
+
       // If /user fails, try to get user info from workspaces endpoint
       try {
         const workspaces = await this.makeRequest('/workspaces?pagelen=1');
@@ -396,32 +396,32 @@ class BitbucketService {
           connection_method: 'workspaces_fallback',
           workspaces_count: workspaces.size || 0
         };
-        
+
         // Cache the fallback result
         const config = this.getConfig();
         const cacheKey = `bitbucket_user_${config.username || 'workspaces'}`;
         this.cacheService.set(cacheKey, fallbackUserInfo, 3600); // Cache for 1 hour
-        
+
         return fallbackUserInfo;
-      } catch (workspaceError) {
+      } catch {
         // If workspaces also fails, try repositories endpoint
         const config = this.getConfig();
         if (config.username) {
           try {
-            const repos = await this.makeRequest(`/repositories/${config.username}?pagelen=1`);
+            await this.makeRequest(`/repositories/${config.username}?pagelen=1`);
             const fallbackUserInfo = {
               username: config.username,
               display_name: config.username,
               account_id: config.username,
               connection_method: 'repositories_fallback'
             };
-            
+
             // Cache the fallback result
             const cacheKey = `bitbucket_user_${config.username || 'workspaces'}`;
             this.cacheService.set(cacheKey, fallbackUserInfo, 3600); // Cache for 1 hour
-            
+
             return fallbackUserInfo;
-          } catch (repoError) {
+          } catch {
             // Return error instead of fallback
             const basicUserInfo = {
               username: config.username || 'unknown',
@@ -430,15 +430,15 @@ class BitbucketService {
               connection_method: 'error_fallback',
               error: 'Authentication failed. Please check your API token and email address.'
             };
-            
+
             // Cache the fallback result
             const cacheKey = `bitbucket_user_${config.username || 'workspaces'}`;
             this.cacheService.set(cacheKey, basicUserInfo, 3600); // Cache for 1 hour
-            
+
             return basicUserInfo;
           }
         }
-        
+
         // Return error instead of fallback
         const basicUserInfo = {
           username: 'unknown',
@@ -447,11 +447,11 @@ class BitbucketService {
           connection_method: 'error_fallback',
           error: 'Authentication failed. Please check your API token and email address.'
         };
-        
+
         // Cache the fallback result
         const cacheKey = `bitbucket_user_${config.username || 'workspaces'}`;
         this.cacheService.set(cacheKey, basicUserInfo, 3600); // Cache for 1 hour
-        
+
         return basicUserInfo;
       }
     }
@@ -462,49 +462,49 @@ class BitbucketService {
       // Test with a simpler endpoint first
       try {
         const userInfo = await this.getUserInfo();
-        
+
         // Check if getUserInfo returned an error
         if (userInfo && userInfo.error) {
-          return { 
-            display_name: 'Unknown User', 
-            username: 'unknown', 
+          return {
+            display_name: 'Unknown User',
+            username: 'unknown',
             connection_method: 'error_fallback',
             error: userInfo.error
           };
         }
-        
+
         return userInfo;
-      } catch (userError) {
+      } catch {
         // Try with workspaces endpoint as fallback
         try {
           const workspaces = await this.makeRequest('/workspaces?pagelen=1');
-          return { 
-            display_name: 'Connected via workspaces', 
-            username: 'workspaces_access', 
+          return {
+            display_name: 'Connected via workspaces',
+            username: 'workspaces_access',
             connection_method: 'workspaces',
             workspaces_count: workspaces.size || 0
           };
-        } catch (workspaceError) {
+        } catch {
           // Try with repositories endpoint as last fallback
           const config = this.getConfig();
           if (config.username) {
             try {
-              const repos = await this.makeRequest(`/repositories/${config.username}?pagelen=1`);
+              await this.makeRequest(`/repositories/${config.username}?pagelen=1`);
               return { display_name: config.username, username: config.username, connection_method: 'repositories' };
-            } catch (repoError) {
+            } catch {
               // Return error instead of fallback
-              return { 
-                display_name: config.username || 'Unknown User', 
-                username: config.username || 'unknown', 
+              return {
+                display_name: config.username || 'Unknown User',
+                username: config.username || 'unknown',
                 connection_method: 'error_fallback',
                 error: 'Authentication failed. Please check your API token and email address.'
               };
             }
           } else {
             // Return error instead of fallback
-            return { 
-              display_name: 'Unknown User', 
-              username: 'unknown', 
+            return {
+              display_name: 'Unknown User',
+              username: 'unknown',
               connection_method: 'error_fallback',
               error: 'Authentication failed. Please check your API token and email address.'
             };
@@ -515,9 +515,9 @@ class BitbucketService {
       console.error('Bitbucket: Connection test failed:', error);
       // Return error instead of fallback
       const config = this.getConfig();
-      return { 
-        display_name: config.username || 'Unknown User', 
-        username: config.username || 'unknown', 
+      return {
+        display_name: config.username || 'Unknown User',
+        username: config.username || 'unknown',
         connection_method: 'error_fallback',
         error: 'Authentication failed. Please check your API token and email address.'
       };
@@ -527,7 +527,7 @@ class BitbucketService {
   async getWorkspaces () {
     try {
       const config = this.getConfig();
-      
+
       // Check cache first
       const cacheKey = `bitbucket_workspaces_${config.username || 'all'}`;
       const cachedData = this.cacheService.get(cacheKey);
@@ -537,10 +537,10 @@ class BitbucketService {
       }
 
       const workspaces = await this.makeRequest('/workspaces');
-      
+
       // Cache the result
       this.cacheService.set(cacheKey, workspaces, 1800); // Cache for 30 minutes
-      
+
       return workspaces;
     } catch (error) {
       console.error('Bitbucket: Error fetching workspaces:', error);
@@ -551,7 +551,7 @@ class BitbucketService {
   async getRepositories (workspace = null) {
     try {
       const config = this.getConfig();
-      
+
       // Check cache first
       const cacheKey = `bitbucket_repos_${workspace || 'user'}_${config.username || 'all'}`;
       const cachedData = this.cacheService.get(cacheKey);
@@ -566,10 +566,10 @@ class BitbucketService {
       } else {
         repositories = await this.makeRequest('/repositories');
       }
-      
+
       // Cache the result
       this.cacheService.set(cacheKey, repositories, 1800); // Cache for 30 minutes
-      
+
       return repositories;
     } catch (error) {
       console.error('Bitbucket: Error fetching repositories:', error);
@@ -579,7 +579,6 @@ class BitbucketService {
 
   async searchPullRequests (query) {
     try {
-      const config = this.getConfig();
       const searchQuery = encodeURIComponent(query);
       return await this.makeRequest(`/repositories?q=state="OPEN" AND title~"${searchQuery}"`);
     } catch (error) {
