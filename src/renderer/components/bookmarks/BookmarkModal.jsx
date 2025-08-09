@@ -1,60 +1,61 @@
-import React, { useState } from 'react'
-import { Save } from 'lucide-react'
-import IconSelector from '../common/IconSelector'
+import React, { useState } from 'react';
+import { Save } from 'lucide-react';
+import IconSelector from '../common/IconSelector';
+import { Toast } from '../../hooks/useToast';
 
-const BookmarkModal = ({ categoryId, bookmark, onSave, onCancel }) => {
+const BookmarkModal = ({ _categoryId, bookmark, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: bookmark?.name || '',
     url: bookmark?.url || '',
     filePath: bookmark?.filePath || '',
     icon: bookmark?.icon || 'bookmark',
     description: bookmark?.description || ''
-  })
-  const [bookmarkType, setBookmarkType] = useState(bookmark?.filePath ? 'file' : 'url')
+  });
+  const [bookmarkType, setBookmarkType] = useState(bookmark?.filePath ? 'file' : 'url');
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (formData.name.trim()) {
       if (bookmarkType === 'url' && formData.url.trim()) {
-        onSave({ ...formData, filePath: '' })
+        onSave({ ...formData, filePath: '' });
       } else if (bookmarkType === 'file' && formData.filePath.trim()) {
-        onSave({ ...formData, url: '' })
+        onSave({ ...formData, url: '' });
       } else {
         // Show error message
-        alert(bookmarkType === 'url' ? 'Please enter a valid URL' : 'Please select a file')
+        Toast.error(bookmarkType === 'url' ? 'Please enter a valid URL' : 'Please select a file');
       }
     } else {
-      alert('Please enter a name for the bookmark')
+      Toast.error('Please enter a name for the bookmark');
     }
-  }
+  };
 
   const handleSelectFile = async () => {
     try {
       if (window.electronAPI) {
-        const result = await window.electronAPI.selectFile()
+        const result = await window.electronAPI.selectFile();
         if (result.success) {
           setFormData({
             ...formData,
             filePath: result.filePath,
             url: '', // Clear URL when file is selected
             name: formData.name || result.fileName
-          })
+          });
         }
       }
-    } catch (error) {
-      console.error('Error selecting file:', error)
+    } catch {
+      // no-op
     }
-  }
+  };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center z-50"
       style={{
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         backdropFilter: 'blur(2px)'
       }}
     >
-      <div 
+      <div
         className="rounded-lg p-6 w-full max-w-md mx-4"
         style={{
           backgroundColor: 'var(--bg-secondary)',
@@ -78,7 +79,7 @@ const BookmarkModal = ({ categoryId, bookmark, onSave, onCancel }) => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
               Type
@@ -88,8 +89,8 @@ const BookmarkModal = ({ categoryId, bookmark, onSave, onCancel }) => {
                 type="button"
                 onClick={() => setBookmarkType('url')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
-                  bookmarkType === 'url' 
-                    ? 'bg-blue-500 text-white' 
+                  bookmarkType === 'url'
+                    ? 'bg-blue-500 text-white'
                     : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                 }`}
               >
@@ -99,21 +100,21 @@ const BookmarkModal = ({ categoryId, bookmark, onSave, onCancel }) => {
                 type="button"
                 onClick={() => setBookmarkType('file')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
-                  bookmarkType === 'file' 
-                    ? 'bg-blue-500 text-white' 
+                  bookmarkType === 'file'
+                    ? 'bg-blue-500 text-white'
                     : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                 }`}
               >
                 📁 File
               </button>
             </div>
-            <p className="text-xs mt-2 px-3 py-2 rounded-lg" style={{ 
+            <p className="text-xs mt-2 px-3 py-2 rounded-lg" style={{
               color: 'var(--text-muted)',
               backgroundColor: 'rgba(107, 114, 128, 0.1)',
               border: '1px solid rgba(107, 114, 128, 0.2)'
             }}>
-              {bookmarkType === 'url' 
-                ? '🌐 URLs will open in your default browser' 
+              {bookmarkType === 'url'
+                ? '🌐 URLs will open in your default browser'
                 : '📁 Files will open with their default system application'
               }
             </p>
@@ -209,7 +210,7 @@ const BookmarkModal = ({ categoryId, bookmark, onSave, onCancel }) => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default BookmarkModal
+export default BookmarkModal;

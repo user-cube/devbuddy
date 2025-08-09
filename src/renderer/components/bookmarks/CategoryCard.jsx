@@ -1,14 +1,14 @@
-import React from 'react'
-import { Plus, Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
-import BookmarkCard from './BookmarkCard'
+import React from 'react';
+import { Plus, Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import BookmarkCard from './BookmarkCard';
 
-const CategoryCard = ({ 
-  category, 
-  isExpanded, 
+const CategoryCard = ({
+  category,
+  isExpanded,
   searchQuery,
-  onToggle, 
-  onAddBookmark, 
-  onEditCategory, 
+  onToggle,
+  onAddBookmark,
+  onEditCategory,
   onDeleteCategory,
   onOpenBookmark,
   onEditBookmark,
@@ -35,7 +35,7 @@ const CategoryCard = ({
               <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
             )}
           </button>
-          <i 
+          <i
             className={`fas fa-${category.icon || 'folder'} text-lg`}
             style={{ color: category.color || '#6b7280' }}
           ></i>
@@ -114,7 +114,7 @@ const CategoryCard = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default CategoryCard
+export default CategoryCard;

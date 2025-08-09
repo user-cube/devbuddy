@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { GitPullRequest, ExternalLink, CheckCircle, XCircle, Info } from 'lucide-react'
+import React, { useState } from 'react';
+import { GitPullRequest, ExternalLink, CheckCircle, XCircle, Info } from 'lucide-react';
 
 const GitHubConfig = ({ config, updateConfig }) => {
-  const [testing, setTesting] = useState(false)
-  const [testResult, setTestResult] = useState(null)
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
   return (
     <div className="card">
       <div className="flex items-center gap-3 mb-6 pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
@@ -24,7 +24,7 @@ const GitHubConfig = ({ config, updateConfig }) => {
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Enable</span>
         </label>
       </div>
-      
+
       {config?.github?.enabled && (
         <div className="space-y-4">
           {/* API Token Input */}
@@ -49,33 +49,33 @@ const GitHubConfig = ({ config, updateConfig }) => {
             <button
               onClick={async () => {
                 if (!config?.github?.apiToken) {
-                  setTestResult({ success: false, message: 'Please enter your API token first' })
-                  return
+                  setTestResult({ success: false, message: 'Please enter your API token first' });
+                  return;
                 }
-                
-                setTesting(true)
-                setTestResult(null)
-                
+
+                setTesting(true);
+                setTestResult(null);
+
                 try {
-                  const userInfo = await window.electronAPI.getGithubUserInfo()
+                  const userInfo = await window.electronAPI.getGithubUserInfo();
                   if (userInfo) {
-                    setTestResult({ 
-                      success: true, 
-                      message: `Connection successful! Logged in as: ${userInfo.login}` 
-                    })
+                    setTestResult({
+                      success: true,
+                      message: `Connection successful! Logged in as: ${userInfo.login}`
+                    });
                   } else {
-                    setTestResult({ 
-                      success: false, 
-                      message: 'Connection failed. Please check your token and try again.' 
-                    })
+                    setTestResult({
+                      success: false,
+                      message: 'Connection failed. Please check your token and try again.'
+                    });
                   }
                 } catch (error) {
-                  setTestResult({ 
-                    success: false, 
-                    message: `Connection failed: ${error.message}` 
-                  })
+                  setTestResult({
+                    success: false,
+                    message: `Connection failed: ${error.message}`
+                  });
                 } finally {
-                  setTesting(false)
+                  setTesting(false);
                 }
               }}
               disabled={testing || !config?.github?.apiToken}
@@ -98,11 +98,11 @@ const GitHubConfig = ({ config, updateConfig }) => {
                 </>
               )}
             </button>
-            
+
             {testResult && (
               <div className={`flex items-center gap-2 mt-2 p-2 rounded text-sm ${
-                testResult.success 
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                testResult.success
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                   : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
               }`}>
                 {testResult.success ? (
@@ -128,11 +128,11 @@ const GitHubConfig = ({ config, updateConfig }) => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-medium">2.</span>
-                <span>Click "Generate new token (classic)"</span>
+                <span>Click &quot;Generate new token (classic)&quot;</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-medium">3.</span>
-                <span>Give it a descriptive name (e.g., "DevBuddy")</span>
+                <span>Give it a descriptive name (e.g., &quot;DevBuddy&quot;)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-medium">4.</span>
@@ -166,8 +166,8 @@ const GitHubConfig = ({ config, updateConfig }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default GitHubConfig
+export default GitHubConfig;
 

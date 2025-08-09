@@ -1,34 +1,34 @@
-import React from 'react'
-import { Edit, Trash2 } from 'lucide-react'
-import { getBookmarkIcon, truncateText, createHighlightedText } from './BookmarkUtils'
+import React from 'react';
+import { Edit, Trash2 } from 'lucide-react';
+import { getBookmarkIcon, truncateText, createHighlightedText } from './BookmarkUtils';
 
-const BookmarkCard = ({ 
-  bookmark, 
-  categoryId, 
-  searchQuery, 
-  onOpen, 
-  onEdit, 
-  onDelete 
+const BookmarkCard = ({
+  bookmark,
+  categoryId,
+  searchQuery,
+  onOpen,
+  onEdit,
+  onDelete
 }) => {
   const renderHighlightedText = (text, searchTerm) => {
-    if (!searchTerm.trim()) return text
-    
-    const parts = createHighlightedText(text, searchTerm)
+    if (!searchTerm.trim()) return text;
+
+    const parts = createHighlightedText(text, searchTerm);
     return parts.map(part => {
       if (part.type === 'highlight') {
         return (
-          <span 
-            key={part.key} 
+          <span
+            key={part.key}
             className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded"
             style={{ backgroundColor: 'rgba(255, 255, 0, 0.3)' }}
           >
             {part.text}
           </span>
-        )
+        );
       }
-      return part.text
-    })
-  }
+      return part.text;
+    });
+  };
 
   return (
     <div
@@ -42,14 +42,14 @@ const BookmarkCard = ({
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <i 
+            <i
               className={`${getBookmarkIcon(bookmark)} text-sm`}
-              style={{ 
+              style={{
                 color: bookmark.filePath ? 'var(--success)' : 'var(--accent-primary)'
               }}
             ></i>
-            <span 
-              className="text-sm font-medium block truncate" 
+            <span
+              className="text-sm font-medium block truncate"
               style={{ color: 'var(--text-primary)' }}
               title={bookmark.name}
             >
@@ -60,8 +60,8 @@ const BookmarkCard = ({
         <div className="flex items-center gap-1 flex-shrink-0 ml-3">
           <button
             onClick={(e) => {
-              e.stopPropagation()
-              onEdit({ categoryId, bookmark })
+              e.stopPropagation();
+              onEdit({ categoryId, bookmark });
             }}
             className="p-1.5 rounded transition-colors hover:bg-black/10"
             style={{ color: 'var(--text-muted)' }}
@@ -71,8 +71,8 @@ const BookmarkCard = ({
           </button>
           <button
             onClick={(e) => {
-              e.stopPropagation()
-              onDelete(categoryId, bookmark.id)
+              e.stopPropagation();
+              onDelete(categoryId, bookmark.id);
             }}
             className="p-1.5 rounded transition-colors hover:bg-black/10"
             style={{ color: 'var(--text-muted)' }}
@@ -82,15 +82,15 @@ const BookmarkCard = ({
           </button>
         </div>
       </div>
-      <p 
-        className="text-xs mt-2 truncate" 
+      <p
+        className="text-xs mt-2 truncate"
         style={{ color: 'var(--text-secondary)' }}
         title={bookmark.description || bookmark.url || bookmark.filePath}
       >
         {searchQuery ? renderHighlightedText(truncateText(bookmark.description || bookmark.url || bookmark.filePath, 50), searchQuery) : truncateText(bookmark.description || bookmark.url || bookmark.filePath, 50)}
       </p>
     </div>
-  )
-}
+  );
+};
 
-export default BookmarkCard 
+export default BookmarkCard;

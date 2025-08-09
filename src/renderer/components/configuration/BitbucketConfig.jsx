@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { GitBranch, ExternalLink, CheckCircle, XCircle, Info } from 'lucide-react'
+import React, { useState } from 'react';
+import { GitBranch, ExternalLink, CheckCircle, XCircle, Info } from 'lucide-react';
 
 const BitbucketConfig = ({ config, updateConfig }) => {
-  const [testing, setTesting] = useState(false)
-  const [testResult, setTestResult] = useState(null)
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
   return (
     <div className="card">
       <div className="flex items-center gap-3 mb-6 pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
@@ -24,7 +24,7 @@ const BitbucketConfig = ({ config, updateConfig }) => {
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Enable</span>
         </label>
       </div>
-      
+
       {config?.bitbucket?.enabled && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -59,7 +59,7 @@ const BitbucketConfig = ({ config, updateConfig }) => {
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Email</label>
@@ -95,7 +95,7 @@ const BitbucketConfig = ({ config, updateConfig }) => {
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Workspaces</label>
@@ -172,45 +172,45 @@ const BitbucketConfig = ({ config, updateConfig }) => {
             <button
               onClick={async () => {
                 if (!config?.bitbucket?.apiToken || !config?.bitbucket?.email) {
-                  setTestResult({ success: false, message: 'Please enter your API token and email first' })
-                  return
+                  setTestResult({ success: false, message: 'Please enter your API token and email first' });
+                  return;
                 }
-                
-                setTesting(true)
-                setTestResult(null)
-                
+
+                setTesting(true);
+                setTestResult(null);
+
                 try {
-                  const userInfo = await window.electronAPI.getBitbucketUserInfo()
-                  
+                  const userInfo = await window.electronAPI.getBitbucketUserInfo();
+
                   // Check if the response indicates an error
                   if (userInfo && userInfo.error) {
-                    setTestResult({ 
-                      success: false, 
-                      message: `Connection failed: ${userInfo.error}` 
-                    })
+                    setTestResult({
+                      success: false,
+                      message: `Connection failed: ${userInfo.error}`
+                    });
                   } else if (userInfo && (userInfo.username === 'unknown' || userInfo.connection_method?.includes('fallback'))) {
-                    setTestResult({ 
-                      success: false, 
-                      message: 'Connection failed. Please check your API token and email address.' 
-                    })
+                    setTestResult({
+                      success: false,
+                      message: 'Connection failed. Please check your API token and email address.'
+                    });
                   } else if (userInfo) {
-                    setTestResult({ 
-                      success: true, 
-                      message: `Connection successful! Logged in as: ${userInfo.display_name || userInfo.username}` 
-                    })
+                    setTestResult({
+                      success: true,
+                      message: `Connection successful! Logged in as: ${userInfo.display_name || userInfo.username}`
+                    });
                   } else {
-                    setTestResult({ 
-                      success: false, 
-                      message: 'Connection failed. Please check your credentials and try again.' 
-                    })
+                    setTestResult({
+                      success: false,
+                      message: 'Connection failed. Please check your credentials and try again.'
+                    });
                   }
                 } catch (error) {
-                  setTestResult({ 
-                    success: false, 
-                    message: `Connection failed: ${error.message}` 
-                  })
+                  setTestResult({
+                    success: false,
+                    message: `Connection failed: ${error.message}`
+                  });
                 } finally {
-                  setTesting(false)
+                  setTesting(false);
                 }
               }}
               disabled={testing || !config?.bitbucket?.apiToken || !config?.bitbucket?.email}
@@ -233,11 +233,11 @@ const BitbucketConfig = ({ config, updateConfig }) => {
                 </>
               )}
             </button>
-            
+
             {testResult && (
               <div className={`flex items-center gap-2 mt-2 p-2 rounded text-sm ${
-                testResult.success 
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                testResult.success
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                   : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
               }`}>
                 {testResult.success ? (
@@ -263,11 +263,11 @@ const BitbucketConfig = ({ config, updateConfig }) => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-medium">2.</span>
-                <span>Click "Create API token"</span>
+                <span>Click &quot;Create API token&quot;</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-medium">3.</span>
-                <span>Give it a descriptive name (e.g., "DevBuddy")</span>
+                <span>Give it a descriptive name (e.g., &quot;DevBuddy&quot;)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-medium">4.</span>
@@ -311,7 +311,7 @@ const BitbucketConfig = ({ config, updateConfig }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default BitbucketConfig
+export default BitbucketConfig;

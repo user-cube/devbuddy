@@ -1,5 +1,5 @@
-import React from 'react'
-import { GitBranch } from 'lucide-react'
+import React from 'react';
+import { GitBranch } from 'lucide-react';
 
 const JiraEmpty = ({ searchQuery, filter }) => {
   return (
@@ -9,13 +9,13 @@ const JiraEmpty = ({ searchQuery, filter }) => {
         {searchQuery || filter !== 'all' ? 'No matching issues' : 'No issues found'}
       </h3>
       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-        {searchQuery || filter !== 'all' 
-          ? 'Try adjusting your search or filters' 
+        {searchQuery || filter !== 'all'
+          ? 'Try adjusting your search or filters'
           : 'Issues assigned to you will appear here'
         }
       </p>
     </div>
-  )
-}
+  );
+};
 
-export default JiraEmpty
+export default JiraEmpty;

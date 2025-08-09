@@ -1,5 +1,5 @@
-import React from 'react'
-import { GitBranch, Loader2 } from 'lucide-react'
+import React from 'react';
+import { GitBranch, Loader2 } from 'lucide-react';
 
 const BitbucketLoading = () => {
   return (
@@ -10,13 +10,13 @@ const BitbucketLoading = () => {
           Loading Bitbucket Pull Requests
         </h2>
       </div>
-      
+
       <div className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
         <Loader2 className="w-4 h-4 animate-spin" />
         <span className="text-sm">Fetching pull requests...</span>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default BitbucketLoading
+export default BitbucketLoading;

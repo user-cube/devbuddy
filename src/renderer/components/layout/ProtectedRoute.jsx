@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
-import { AlertCircle, Settings } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+
+import { AlertCircle, Settings } from 'lucide-react';
 
 const ProtectedRoute = ({ integration, children }) => {
-  const [config, setConfig] = useState(null)
-  const [repositoriesConfig, setRepositoriesConfig] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [config, setConfig] = useState(null);
+  const [repositoriesConfig, setRepositoriesConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadConfigs = async () => {
@@ -13,26 +13,25 @@ const ProtectedRoute = ({ integration, children }) => {
         if (integration === 'repositories') {
           const [repositoriesConfig] = await Promise.all([
             window.electronAPI.getRepositoriesConfig()
-          ])
-          setConfig(null)
-          setRepositoriesConfig(repositoriesConfig)
+          ]);
+          setConfig(null);
+          setRepositoriesConfig(repositoriesConfig);
         } else {
           const [mainConfig] = await Promise.all([
             window.electronAPI.getConfig()
-          ])
-          setConfig(mainConfig)
-          setRepositoriesConfig(null)
+          ]);
+          setConfig(mainConfig);
+          setRepositoriesConfig(null);
         }
-      } catch (error) {
-        console.error('ProtectedRoute: Error loading configs:', error)
-        setError('Failed to load configuration')
+      } catch {
+        // no-op
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadConfigs()
-  }, [integration])
+    loadConfigs();
+  }, [integration]);
 
   if (loading) {
     return (
@@ -42,16 +41,16 @@ const ProtectedRoute = ({ integration, children }) => {
           <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Check if the integration is enabled
-  let isEnabled = false
-  
+  let isEnabled = false;
+
   if (integration === 'repositories') {
-    isEnabled = repositoriesConfig?.enabled || false
+    isEnabled = repositoriesConfig?.enabled || false;
   } else {
-    isEnabled = config?.[integration]?.enabled || false
+    isEnabled = config?.[integration]?.enabled || false;
   }
 
   if (!isEnabled) {
@@ -63,7 +62,7 @@ const ProtectedRoute = ({ integration, children }) => {
             {integration.charAt(0).toUpperCase() + integration.slice(1)} Integration Disabled
           </h2>
           <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
-            The {integration} integration is not enabled in your configuration. 
+            The {integration} integration is not enabled in your configuration.
             Please enable it in the Configuration page to access this feature.
           </p>
           <button
@@ -75,10 +74,10 @@ const ProtectedRoute = ({ integration, children }) => {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
-  return children
-}
+  return children;
+};
 
-export default ProtectedRoute 
+export default ProtectedRoute;

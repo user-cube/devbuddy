@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   Activity,
   GitBranch,
@@ -7,8 +7,8 @@ import {
   Folder,
   Settings,
   ExternalLink
-} from 'lucide-react'
-import { getStatusIcon, formatDate } from './HomeUtils'
+} from 'lucide-react';
+import { getStatusIcon } from './HomeUtils';
 
 const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => {
   const integrations = [
@@ -52,9 +52,9 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
       items: recentItems.repositories,
       enabled: activeIntegrations.repositories
     }
-  ]
+  ];
 
-  const hasAnyIntegration = integrations.some(integration => integration.enabled)
+  const hasAnyIntegration = integrations.some(integration => integration.enabled);
 
   return (
     <div className="card">
@@ -62,12 +62,12 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
         <Activity className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
         <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Activity</h2>
       </div>
-      
+
       <div className="space-y-4">
         {integrations.map((integration) => {
-          if (!integration.enabled || integration.items.length === 0) return null
+          if (!integration.enabled || integration.items.length === 0) return null;
 
-          const IntegrationIcon = integration.icon
+          const IntegrationIcon = integration.icon;
 
           return (
             <div key={integration.key}>
@@ -94,16 +94,16 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
                           {getStatusIcon(item, integration.key)}
                           <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
                             {integration.key === 'jira' ? item.key :
-                             integration.key === 'github' ? `#${item.number}` :
-                             integration.key === 'gitlab' ? `!${item.iid}` :
-                             integration.key === 'bitbucket' ? `#${item.id}` :
-                             item.name}
+                              integration.key === 'github' ? `#${item.number}` :
+                                integration.key === 'gitlab' ? `!${item.iid}` :
+                                  integration.key === 'bitbucket' ? `#${item.id}` :
+                                    item.name}
                           </span>
                         </div>
                         <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
                           {integration.key === 'jira' ? item.fields?.summary :
-                           integration.key === 'github' || integration.key === 'gitlab' || integration.key === 'bitbucket' ? item.title :
-                           item.path}
+                            integration.key === 'github' || integration.key === 'gitlab' || integration.key === 'bitbucket' ? item.title :
+                              item.path}
                         </p>
                       </div>
                       <ExternalLink className="w-3 h-3 opacity-50 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
@@ -112,7 +112,7 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
                 ))}
               </div>
             </div>
-          )
+          );
         })}
 
         {!hasAnyIntegration && (
@@ -125,7 +125,7 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default HomeRecentActivity
+export default HomeRecentActivity;

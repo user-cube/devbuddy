@@ -1,14 +1,14 @@
-import React from 'react'
+import React from 'react';
 import {
   AlertCircle,
   RefreshCw
-} from 'lucide-react'
+} from 'lucide-react';
 
-const RepositoriesError = ({ 
-  error, 
-  selectedFolder, 
-  selectedDirectory, 
-  onRetry 
+const RepositoriesError = ({
+  error,
+  _selectedFolder,
+  _selectedDirectory,
+  onRetry
 }) => {
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -30,7 +30,7 @@ const RepositoriesError = ({
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RepositoriesError
+export default RepositoriesError;

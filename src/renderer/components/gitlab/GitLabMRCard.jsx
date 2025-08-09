@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   GitMerge,
   GitBranch,
@@ -12,16 +12,16 @@ import {
   Calendar,
   GitCommit,
   FileText
-} from 'lucide-react'
-import { formatDate, getStatusText, getStatusBackground, getStatusBorder, getStatusColor } from './GitLabUtils'
+} from 'lucide-react';
+import { formatDate, getStatusText, getStatusBackground, getStatusBorder, getStatusColor } from './GitLabUtils';
 
 const GitLabMRCard = ({ mr, onClick }) => {
   const getStatusIcon = (mr) => {
-    if (mr.work_in_progress) return <Clock className="w-4 h-4 text-yellow-500" />
-    if (mr.merged_at) return <CheckCircle className="w-4 h-4 text-green-500" />
-    if (mr.state === 'closed') return <XCircle className="w-4 h-4 text-red-500" />
-    return <GitMerge className="w-4 h-4 text-orange-500" />
-  }
+    if (mr.work_in_progress) return <Clock className="w-4 h-4 text-yellow-500" />;
+    if (mr.merged_at) return <CheckCircle className="w-4 h-4 text-green-500" />;
+    if (mr.state === 'closed') return <XCircle className="w-4 h-4 text-red-500" />;
+    return <GitMerge className="w-4 h-4 text-orange-500" />;
+  };
 
   return (
     <div
@@ -37,7 +37,7 @@ const GitLabMRCard = ({ mr, onClick }) => {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             {getStatusIcon(mr)}
-            <span 
+            <span
               className="px-2 py-1 text-xs font-medium rounded-full"
               style={{
                 backgroundColor: getStatusBackground(mr),
@@ -51,66 +51,66 @@ const GitLabMRCard = ({ mr, onClick }) => {
               !{mr.iid}
             </span>
           </div>
-          
+
           <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
             {mr.title}
           </h3>
-          
+
           <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
             <div className="flex items-center gap-1">
               <GitBranch className="w-4 h-4" />
               <span>{mr.source_branch} → {mr.target_branch}</span>
             </div>
-            
+
             <div className="flex items-center gap-1">
               {mr.author?.avatar_url && (
-                <img 
-                  src={mr.author.avatar_url} 
+                <img
+                  src={mr.author.avatar_url}
                   alt={mr.author?.name || mr.author?.username || 'Author'}
                   className="w-4 h-4 rounded-full"
                   onError={(e) => {
-                    e.target.style.display = 'none'
-                    e.target.nextSibling.style.display = 'inline'
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'inline';
                   }}
                 />
               )}
               <User className="w-4 h-4" style={{ display: mr.author?.avatar_url ? 'none' : 'inline' }} />
               <span>{mr.author?.name || mr.author?.username}</span>
             </div>
-            
+
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
               <span>{formatDate(mr.created_at)}</span>
             </div>
-            
+
             {mr.assignees?.length > 0 && (
               <div className="flex items-center gap-1">
                 <User className="w-4 h-4" />
                 <span>Assigned</span>
               </div>
             )}
-            
+
             {mr.reviewers?.length > 0 && (
               <div className="flex items-center gap-1">
                 <Eye className="w-4 h-4" />
                 <span>Reviewer</span>
               </div>
             )}
-            
+
             {mr.user_notes_count > 0 && (
               <div className="flex items-center gap-1">
                 <MessageSquare className="w-4 h-4" />
                 <span>{mr.user_notes_count}</span>
               </div>
             )}
-            
+
             {mr.commits_count > 0 && (
               <div className="flex items-center gap-1">
                 <GitCommit className="w-4 h-4" />
                 <span>{mr.commits_count}</span>
               </div>
             )}
-            
+
             {mr.changes_count > 0 && (
               <div className="flex items-center gap-1">
                 <FileText className="w-4 h-4" />
@@ -119,11 +119,11 @@ const GitLabMRCard = ({ mr, onClick }) => {
             )}
           </div>
         </div>
-        
+
         <ExternalLink className="w-4 h-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default GitLabMRCard
+export default GitLabMRCard;

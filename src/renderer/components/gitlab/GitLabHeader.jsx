@@ -1,9 +1,9 @@
-import React from 'react'
+import React from 'react';
 
 const GitLabHeader = () => {
   return (
     <div className="text-center mb-8">
-      <h1 
+      <h1
         className="text-4xl font-bold mb-2"
         style={{
           background: 'linear-gradient(to right, #f56565, #ed8936)',
@@ -18,7 +18,7 @@ const GitLabHeader = () => {
         Monitor and manage your merge requests
       </p>
     </div>
-  )
-}
+  );
+};
 
-export default GitLabHeader
+export default GitLabHeader;

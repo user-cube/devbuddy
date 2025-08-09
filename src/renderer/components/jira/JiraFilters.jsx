@@ -1,16 +1,16 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Search, RefreshCw, Filter } from 'lucide-react'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, RefreshCw, Filter } from 'lucide-react';
 
-const JiraFilters = ({ 
-  searchQuery, 
-  setSearchQuery, 
-  filter, 
-  setFilter, 
-  onForceRefresh, 
-  onTestConnection 
+const JiraFilters = ({
+  searchQuery,
+  setSearchQuery,
+  filter,
+  setFilter,
+  onForceRefresh,
+  onTestConnection
 }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -56,19 +56,19 @@ const JiraFilters = ({
           color: 'var(--error)'
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
-          e.target.style.transform = 'translateY(-1px)'
+          e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.3)';
+          e.target.style.transform = 'translateY(-1px)';
         }}
         onMouseLeave={(e) => {
-          e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
-          e.target.style.transform = 'translateY(0)'
+          e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+          e.target.style.transform = 'translateY(0)';
         }}
         title="Force reload (clear cache)"
       >
         <RefreshCw className="w-4 h-4" />
         <span className="ml-1 text-xs">Force</span>
       </button>
-      
+
       <button
         onClick={onTestConnection}
         className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
@@ -78,17 +78,17 @@ const JiraFilters = ({
           color: 'var(--success)'
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.3)'
-          e.target.style.transform = 'translateY(-1px)'
+          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.3)';
+          e.target.style.transform = 'translateY(-1px)';
         }}
         onMouseLeave={(e) => {
-          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)'
-          e.target.style.transform = 'translateY(0)'
+          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+          e.target.style.transform = 'translateY(0)';
         }}
       >
         Test Connection
       </button>
-      
+
       <button
         onClick={() => navigate('/config?showJiraStatus=true')}
         className="px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2"
@@ -98,12 +98,12 @@ const JiraFilters = ({
           color: 'var(--accent-primary)'
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = 'rgba(168, 85, 247, 0.3)'
-          e.target.style.transform = 'translateY(-1px)'
+          e.target.style.backgroundColor = 'rgba(168, 85, 247, 0.3)';
+          e.target.style.transform = 'translateY(-1px)';
         }}
         onMouseLeave={(e) => {
-          e.target.style.backgroundColor = 'rgba(168, 85, 247, 0.2)'
-          e.target.style.transform = 'translateY(0)'
+          e.target.style.backgroundColor = 'rgba(168, 85, 247, 0.2)';
+          e.target.style.transform = 'translateY(0)';
         }}
         title="Configure status filters"
       >
@@ -111,7 +111,7 @@ const JiraFilters = ({
         Status Filters
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default JiraFilters
+export default JiraFilters;

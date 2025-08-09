@@ -1,13 +1,13 @@
-import React from 'react'
-import { Search, RefreshCw } from 'lucide-react'
+import React from 'react';
+import { Search, RefreshCw } from 'lucide-react';
 
-const GitLabFilters = ({ 
-  searchQuery, 
-  setSearchQuery, 
-  filter, 
-  setFilter, 
-  onForceRefresh, 
-  onTestConnection 
+const GitLabFilters = ({
+  searchQuery,
+  setSearchQuery,
+  filter,
+  setFilter,
+  onForceRefresh,
+  onTestConnection
 }) => {
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -53,19 +53,19 @@ const GitLabFilters = ({
           color: 'var(--error)'
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
-          e.target.style.transform = 'translateY(-1px)'
+          e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.3)';
+          e.target.style.transform = 'translateY(-1px)';
         }}
         onMouseLeave={(e) => {
-          e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
-          e.target.style.transform = 'translateY(0)'
+          e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+          e.target.style.transform = 'translateY(0)';
         }}
         title="Force reload (clear cache)"
       >
         <RefreshCw className="w-4 h-4" />
         <span className="ml-1 text-xs">Force</span>
       </button>
-      
+
       <button
         onClick={onTestConnection}
         className="px-4 py-2 rounded-lg font-medium transition-all duration-300"
@@ -75,18 +75,18 @@ const GitLabFilters = ({
           color: 'var(--success)'
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.3)'
-          e.target.style.transform = 'translateY(-1px)'
+          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.3)';
+          e.target.style.transform = 'translateY(-1px)';
         }}
         onMouseLeave={(e) => {
-          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)'
-          e.target.style.transform = 'translateY(0)'
+          e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+          e.target.style.transform = 'translateY(0)';
         }}
       >
         Test Connection
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default GitLabFilters
+export default GitLabFilters;

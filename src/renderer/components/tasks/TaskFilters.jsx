@@ -4,7 +4,6 @@ import { Search, Filter, X } from 'lucide-react';
 const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [priorities, setPriorities] = useState([]);
 
   useEffect(() => {
     loadOptions();
@@ -12,14 +11,14 @@ const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
 
   const loadOptions = async () => {
     try {
-      const [categoriesData, prioritiesData] = await Promise.all([
+      const [categoriesData] = await Promise.all([
         window.electronAPI.getTaskCategoryDetails(),
         window.electronAPI.getTaskPriorities()
       ]);
       setCategories(categoriesData);
-      setPriorities(prioritiesData);
-    } catch (error) {
-      console.error('Error loading filter options:', error);
+
+    } catch {
+      // no-op
     }
   };
 
@@ -39,9 +38,9 @@ const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
     });
   };
 
-  const hasActiveFilters = filters.status !== 'all' || 
-                          filters.priority !== 'all' || 
-                          filters.category !== 'all' || 
+  const hasActiveFilters = filters.status !== 'all' ||
+                          filters.priority !== 'all' ||
+                          filters.category !== 'all' ||
                           filters.search;
 
   const getFilterCount = () => {
@@ -86,7 +85,7 @@ const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
           <Filter className="w-4 h-4" />
           <span className="text-sm font-medium">Filters</span>
           {hasActiveFilters && (
-            <span 
+            <span
               className="px-2 py-0.5 rounded-full text-xs font-medium"
               style={{
                 backgroundColor: 'var(--accent-primary)',
@@ -112,7 +111,7 @@ const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
 
       {/* Filter Options */}
       {showFilters && (
-        <div 
+        <div
           className="p-4 rounded-lg border space-y-4"
           style={{
             backgroundColor: 'var(--bg-secondary)',
@@ -139,14 +138,14 @@ const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
                       : 'hover:bg-opacity-20'
                   }`}
                   style={{
-                    backgroundColor: filters.status === status.value 
-                      ? 'var(--accent-primary)' 
+                    backgroundColor: filters.status === status.value
+                      ? 'var(--accent-primary)'
                       : 'transparent',
-                    color: filters.status === status.value 
-                      ? 'white' 
+                    color: filters.status === status.value
+                      ? 'white'
                       : 'var(--text-primary)',
-                    border: filters.status === status.value 
-                      ? 'none' 
+                    border: filters.status === status.value
+                      ? 'none'
                       : '1px solid var(--border-primary)'
                   }}
                 >
@@ -178,14 +177,14 @@ const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
                       : priority.color || 'hover:bg-opacity-20'
                   }`}
                   style={{
-                    backgroundColor: filters.priority === priority.value 
-                      ? 'var(--accent-primary)' 
+                    backgroundColor: filters.priority === priority.value
+                      ? 'var(--accent-primary)'
                       : 'transparent',
-                    color: filters.priority === priority.value 
-                      ? 'white' 
+                    color: filters.priority === priority.value
+                      ? 'white'
                       : 'var(--text-primary)',
-                    border: filters.priority === priority.value 
-                      ? 'none' 
+                    border: filters.priority === priority.value
+                      ? 'none'
                       : '1px solid var(--border-primary)'
                   }}
                 >
@@ -209,14 +208,14 @@ const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
                     : 'hover:bg-opacity-20'
                 }`}
                 style={{
-                  backgroundColor: filters.category === 'all' 
-                    ? 'var(--accent-primary)' 
+                  backgroundColor: filters.category === 'all'
+                    ? 'var(--accent-primary)'
                     : 'transparent',
-                  color: filters.category === 'all' 
-                    ? 'white' 
+                  color: filters.category === 'all'
+                    ? 'white'
                     : 'var(--text-primary)',
-                  border: filters.category === 'all' 
-                    ? 'none' 
+                  border: filters.category === 'all'
+                    ? 'none'
                     : '1px solid var(--border-primary)'
                 }}
               >
@@ -232,14 +231,14 @@ const TaskFilters = ({ filters, onFiltersChange, tasks }) => {
                       : 'hover:bg-opacity-20'
                   }`}
                   style={{
-                    backgroundColor: filters.category === category.id 
+                    backgroundColor: filters.category === category.id
                       ? category.color
                       : 'transparent',
-                    color: filters.category === category.id 
-                      ? 'white' 
+                    color: filters.category === category.id
+                      ? 'white'
                       : 'var(--text-primary)',
-                    border: filters.category === category.id 
-                      ? 'none' 
+                    border: filters.category === category.id
+                      ? 'none'
                       : `1px solid ${category.color}`
                   }}
                 >

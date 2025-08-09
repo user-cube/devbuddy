@@ -32,14 +32,14 @@ let backgroundRefreshInterval = null;
 let lastRefreshTime = Date.now();
 
 // Start background refresh system
-function startBackgroundRefresh() {
+function startBackgroundRefresh () {
   // Clear existing interval if any
   if (backgroundRefreshInterval) {
     clearInterval(backgroundRefreshInterval);
   }
 
   const config = configService.loadConfig();
-  
+
   // Check if background refresh is enabled
   if (config.app.backgroundRefresh === false) {
     console.log('🛑 Background refresh disabled in configuration');
@@ -77,7 +77,7 @@ function startBackgroundRefresh() {
 }
 
 // Stop background refresh system
-function stopBackgroundRefresh() {
+function stopBackgroundRefresh () {
   if (backgroundRefreshInterval) {
     clearInterval(backgroundRefreshInterval);
     backgroundRefreshInterval = null;
@@ -86,7 +86,7 @@ function stopBackgroundRefresh() {
 }
 
 // Perform background refresh of all enabled services
-async function performBackgroundRefresh() {
+async function performBackgroundRefresh () {
   const config = configService.loadConfig();
   const promises = [];
 
@@ -161,7 +161,7 @@ async function performBackgroundRefresh() {
 }
 
 // Check for expired cache and refresh if needed
-async function checkAndRefreshExpiredCache() {
+async function checkAndRefreshExpiredCache () {
   const config = configService.loadConfig();
   let needsRefresh = false;
 
@@ -198,7 +198,7 @@ async function checkAndRefreshExpiredCache() {
 }
 
 // Initialize app data when the app starts
-async function initializeAppData() {
+async function initializeAppData () {
   if (initializationPromise) {
     return initializationPromise;
   }
@@ -206,7 +206,7 @@ async function initializeAppData() {
   initializationPromise = (async () => {
     try {
       console.log('🚀 Initializing app data...');
-      
+
       const config = configService.loadConfig();
       const promises = [];
 
@@ -256,10 +256,10 @@ async function initializeAppData() {
 
       appInitialized = true;
       console.log('✅ App data initialization completed');
-      
+
       // Start background refresh after initialization
       startBackgroundRefresh();
-      
+
       // Notify renderer that initialization is complete
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('app-initialized');
@@ -268,10 +268,10 @@ async function initializeAppData() {
     } catch (error) {
       console.error('❌ App initialization failed:', error);
       appInitialized = true; // Mark as initialized even if failed
-      
+
       // Start background refresh even if initialization failed
       startBackgroundRefresh();
-      
+
       // Notify renderer that initialization is complete (even with errors)
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('app-initialized', { error: error.message });
@@ -282,10 +282,10 @@ async function initializeAppData() {
   return initializationPromise;
 }
 
-function createWindow() {
+function createWindow () {
   // Create the browser window
-  const preloadPath = path.join(__dirname, './preload.js')
-  
+  const preloadPath = path.join(__dirname, './preload.js');
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -303,7 +303,7 @@ function createWindow() {
 
   // Load the app
   const isDev = !app.isPackaged;
-  
+
   if (isDev) {
     // In development, load from Vite dev server
     mainWindow.loadURL('http://localhost:3000');
@@ -318,7 +318,7 @@ function createWindow() {
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    
+
     // Start data initialization after window is shown
     initializeAppData();
   });
@@ -332,7 +332,7 @@ function createWindow() {
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
   createWindow();
-  
+
   // Start the redirector server automatically
   try {
     console.log('Attempting to start redirector server automatically...');
@@ -394,7 +394,7 @@ ipcMain.handle('save-config', async (event, config) => {
       console.warn('Configuration validation warnings:', validation.errors);
       // Don't throw error, just log warnings
     }
-    
+
     const success = configService.saveConfig(config);
     if (success) {
       return { success: true, message: 'Configuration saved successfully' };
@@ -453,7 +453,7 @@ ipcMain.handle('delete-bookmark', async (event, categoryId, bookmarkId) => {
 ipcMain.handle('open-bookmark', async (event, bookmarkId) => {
   try {
     const bookmark = bookmarksService.getBookmarkById(bookmarkId);
-    
+
     if (bookmark) {
       if (bookmark.filePath) {
         // Open local file with default system application
@@ -476,7 +476,7 @@ ipcMain.handle('open-bookmark', async (event, bookmarkId) => {
 });
 
 // Migration from old shortcuts
-ipcMain.handle('migrate-shortcuts-to-bookmarks', async (event) => {
+ipcMain.handle('migrate-shortcuts-to-bookmarks', async (_event) => {
   try {
     const oldShortcuts = configService.getShortcuts();
     const migratedBookmarks = bookmarksService.migrateFromShortcuts(oldShortcuts);
@@ -487,7 +487,7 @@ ipcMain.handle('migrate-shortcuts-to-bookmarks', async (event) => {
   }
 });
 
-ipcMain.handle('open-external', async (event, url) => {
+ipcMain.handle('open-external', async (_event, url) => {
   try {
     await shell.openExternal(url);
     return { success: true };
@@ -497,16 +497,16 @@ ipcMain.handle('open-external', async (event, url) => {
   }
 });
 
-ipcMain.handle('select-file', async (event) => {
+ipcMain.handle('select-file', async (_event) => {
   try {
     const result = await dialog.showOpenDialog({
       properties: ['openFile'],
       title: 'Select a file to bookmark'
     });
-    
+
     if (!result.canceled && result.filePaths.length > 0) {
-      return { 
-        success: true, 
+      return {
+        success: true,
         filePath: result.filePaths[0],
         fileName: path.basename(result.filePaths[0])
       };
@@ -519,16 +519,16 @@ ipcMain.handle('select-file', async (event) => {
   }
 });
 
-ipcMain.handle('select-folder', async (event) => {
+ipcMain.handle('select-folder', async (_event) => {
   try {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: 'Select a folder to scan for repositories'
     });
-    
+
     if (!result.canceled && result.filePaths.length > 0) {
-      return { 
-        success: true, 
+      return {
+        success: true,
         folderPath: result.filePaths[0]
       };
     } else {
@@ -545,7 +545,7 @@ ipcMain.handle('get-jira-config', () => {
   return configService.getJiraConfig();
 });
 
-ipcMain.handle('update-jira-config', async (event, jiraConfig) => {
+ipcMain.handle('update-jira-config', async (_event, jiraConfig) => {
   return configService.updateJiraConfig(jiraConfig);
 });
 
@@ -553,7 +553,7 @@ ipcMain.handle('get-github-config', () => {
   return configService.getGithubConfig();
 });
 
-ipcMain.handle('update-github-config', async (event, githubConfig) => {
+ipcMain.handle('update-github-config', async (_event, githubConfig) => {
   return configService.updateGithubConfig(githubConfig);
 });
 
@@ -561,7 +561,7 @@ ipcMain.handle('get-gitlab-config', () => {
   return configService.getGitlabConfig();
 });
 
-ipcMain.handle('update-gitlab-config', async (event, gitlabConfig) => {
+ipcMain.handle('update-gitlab-config', async (_event, gitlabConfig) => {
   return configService.updateGitlabConfig(gitlabConfig);
 });
 
@@ -569,7 +569,7 @@ ipcMain.handle('get-bitbucket-config', () => {
   return configService.getBitbucketConfig();
 });
 
-ipcMain.handle('update-bitbucket-config', async (event, bitbucketConfig) => {
+ipcMain.handle('update-bitbucket-config', async (_event, bitbucketConfig) => {
   return configService.updateBitbucketConfig(bitbucketConfig);
 });
 
@@ -577,7 +577,7 @@ ipcMain.handle('get-app-config', () => {
   return configService.getAppConfig();
 });
 
-ipcMain.handle('update-app-config', async (event, appConfig) => {
+ipcMain.handle('update-app-config', async (_event, appConfig) => {
   return configService.updateAppConfig(appConfig);
 });
 
@@ -592,7 +592,7 @@ ipcMain.handle('get-jira-issues', async () => {
   }
 });
 
-ipcMain.handle('get-jira-issue-details', async (event, issueKey) => {
+ipcMain.handle('get-jira-issue-details', async (_event, issueKey) => {
   try {
     return await jiraService.getIssueDetails(issueKey);
   } catch (error) {
@@ -601,7 +601,7 @@ ipcMain.handle('get-jira-issue-details', async (event, issueKey) => {
   }
 });
 
-ipcMain.handle('get-jira-issue-comments', async (event, issueKey) => {
+ipcMain.handle('get-jira-issue-comments', async (_event, issueKey) => {
   try {
     return await jiraService.getIssueComments(issueKey);
   } catch (error) {
@@ -610,7 +610,7 @@ ipcMain.handle('get-jira-issue-comments', async (event, issueKey) => {
   }
 });
 
-ipcMain.handle('get-jira-issue-worklog', async (event, issueKey) => {
+ipcMain.handle('get-jira-issue-worklog', async (_event, issueKey) => {
   try {
     return await jiraService.getIssueWorklog(issueKey);
   } catch (error) {
@@ -619,7 +619,7 @@ ipcMain.handle('get-jira-issue-worklog', async (event, issueKey) => {
   }
 });
 
-ipcMain.handle('get-jira-issue-transitions', async (event, issueKey) => {
+ipcMain.handle('get-jira-issue-transitions', async (_event, issueKey) => {
   try {
     return await jiraService.getIssueTransitions(issueKey);
   } catch (error) {
@@ -628,7 +628,7 @@ ipcMain.handle('get-jira-issue-transitions', async (event, issueKey) => {
   }
 });
 
-ipcMain.handle('update-jira-issue-status', async (event, issueKey, transitionId) => {
+ipcMain.handle('update-jira-issue-status', async (_event, issueKey, transitionId) => {
   try {
     return await jiraService.updateIssueStatus(issueKey, transitionId);
   } catch (error) {
@@ -1210,7 +1210,7 @@ ipcMain.handle('wait-for-initialization', async () => {
   if (appInitialized) {
     return { initialized: true };
   }
-  
+
   return new Promise((resolve) => {
     const checkInitialization = () => {
       if (appInitialized) {
@@ -1325,13 +1325,8 @@ ipcMain.handle('clear-jira-cache', async () => {
 });
 
 ipcMain.handle('open-jira-status-config', async () => {
-  try {
-    // This will be handled by the renderer process to show the status config
-    return { success: true, message: 'Opening Jira status configuration' };
-  } catch (error) {
-    console.error('Error opening Jira status config:', error);
-    throw error;
-  }
+  // This will be handled by the renderer process to show the status config
+  return { success: true, message: 'Opening Jira status configuration' };
 });
 
 ipcMain.handle('get-cache-stats', async () => {
@@ -1405,7 +1400,7 @@ ipcMain.handle('export-config', async () => {
     } catch (error) {
       console.warn('Unable to read repositories configuration for export:', error.message);
     }
-    
+
     const exportData = {
       version: '1.0.0',
       exportedAt: new Date().toISOString(),
@@ -1431,12 +1426,12 @@ ipcMain.handle('export-config', async () => {
       ]
     });
 
-    if (!result.canceled && result.filePath) {
-      fs.writeFileSync(result.filePath, JSON.stringify(exportData, null, 2));
-      return { success: true, filePath: result.filePath };
-    } else {
+    if (result.canceled || !result.filePath) {
       return { success: false, message: 'Export cancelled' };
     }
+
+    fs.writeFileSync(result.filePath, JSON.stringify(exportData, null, 2));
+    return { success: true, filePath: result.filePath };
   } catch (error) {
     console.error('Error exporting config:', error);
     throw error;
@@ -1486,7 +1481,7 @@ ipcMain.handle('import-config', async () => {
       shortcuts: configService.loadShortcuts(),
       redirects: redirectorService.getRedirects(),
       tasks: tasksService.getAllTasks(),
-      bookmarks: (() => { try { return bookmarksService.getBookmarks(); } catch { return null } })(),
+      bookmarks: (() => { try { return bookmarksService.getBookmarks(); } catch { return null; } })(),
       repositoriesConfig: (() => {
         try {
           const yaml = require('js-yaml');
@@ -1495,7 +1490,9 @@ ipcMain.handle('import-config', async () => {
             const data = fs.readFileSync(repositoriesConfigPath, 'utf8');
             return yaml.load(data) || { enabled: false, directories: [], scanDepth: 3 };
           }
-        } catch (_) {}
+        } catch {
+          // Ignore errors when reading repositories config
+        }
         return { enabled: false, directories: [], scanDepth: 3 };
       })()
     };
@@ -1518,7 +1515,7 @@ ipcMain.handle('import-config', async () => {
       console.error('Error importing bookmarks:', error);
       // continue
     }
-    
+
     // Import repositories configuration if present
     try {
       if (importData.repositoriesConfig) {
@@ -1549,7 +1546,7 @@ ipcMain.handle('import-config', async () => {
             // Check if category already exists
             const existingCategories = tasksService.getCategoryDetails();
             const existingCategory = existingCategories.find(cat => cat.id === category.id);
-            
+
             if (existingCategory) {
               // Update existing category
               tasksService.updateCategory(category.id, {
@@ -1567,7 +1564,7 @@ ipcMain.handle('import-config', async () => {
           }
         });
       }
-      
+
       if (importData.tasks) {
         tasksService.saveTasks(importData.tasks);
       }
@@ -1576,8 +1573,8 @@ ipcMain.handle('import-config', async () => {
       // Do not fail the whole import; proceed with other parts
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: 'Configuration imported successfully',
       backupPath
     };
@@ -1595,14 +1592,14 @@ ipcMain.handle('get-repositories-config', async () => {
     const path = require('path');
     const os = require('os');
     const yaml = require('js-yaml');
-    
+
     const repositoriesConfigPath = path.join(os.homedir(), '.devbuddy', 'repositories.yml');
-    
+
     try {
       const data = await fs.readFile(repositoriesConfigPath, 'utf8');
       const config = yaml.load(data);
       return config || { enabled: false, directories: [], scanDepth: 3 };
-    } catch (error) {
+    } catch {
       // Return default config if file doesn't exist
       return { enabled: false, directories: [], scanDepth: 3 };
     }
@@ -1619,13 +1616,13 @@ ipcMain.handle('update-repositories-config', async (event, config) => {
     const path = require('path');
     const os = require('os');
     const yaml = require('js-yaml');
-    
+
     const repositoriesConfigPath = path.join(os.homedir(), '.devbuddy', 'repositories.yml');
-    
+
     // Ensure config directory exists
     const configDir = path.dirname(repositoriesConfigPath);
     await fs.mkdir(configDir, { recursive: true });
-    
+
     // Load existing config to preserve repositories list
     let existingConfig = {};
     try {
@@ -1633,11 +1630,11 @@ ipcMain.handle('update-repositories-config', async (event, config) => {
         const data = await fs.readFile(repositoriesConfigPath, 'utf8');
         existingConfig = yaml.load(data) || {};
       }
-    } catch (error) {
+    } catch {
       // If file doesn't exist or can't be read, start with empty config
       existingConfig = {};
     }
-    
+
     // Update config with new settings while preserving repositories
     const updatedConfig = {
       ...existingConfig,
@@ -1646,13 +1643,13 @@ ipcMain.handle('update-repositories-config', async (event, config) => {
       directories: config.directories
       // Keep existing repositories and lastScan
     };
-    
-    const yamlData = yaml.dump(updatedConfig, { 
+
+    const yamlData = yaml.dump(updatedConfig, {
       indent: 2,
       lineWidth: 120,
       noRefs: true
     });
-    
+
     await fs.writeFile(repositoriesConfigPath, yamlData);
     return { success: true };
   } catch (error) {
@@ -1726,23 +1723,23 @@ ipcMain.handle('open-repository-in-editor', async (event, repoPath) => {
 });
 
 // Cache handlers
-  ipcMain.handle('get-repositories-cache-status', async () => {
-    try {
-      return await repositoriesService.getCacheStatus();
-    } catch (error) {
-      console.error('Error getting repositories status:', error);
-      return { repositoryCount: 0, lastUpdated: null };
-    }
-  });
+ipcMain.handle('get-repositories-cache-status', async () => {
+  try {
+    return await repositoriesService.getCacheStatus();
+  } catch (error) {
+    console.error('Error getting repositories status:', error);
+    return { repositoryCount: 0, lastUpdated: null };
+  }
+});
 
-  ipcMain.handle('refresh-repositories-cache-in-background', async () => {
-    try {
-      return await repositoriesService.refreshCacheInBackground();
-    } catch (error) {
-      console.error('Error refreshing repositories:', error);
-      return { success: false, error: error.message };
-    }
-  });
+ipcMain.handle('refresh-repositories-cache-in-background', async () => {
+  try {
+    return await repositoriesService.refreshCacheInBackground();
+  } catch (error) {
+    console.error('Error refreshing repositories:', error);
+    return { success: false, error: error.message };
+  }
+});
 
 // Tasks handlers
 ipcMain.handle('get-tasks', async () => {

@@ -1,5 +1,5 @@
-import React from 'react'
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import React from 'react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 const HomeError = ({ error, onRetry }) => {
   return (
@@ -22,7 +22,7 @@ const HomeError = ({ error, onRetry }) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default HomeError
+export default HomeError;

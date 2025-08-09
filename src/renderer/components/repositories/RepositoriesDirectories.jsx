@@ -1,9 +1,9 @@
-import React from 'react'
+import React from 'react';
 import {
   Folder,
   ExternalLink,
   Settings
-} from 'lucide-react'
+} from 'lucide-react';
 
 const RepositoriesDirectories = ({ directories, onDirectoryClick, onSettingsClick }) => {
   if (!directories || directories.length === 0) {
@@ -28,7 +28,7 @@ const RepositoriesDirectories = ({ directories, onDirectoryClick, onSettingsClic
           Configure Directories
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -52,17 +52,17 @@ const RepositoriesDirectories = ({ directories, onDirectoryClick, onSettingsClic
               </div>
             </div>
             <span className="text-xs px-2 py-1 rounded-full flex-shrink-0" style={{
-              backgroundColor: directory.enabled 
-                ? 'rgba(16, 185, 129, 0.1)' 
+              backgroundColor: directory.enabled
+                ? 'rgba(16, 185, 129, 0.1)'
                 : 'rgba(107, 114, 128, 0.1)',
-              color: directory.enabled 
-                ? 'var(--success)' 
+              color: directory.enabled
+                ? 'var(--success)'
                 : 'var(--text-secondary)'
             }}>
               {directory.enabled ? 'Enabled' : 'Disabled'}
             </span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
               Click to view folders
@@ -72,7 +72,7 @@ const RepositoriesDirectories = ({ directories, onDirectoryClick, onSettingsClic
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default RepositoriesDirectories
+export default RepositoriesDirectories;

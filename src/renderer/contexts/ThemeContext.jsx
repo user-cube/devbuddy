@@ -1,99 +1,99 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const ThemeContext = createContext()
+const ThemeContext = createContext();
 
 export const useTheme = () => {
-  const context = useContext(ThemeContext)
+  const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider')
+    throw new Error('useTheme must be used within a ThemeProvider');
   }
-  return context
-}
+  return context;
+};
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('dark')
+  const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
     // Load theme from config on mount
     const loadTheme = async () => {
       try {
         if (window.electronAPI) {
-          const config = await window.electronAPI.getConfig()
-          setTheme(config?.app?.theme || 'dark')
+          const config = await window.electronAPI.getConfig();
+          setTheme(config?.app?.theme || 'dark');
         }
-      } catch (error) {
-        console.error('Error loading theme:', error)
+      } catch {
+        // no-op
       }
-    }
+    };
 
-    loadTheme()
-  }, [])
+    loadTheme();
+  }, []);
 
   const applyThemeToDom = (value) => {
     try {
-      document.documentElement.setAttribute('data-theme', value)
+      document.documentElement.setAttribute('data-theme', value);
       // Also toggle Tailwind dark class for components that rely on it
       if (value === 'dark') {
-        document.documentElement.classList.add('dark')
+        document.documentElement.classList.add('dark');
       } else {
-        document.documentElement.classList.remove('dark')
+        document.documentElement.classList.remove('dark');
       }
-    } catch (e) {
+    } catch {
       // no-op
     }
-  }
+  };
 
   const toggleTheme = async () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark'
-    setTheme(newTheme)
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
 
     // Save theme to config
     try {
       if (window.electronAPI) {
-        const config = await window.electronAPI.getConfig()
+        const config = await window.electronAPI.getConfig();
         const updatedConfig = {
           ...config,
           app: {
             ...config.app,
             theme: newTheme
           }
-        }
-        await window.electronAPI.saveConfig(updatedConfig)
+        };
+        await window.electronAPI.saveConfig(updatedConfig);
       }
-    } catch (error) {
-      console.error('Error saving theme:', error)
+    } catch {
+      // no-op
     }
 
-    applyThemeToDom(newTheme)
-  }
+    applyThemeToDom(newTheme);
+  };
 
   const setThemeValue = async (newTheme) => {
-    setTheme(newTheme)
+    setTheme(newTheme);
 
     // Save theme to config
     try {
       if (window.electronAPI) {
-        const config = await window.electronAPI.getConfig()
+        const config = await window.electronAPI.getConfig();
         const updatedConfig = {
           ...config,
           app: {
             ...config.app,
             theme: newTheme
           }
-        }
-        await window.electronAPI.saveConfig(updatedConfig)
+        };
+        await window.electronAPI.saveConfig(updatedConfig);
       }
-    } catch (error) {
-      console.error('Error saving theme:', error)
+    } catch {
+      // no-op
     }
 
-    applyThemeToDom(newTheme)
-  }
+    applyThemeToDom(newTheme);
+  };
 
   // Apply theme to document when theme changes
   useEffect(() => {
-    applyThemeToDom(theme)
-  }, [theme])
+    applyThemeToDom(theme);
+  }, [theme]);
 
   const value = {
     theme,
@@ -101,11 +101,11 @@ export const ThemeProvider = ({ children }) => {
     setThemeValue,
     isDark: theme === 'dark',
     isLight: theme === 'light'
-  }
+  };
 
   return (
     <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
-  )
-} 
+  );
+};

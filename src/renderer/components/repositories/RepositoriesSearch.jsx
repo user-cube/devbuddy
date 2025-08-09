@@ -1,11 +1,11 @@
-import React from 'react'
+import React from 'react';
 
-const RepositoriesSearch = ({ 
-  searchQuery, 
-  setSearchQuery, 
-  filteredCount, 
-  totalCount, 
-  searchInputRef 
+const RepositoriesSearch = ({
+  searchQuery,
+  setSearchQuery,
+  filteredCount,
+  _totalCount,
+  searchInputRef
 }) => {
   return (
     <div className="mb-6">
@@ -52,11 +52,11 @@ const RepositoriesSearch = ({
       </div>
       {searchQuery && (
         <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Found {filteredCount} repository{filteredCount !== 1 ? 'ies' : ''} matching "{searchQuery}"
+          Found {filteredCount} repository{filteredCount !== 1 ? 'ies' : ''} matching &quot;{searchQuery}&quot;
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default RepositoriesSearch
+export default RepositoriesSearch;

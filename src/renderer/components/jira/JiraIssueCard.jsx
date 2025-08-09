@@ -1,14 +1,14 @@
-import React from 'react'
+import React from 'react';
 import {
-  GitBranch,
+
   MessageSquare,
   ExternalLink,
   User,
   Calendar,
   FolderOpen,
   Tag
-} from 'lucide-react'
-import { getStatusIcon, getPriorityIcon, getPriorityColor, formatDate } from './JiraUtils'
+} from 'lucide-react';
+import { getStatusIcon, getPriorityIcon, getPriorityColor, formatDate } from './JiraUtils';
 
 const JiraIssueCard = ({ issue, onClick }) => {
   return (
@@ -25,7 +25,7 @@ const JiraIssueCard = ({ issue, onClick }) => {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             {getStatusIcon(issue)}
-            <span 
+            <span
               className="px-2 py-1 text-xs font-medium rounded-full"
               style={{
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -40,7 +40,7 @@ const JiraIssueCard = ({ issue, onClick }) => {
             </span>
             {getPriorityIcon(issue.fields?.priority)}
             {issue.fields?.priority && (
-              <span 
+              <span
                 className="px-2 py-1 text-xs font-medium rounded-full"
                 style={{
                   backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -52,32 +52,32 @@ const JiraIssueCard = ({ issue, onClick }) => {
               </span>
             )}
           </div>
-          
+
           <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
             {issue.fields?.summary}
           </h3>
-          
+
           <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
             <div className="flex items-center gap-1">
               <FolderOpen className="w-4 h-4" />
               <span>{issue.fields?.project?.name}</span>
             </div>
-            
+
             <div className="flex items-center gap-1">
               <Tag className="w-4 h-4" />
               <span>{issue.fields?.issuetype?.name}</span>
             </div>
-            
+
             {issue.fields?.assignee && (
               <div className="flex items-center gap-1">
                 {issue.fields.assignee.avatarUrls?.['16x16'] && (
-                  <img 
-                    src={issue.fields.assignee.avatarUrls['16x16']} 
+                  <img
+                    src={issue.fields.assignee.avatarUrls['16x16']}
                     alt={issue.fields.assignee.displayName || 'Assignee'}
                     className="w-4 h-4 rounded-full"
                     onError={(e) => {
-                      e.target.style.display = 'none'
-                      e.target.nextSibling.style.display = 'inline'
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'inline';
                     }}
                   />
                 )}
@@ -85,17 +85,17 @@ const JiraIssueCard = ({ issue, onClick }) => {
                 <span>{issue.fields.assignee.displayName}</span>
               </div>
             )}
-            
+
             {issue.fields?.reporter && (
               <div className="flex items-center gap-1">
                 {issue.fields.reporter.avatarUrls?.['16x16'] && (
-                  <img 
-                    src={issue.fields.reporter.avatarUrls['16x16']} 
+                  <img
+                    src={issue.fields.reporter.avatarUrls['16x16']}
                     alt={issue.fields.reporter.displayName || 'Reporter'}
                     className="w-4 h-4 rounded-full"
                     onError={(e) => {
-                      e.target.style.display = 'none'
-                      e.target.nextSibling.style.display = 'inline'
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'inline';
                     }}
                   />
                 )}
@@ -103,12 +103,12 @@ const JiraIssueCard = ({ issue, onClick }) => {
                 <span>Reporter: {issue.fields.reporter.displayName}</span>
               </div>
             )}
-            
+
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
               <span>{formatDate(issue.fields?.created)}</span>
             </div>
-            
+
             {issue.fields?.comment?.total > 0 && (
               <div className="flex items-center gap-1">
                 <MessageSquare className="w-4 h-4" />
@@ -117,11 +117,11 @@ const JiraIssueCard = ({ issue, onClick }) => {
             )}
           </div>
         </div>
-        
+
         <ExternalLink className="w-4 h-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default JiraIssueCard
+export default JiraIssueCard;

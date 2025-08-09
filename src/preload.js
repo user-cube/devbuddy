@@ -5,22 +5,22 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   // Time and utilities
   getCurrentTime: () => ipcRenderer.invoke('get-current-time'),
-  
+
   // Configuration management
   getConfig: () => ipcRenderer.invoke('get-config'),
   saveConfig: (config) => ipcRenderer.invoke('save-config', config),
   isConfigured: () => ipcRenderer.invoke('is-configured'),
-  
+
   // Bookmarks
   getBookmarks: () => ipcRenderer.invoke('get-bookmarks'),
   getAllBookmarks: () => ipcRenderer.invoke('get-all-bookmarks'),
   updateBookmarks: (bookmarks) => ipcRenderer.invoke('update-bookmarks', bookmarks),
-  
+
   // Category management
   addBookmarkCategory: (category) => ipcRenderer.invoke('add-bookmark-category', category),
   updateBookmarkCategory: (categoryId, updatedCategory) => ipcRenderer.invoke('update-bookmark-category', categoryId, updatedCategory),
   deleteBookmarkCategory: (categoryId) => ipcRenderer.invoke('delete-bookmark-category', categoryId),
-  
+
   // Bookmark management
   addBookmark: (categoryId, bookmark) => ipcRenderer.invoke('add-bookmark', categoryId, bookmark),
   updateBookmark: (categoryId, bookmarkId, updatedBookmark) => ipcRenderer.invoke('update-bookmark', categoryId, bookmarkId, updatedBookmark),
@@ -28,26 +28,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openBookmark: (bookmarkId) => ipcRenderer.invoke('open-bookmark', bookmarkId),
   selectFile: () => ipcRenderer.invoke('select-file'),
   selectFolder: () => ipcRenderer.invoke('select-folder'),
-  
+
   // Migration
   migrateShortcutsToBookmarks: () => ipcRenderer.invoke('migrate-shortcuts-to-bookmarks'),
-  
+
   // Service configurations
   getJiraConfig: () => ipcRenderer.invoke('get-jira-config'),
   updateJiraConfig: (config) => ipcRenderer.invoke('update-jira-config', config),
-  
+
   getGithubConfig: () => ipcRenderer.invoke('get-github-config'),
   updateGithubConfig: (config) => ipcRenderer.invoke('update-github-config', config),
-  
+
   getGitlabConfig: () => ipcRenderer.invoke('get-gitlab-config'),
   updateGitlabConfig: (config) => ipcRenderer.invoke('update-gitlab-config', config),
-  
+
   getBitbucketConfig: () => ipcRenderer.invoke('get-bitbucket-config'),
   updateBitbucketConfig: (config) => ipcRenderer.invoke('update-bitbucket-config', config),
-  
+
   getAppConfig: () => ipcRenderer.invoke('get-app-config'),
   updateAppConfig: (config) => ipcRenderer.invoke('update-app-config', config),
-  
+
   // Jira service
   getJiraIssues: () => ipcRenderer.invoke('get-jira-issues'),
   getJiraIssueDetails: (issueKey) => ipcRenderer.invoke('get-jira-issue-details', issueKey),
@@ -70,7 +70,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getJiraStatusesByProject: (projectKey) => ipcRenderer.invoke('get-jira-statuses-by-project', projectKey),
   getJiraPriorities: () => ipcRenderer.invoke('get-jira-priorities'),
   createJiraIssue: (projectKey, summary, description, issueType) => ipcRenderer.invoke('create-jira-issue', projectKey, summary, description, issueType),
-  
+
   // GitHub service
   getGithubPRs: () => ipcRenderer.invoke('get-github-prs'),
   getGithubPRDetails: (prNumber, repo) => ipcRenderer.invoke('get-github-pr-details', prNumber, repo),
@@ -87,7 +87,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   searchGithubPRs: (query) => ipcRenderer.invoke('search-github-prs', query),
   getGithubPRsByRepo: (repo, state) => ipcRenderer.invoke('get-github-prs-by-repo', repo, state),
   getGithubPRsByOrg: (org, state) => ipcRenderer.invoke('get-github-prs-by-org', org, state),
-  
+
   // GitLab service
   getGitlabMRs: () => ipcRenderer.invoke('get-gitlab-mrs'),
   getGitlabMRDetails: (mrId, projectId) => ipcRenderer.invoke('get-gitlab-mr-details', mrId, projectId),
@@ -104,7 +104,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   searchGitlabMRs: (query) => ipcRenderer.invoke('search-gitlab-mrs', query),
   getGitlabMRsByProject: (projectId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-project', projectId, state),
   getGitlabMRsByGroup: (groupId, state) => ipcRenderer.invoke('get-gitlab-mrs-by-group', groupId, state),
-  
+
   // Bitbucket service
   getBitbucketPRs: () => ipcRenderer.invoke('get-bitbucket-prs'),
   getBitbucketPRDetails: (prId, repoSlug) => ipcRenderer.invoke('get-bitbucket-pr-details', prId, repoSlug),
@@ -122,14 +122,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   searchBitbucketPRs: (query) => ipcRenderer.invoke('search-bitbucket-prs', query),
   getBitbucketPRsByRepository: (repoSlug, state) => ipcRenderer.invoke('get-bitbucket-prs-by-repository', repoSlug, state),
   getBitbucketPRsByWorkspace: (workspace, state) => ipcRenderer.invoke('get-bitbucket-prs-by-workspace', workspace, state),
-  
+
   // App initialization
   isAppInitialized: () => ipcRenderer.invoke('is-app-initialized'),
   waitForInitialization: () => ipcRenderer.invoke('wait-for-initialization'),
   forceInitialization: () => ipcRenderer.invoke('force-initialization'),
   onAppInitialized: (callback) => ipcRenderer.on('app-initialized', callback),
   removeAppInitializedListener: (callback) => ipcRenderer.removeListener('app-initialized', callback),
-  
+
   // Background refresh
   triggerBackgroundRefresh: () => ipcRenderer.invoke('trigger-background-refresh'),
   getBackgroundRefreshStatus: () => ipcRenderer.invoke('get-background-refresh-status'),
@@ -137,21 +137,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopBackgroundRefresh: () => ipcRenderer.invoke('stop-background-refresh'),
   onBackgroundRefreshCompleted: (callback) => ipcRenderer.on('background-refresh-completed', callback),
   removeBackgroundRefreshCompletedListener: (callback) => ipcRenderer.removeListener('background-refresh-completed', callback),
-  
+
   // Cache management
   clearCache: () => ipcRenderer.invoke('clear-cache'),
   clearGithubCache: () => ipcRenderer.invoke('clear-github-cache'),
   clearGitlabCache: () => ipcRenderer.invoke('clear-gitlab-cache'),
   clearBitbucketCache: () => ipcRenderer.invoke('clear-bitbucket-cache'),
   clearJiraCache: () => ipcRenderer.invoke('clear-jira-cache'),
-    openJiraStatusConfig: () => ipcRenderer.invoke('open-jira-status-config'),
-    getCacheStats: () => ipcRenderer.invoke('get-cache-stats'),
-    exportConfig: () => ipcRenderer.invoke('export-config'),
-    importConfig: () => ipcRenderer.invoke('import-config'),
-  
+  openJiraStatusConfig: () => ipcRenderer.invoke('open-jira-status-config'),
+  getCacheStats: () => ipcRenderer.invoke('get-cache-stats'),
+  exportConfig: () => ipcRenderer.invoke('export-config'),
+  importConfig: () => ipcRenderer.invoke('import-config'),
+
   // Open external links
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
-  
+
   // Redirector service
   getRedirects: () => ipcRenderer.invoke('get-redirects'),
   updateRedirects: (redirects) => ipcRenderer.invoke('update-redirects', redirects),
@@ -161,21 +161,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopRedirectorServer: () => ipcRenderer.invoke('stop-redirector-server'),
   getRedirectorStatus: () => ipcRenderer.invoke('get-redirector-status'),
   updateRedirectorPort: (newPort) => ipcRenderer.invoke('update-redirector-port', newPort),
-  
+
   // Repositories service
-      getRepositoriesConfig: () => ipcRenderer.invoke('get-repositories-config'),
-    updateRepositoriesConfig: (config) => ipcRenderer.invoke('update-repositories-config', config),
-    getRepositories: () => ipcRenderer.invoke('get-repositories'),
-    getRepositoriesForDirectory: (directoryPath, tag) => ipcRenderer.invoke('get-repositories-for-directory', directoryPath, tag),
-    getRepositoriesCacheStatus: () => ipcRenderer.invoke('get-repositories-cache-status'),
-    refreshRepositoriesCacheInBackground: () => ipcRenderer.invoke('refresh-repositories-cache-in-background'),
+  getRepositoriesConfig: () => ipcRenderer.invoke('get-repositories-config'),
+  updateRepositoriesConfig: (config) => ipcRenderer.invoke('update-repositories-config', config),
+  getRepositories: () => ipcRenderer.invoke('get-repositories'),
+  getRepositoriesForDirectory: (directoryPath, tag) => ipcRenderer.invoke('get-repositories-for-directory', directoryPath, tag),
+  getRepositoriesCacheStatus: () => ipcRenderer.invoke('get-repositories-cache-status'),
+  refreshRepositoriesCacheInBackground: () => ipcRenderer.invoke('refresh-repositories-cache-in-background'),
   getFoldersInDirectory: (directoryPath) => ipcRenderer.invoke('get-folders-in-directory', directoryPath),
   getRepositoryInfo: (folderPath, tag) => ipcRenderer.invoke('get-repository-info', folderPath, tag),
   getRepositoryCommits: (folderPath) => ipcRenderer.invoke('get-repository-commits', folderPath),
   openRepository: (repoPath) => ipcRenderer.invoke('open-repository', repoPath),
   openRepositoryInEditor: (repoPath) => ipcRenderer.invoke('open-repository-in-editor', repoPath),
   selectDirectory: () => ipcRenderer.invoke('select-folder'),
-  
+
   // Tasks service
   getTasks: () => ipcRenderer.invoke('get-tasks'),
   getTaskById: (id) => ipcRenderer.invoke('get-task-by-id', id),
@@ -192,12 +192,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getTaskCategories: () => ipcRenderer.invoke('get-task-categories'),
   getTaskPriorities: () => ipcRenderer.invoke('get-task-priorities'),
   getTaskStats: () => ipcRenderer.invoke('get-task-stats'),
-  
+
   // Category management
   getTaskCategoryDetails: () => ipcRenderer.invoke('get-task-category-details'),
   createTaskCategory: (categoryData) => ipcRenderer.invoke('create-task-category', categoryData),
   updateTaskCategory: (categoryId, updates) => ipcRenderer.invoke('update-task-category', categoryId, updates),
   deleteTaskCategory: (categoryId) => ipcRenderer.invoke('delete-task-category', categoryId),
-  getTasksByCategory: (categoryId) => ipcRenderer.invoke('get-tasks-by-category', categoryId),
+  getTasksByCategory: (categoryId) => ipcRenderer.invoke('get-tasks-by-category', categoryId)
 
-}); 
+});

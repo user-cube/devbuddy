@@ -1,32 +1,32 @@
-import React from 'react'
-import { Folder } from 'lucide-react'
-import { createDirectoryEntry, updateDirectory, removeDirectory } from './ConfigurationUtils'
+import React from 'react';
+import { Folder } from 'lucide-react';
+import { createDirectoryEntry, updateDirectory, removeDirectory } from './ConfigurationUtils';
 
 const RepositoriesConfig = ({ repositoriesConfig, updateRepositoriesConfig }) => {
   const handleSelectPath = async () => {
     try {
       if (window.electronAPI && window.electronAPI.selectDirectory) {
-        const result = await window.electronAPI.selectDirectory()
+        const result = await window.electronAPI.selectDirectory();
         if (result && result.success && result.folderPath) {
-          const newDirectory = createDirectoryEntry(result.folderPath)
-          const updatedDirectories = [...(repositoriesConfig?.directories || []), newDirectory]
-          updateRepositoriesConfig('directories', updatedDirectories)
+          const newDirectory = createDirectoryEntry(result.folderPath);
+          const updatedDirectories = [...(repositoriesConfig?.directories || []), newDirectory];
+          updateRepositoriesConfig('directories', updatedDirectories);
         }
       }
-    } catch (error) {
-      console.error('Error selecting directory:', error)
+    } catch {
+      // no-op
     }
-  }
+  };
 
   const handleRemoveDirectory = (directoryId) => {
-    const updatedDirectories = removeDirectory(repositoriesConfig?.directories || [], directoryId)
-    updateRepositoriesConfig('directories', updatedDirectories)
-  }
+    const updatedDirectories = removeDirectory(repositoriesConfig?.directories || [], directoryId);
+    updateRepositoriesConfig('directories', updatedDirectories);
+  };
 
   const handleUpdateDirectory = (directoryId, field, value) => {
-    const updatedDirectories = updateDirectory(repositoriesConfig?.directories || [], directoryId, field, value)
-    updateRepositoriesConfig('directories', updatedDirectories)
-  }
+    const updatedDirectories = updateDirectory(repositoriesConfig?.directories || [], directoryId, field, value);
+    updateRepositoriesConfig('directories', updatedDirectories);
+  };
 
   return (
     <div className="card">
@@ -48,7 +48,7 @@ const RepositoriesConfig = ({ repositoriesConfig, updateRepositoriesConfig }) =>
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Enable</span>
         </label>
       </div>
-      
+
       {repositoriesConfig?.enabled && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -148,7 +148,7 @@ const RepositoriesConfig = ({ repositoriesConfig, updateRepositoriesConfig }) =>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default RepositoriesConfig
+export default RepositoriesConfig;

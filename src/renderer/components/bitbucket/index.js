@@ -1,1 +1,1 @@
-export { default } from './Bitbucket.jsx'
+export { default } from './Bitbucket.jsx';

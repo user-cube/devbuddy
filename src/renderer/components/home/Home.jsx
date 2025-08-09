@@ -1,66 +1,58 @@
-import React, { useState, useEffect } from 'react'
-import HomeHeader from './HomeHeader'
-import HomeStats from './HomeStats'
-import HomeIntegrationStatus from './HomeIntegrationStatus'
-import HomeBookmarks from './HomeBookmarks'
-import HomeRecentActivity from './HomeRecentActivity'
-import HomeQuickActions from './HomeQuickActions'
-import HomeLoading from './HomeLoading'
-import HomeError from './HomeError'
+import React, { useState, useEffect } from 'react';
+import HomeHeader from './HomeHeader';
+import HomeStats from './HomeStats';
+import HomeIntegrationStatus from './HomeIntegrationStatus';
+import HomeBookmarks from './HomeBookmarks';
+import HomeRecentActivity from './HomeRecentActivity';
+import HomeQuickActions from './HomeQuickActions';
+import HomeLoading from './HomeLoading';
+import HomeError from './HomeError';
 
 const Home = ({ currentTime }) => {
-  const [shortcuts, setShortcuts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [shortcuts, setShortcuts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [stats, setStats] = useState({
     jira: { total: 0, assigned: 0, inProgress: 0, highPriority: 0 },
     github: { total: 0, assigned: 0, reviewing: 0, draft: 0 },
     gitlab: { total: 0, assigned: 0, reviewing: 0, draft: 0 },
     repositories: { total: 0 }
-  })
+  });
   const [recentItems, setRecentItems] = useState({
     jira: [],
     github: [],
     gitlab: []
-  })
-  const [backgroundRefreshStatus, setBackgroundRefreshStatus] = useState({
-    isRunning: false,
-    lastRefreshTime: null,
-    nextRefreshTime: null
-  })
-  const [lastRefreshNotification, setLastRefreshNotification] = useState(null)
-  const [config, setConfig] = useState(null)
+  });
+  const [lastRefreshNotification, setLastRefreshNotification] = useState(null);
+
   const [activeIntegrations, setActiveIntegrations] = useState({
     jira: false,
     github: false,
     gitlab: false,
     repositories: false
-  })
+  });
 
   useEffect(() => {
     const initializeAndLoadData = async () => {
       try {
         await window.electronAPI.waitForInitialization();
         await loadDashboardData();
-      } catch (error) {
-        console.error('Error during initialization:', error);
+      } catch {
         await loadDashboardData();
       }
     };
 
     initializeAndLoadData();
-    loadBackgroundRefreshStatus();
     loadConfig();
-    
+
     const handleBackgroundRefreshCompleted = (event, data) => {
       setLastRefreshNotification({
         timestamp: data.timestamp,
         services: data.services
       });
-      
+
       setTimeout(() => {
         loadDashboardData();
-        loadBackgroundRefreshStatus();
       }, 1000);
     };
 
@@ -73,7 +65,7 @@ const Home = ({ currentTime }) => {
         window.electronAPI.removeBackgroundRefreshCompletedListener(handleBackgroundRefreshCompleted);
       }
     };
-  }, [])
+  }, []);
 
   useEffect(() => {
     const handleConfigChange = () => {
@@ -86,23 +78,11 @@ const Home = ({ currentTime }) => {
     };
   }, []);
 
-  const loadBackgroundRefreshStatus = async () => {
-    try {
-      if (window.electronAPI) {
-        const status = await window.electronAPI.getBackgroundRefreshStatus();
-        setBackgroundRefreshStatus(status);
-      }
-    } catch (error) {
-      console.error('Error loading background refresh status:', error);
-    }
-  };
-
   const loadConfig = async () => {
     try {
       if (window.electronAPI) {
         const configData = await window.electronAPI.getConfig();
         const repositoriesConfig = await window.electronAPI.getRepositoriesConfig();
-        setConfig(configData);
         setActiveIntegrations({
           jira: configData?.jira?.enabled || false,
           github: configData?.github?.enabled || false,
@@ -111,99 +91,99 @@ const Home = ({ currentTime }) => {
           repositories: repositoriesConfig?.enabled || false
         });
       }
-    } catch (error) {
-      console.error('Error loading config:', error);
+    } catch {
+      // no-op
     }
   };
 
   const loadDashboardData = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      
-      const bookmarksData = await window.electronAPI.getAllBookmarks()
-      setShortcuts(bookmarksData || [])
-      
-      const timeout = 10000
+      setLoading(true);
+      setError(null);
+
+      const bookmarksData = await window.electronAPI.getAllBookmarks();
+      setShortcuts(bookmarksData || []);
+
+      const timeout = 10000;
       const loadPromises = [
-        loadJiraData().catch(err => {
-          console.error('Jira load failed:', err)
-          return null
+        loadJiraData().catch(_err => {
+          // no-op
+          return null;
         }),
-        loadGitHubData().catch(err => {
-          console.error('GitHub load failed:', err)
-          return null
+        loadGitHubData().catch(_err => {
+          // no-op
+          return null;
         }),
-        loadGitLabData().catch(err => {
-          console.error('GitLab load failed:', err)
-          return null
+        loadGitLabData().catch(_err => {
+          // no-op
+          return null;
         }),
-        loadBitbucketData().catch(err => {
-          console.error('Bitbucket load failed:', err)
-          return null
+        loadBitbucketData().catch(_err => {
+          // no-op
+          return null;
         }),
-        loadRepositoriesData().catch(err => {
-          console.error('Repositories load failed:', err)
-          return null
+        loadRepositoriesData().catch(_err => {
+          // no-op
+          return null;
         })
-      ]
-      
+      ];
+
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Load timeout')), timeout)
-      })
-      
+        setTimeout(() => reject(new Error('Load timeout')), timeout);
+      });
+
       await Promise.race([
         Promise.all(loadPromises),
         timeoutPromise
-      ])
-      
+      ]);
+
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
+      // no-op
       if (error.message === 'Load timeout') {
-        setError('Some data took too long to load. Please try refreshing.')
+        setError('Some data took too long to load. Please try refreshing.');
       } else {
-        setError('Failed to load dashboard data')
+        setError('Failed to load dashboard data');
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const loadJiraData = async () => {
     try {
-      const config = await window.electronAPI.getJiraConfig()
+      const config = await window.electronAPI.getJiraConfig();
       if (config.enabled) {
-        const issues = await window.electronAPI.getJiraIssues()
-        
+        const issues = await window.electronAPI.getJiraIssues();
+
         setStats(prev => ({
           ...prev,
           jira: {
             total: issues.length,
             assigned: issues.filter(issue => issue.fields?.assignee).length,
             inProgress: issues.filter(issue => issue.fields?.status?.name === 'In Progress').length,
-            highPriority: issues.filter(issue => 
-              issue.fields?.priority?.name === 'High' || 
+            highPriority: issues.filter(issue =>
+              issue.fields?.priority?.name === 'High' ||
               issue.fields?.priority?.name === 'Highest'
             ).length
           }
-        }))
-        
+        }));
+
         setRecentItems(prev => ({
           ...prev,
           jira: issues.slice(0, 3)
-        }))
+        }));
       }
-    } catch (error) {
-      console.error('Error loading Jira data:', error)
+    } catch {
+      // no-op
     }
-  }
+  };
 
   const loadGitHubData = async () => {
     try {
-      const config = await window.electronAPI.getGithubConfig()
+      const config = await window.electronAPI.getGithubConfig();
       if (config.enabled) {
-        const prs = await window.electronAPI.getGithubPRs()
-        
+        const prs = await window.electronAPI.getGithubPRs();
+
         setStats(prev => ({
           ...prev,
           github: {
@@ -212,24 +192,24 @@ const Home = ({ currentTime }) => {
             reviewing: prs.filter(pr => pr.requested_reviewers?.length > 0).length,
             draft: prs.filter(pr => pr.draft).length
           }
-        }))
-        
+        }));
+
         setRecentItems(prev => ({
           ...prev,
           github: prs.slice(0, 3)
-        }))
+        }));
       }
-    } catch (error) {
-      console.error('Error loading GitHub data:', error)
+    } catch {
+      // no-op
     }
-  }
+  };
 
   const loadGitLabData = async () => {
     try {
-      const config = await window.electronAPI.getGitlabConfig()
+      const config = await window.electronAPI.getGitlabConfig();
       if (config.enabled) {
-        const mrs = await window.electronAPI.getGitlabMRs()
-        
+        const mrs = await window.electronAPI.getGitlabMRs();
+
         setStats(prev => ({
           ...prev,
           gitlab: {
@@ -238,24 +218,24 @@ const Home = ({ currentTime }) => {
             reviewing: mrs.filter(mr => mr.reviewers?.length > 0).length,
             draft: mrs.filter(mr => mr.work_in_progress).length
           }
-        }))
-        
+        }));
+
         setRecentItems(prev => ({
           ...prev,
           gitlab: mrs.slice(0, 3)
-        }))
+        }));
       }
-    } catch (error) {
-      console.error('Error loading GitLab data:', error)
+    } catch {
+      // no-op
     }
-  }
+  };
 
   const loadBitbucketData = async () => {
     try {
-      const config = await window.electronAPI.getBitbucketConfig()
+      const config = await window.electronAPI.getBitbucketConfig();
       if (config.enabled) {
-        const prs = await window.electronAPI.getBitbucketPRs()
-        
+        const prs = await window.electronAPI.getBitbucketPRs();
+
         setStats(prev => ({
           ...prev,
           bitbucket: {
@@ -264,115 +244,113 @@ const Home = ({ currentTime }) => {
             reviewing: prs.filter(pr => pr.participants?.length > 0).length,
             draft: prs.filter(pr => pr.title?.toLowerCase().includes('[wip]') || pr.title?.toLowerCase().includes('[draft]')).length
           }
-        }))
-        
+        }));
+
         setRecentItems(prev => ({
           ...prev,
           bitbucket: prs.slice(0, 3)
-        }))
+        }));
       }
-    } catch (error) {
-      console.error('Error loading Bitbucket data:', error)
+    } catch {
+      // no-op
     }
-  }
+  };
 
   const loadRepositoriesData = async () => {
     try {
-      const config = await window.electronAPI.getRepositoriesConfig()
+      const config = await window.electronAPI.getRepositoriesConfig();
       if (config.enabled) {
-        const repos = await window.electronAPI.getRepositories()
+        const repos = await window.electronAPI.getRepositories();
         setStats(prev => ({
           ...prev,
           repositories: {
             total: repos.length
           }
-        }))
+        }));
         setRecentItems(prev => ({
           ...prev,
           repositories: repos.slice(0, 3)
-        }))
+        }));
       }
-    } catch (error) {
-      console.error('Error loading repositories data:', error)
+    } catch {
+      // no-op
     }
-  }
+  };
 
   const handleBookmarkClick = async (bookmarkId) => {
     if (window.electronAPI) {
       try {
-        const result = await window.electronAPI.openBookmark(bookmarkId)
-      } catch (error) {
-        console.error('Error opening bookmark:', error)
+        await window.electronAPI.openBookmark(bookmarkId);
+      } catch {
+        // no-op
       }
     }
-  }
+  };
 
   const openItem = async (item, type) => {
     try {
       if (type === 'jira') {
-        const config = await window.electronAPI.getJiraConfig()
-        const issueUrl = `${config.baseUrl}/browse/${item.key}`
-        await window.electronAPI.openExternal(issueUrl)
+        const config = await window.electronAPI.getJiraConfig();
+        const issueUrl = `${config.baseUrl}/browse/${item.key}`;
+        await window.electronAPI.openExternal(issueUrl);
       } else if (type === 'github') {
-        await window.electronAPI.openExternal(item.html_url)
+        await window.electronAPI.openExternal(item.html_url);
       } else if (type === 'gitlab') {
-        await window.electronAPI.openExternal(item.web_url)
+        await window.electronAPI.openExternal(item.web_url);
       } else if (type === 'bitbucket') {
-        await window.electronAPI.openExternal(item.links?.html?.href || item.url)
+        await window.electronAPI.openExternal(item.links?.html?.href || item.url);
       } else if (type === 'repositories') {
         // For repositories, we can open the folder in file explorer
-        await window.electronAPI.openRepository(item.path)
+        await window.electronAPI.openRepository(item.path);
       }
-    } catch (error) {
-      console.error('Error opening item:', error)
+    } catch {
+      // no-op
     }
-  }
-
-
+  };
 
   const handleQuickAction = (action) => {
     // Handle quick actions for integrations
-    
+
     // Navigate to corresponding pages
     switch (action) {
-      case 'jira':
-        window.location.hash = '#/jira'
-        break
-      case 'github':
-        window.location.hash = '#/github'
-        break
-      case 'gitlab':
-        window.location.hash = '#/gitlab'
-        break
-      case 'bitbucket':
-        window.location.hash = '#/bitbucket'
-        break
-      case 'repositories':
-        window.location.hash = '#/repositories'
-        break
-      case 'overview':
-      case 'assigned':
-      case 'review':
-      case 'priority':
-        // These are stats cards, could show detailed view or filter
-        break
-      default:
-        // no-op
-        break
+    case 'jira':
+      window.location.hash = '#/jira';
+      break;
+    case 'github':
+      window.location.hash = '#/github';
+      break;
+    case 'gitlab':
+      window.location.hash = '#/gitlab';
+      break;
+    case 'bitbucket':
+      window.location.hash = '#/bitbucket';
+      break;
+    case 'repositories':
+      window.location.hash = '#/repositories';
+      break;
+    case 'overview':
+    case 'assigned':
+    case 'review':
+    case 'priority':
+      // These are stats cards, could show detailed view or filter
+      break;
+    default:
+      // no-op
+      break;
     }
-  }
+  };
 
   if (loading) {
-    return <HomeLoading />
+    return <HomeLoading />;
   }
 
   if (error) {
-    return <HomeError error={error} onRetry={loadDashboardData} />
+    return <HomeError error={error} onRetry={loadDashboardData} />;
   }
 
   return (
     <div className="min-h-screen p-6">
-      <HomeHeader 
+      <HomeHeader
         currentTime={currentTime}
         loading={loading}
         onRefresh={loadDashboardData}
@@ -382,27 +360,25 @@ const Home = ({ currentTime }) => {
 
       <HomeStats stats={stats} onQuickAction={handleQuickAction} />
 
-      <HomeIntegrationStatus 
+      <HomeIntegrationStatus
         activeIntegrations={activeIntegrations}
         stats={stats}
         onQuickAction={handleQuickAction}
       />
 
-            {/* Main Content Grid */}
+      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         <HomeBookmarks shortcuts={shortcuts} onBookmarkClick={handleBookmarkClick} />
-        <HomeRecentActivity 
+        <HomeRecentActivity
           activeIntegrations={activeIntegrations}
           recentItems={recentItems}
           onOpenItem={openItem}
         />
       </div>
 
-
-
       <HomeQuickActions />
     </div>
-  )
-}
+  );
+};
 
-export default Home 
+export default Home;

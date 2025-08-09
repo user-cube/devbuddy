@@ -1,25 +1,25 @@
-import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { 
-  Home, 
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Home,
   Bookmark,
   Globe,
   CheckSquare,
-  GitBranch, 
-  GitPullRequest, 
+  GitBranch,
+  GitPullRequest,
   GitMerge,
   Code,
   Settings,
   AlertCircle,
   Folder
-} from 'lucide-react'
-import ThemeToggle from './ThemeToggle'
+} from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 const Sidebar = ({ currentPath, isConfigured }) => {
-  const [config, setConfig] = useState(null)
-  const [repositoriesConfig, setRepositoriesConfig] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [config, setConfig] = useState(null);
+  const [repositoriesConfig, setRepositoriesConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -28,39 +28,39 @@ const Sidebar = ({ currentPath, isConfigured }) => {
           const [configData, reposConfig] = await Promise.all([
             window.electronAPI.getConfig(),
             window.electronAPI.getRepositoriesConfig()
-          ])
-          setConfig(configData)
-          setRepositoriesConfig(reposConfig)
+          ]);
+          setConfig(configData);
+          setRepositoriesConfig(reposConfig);
         }
-      } catch (error) {
-        console.error('Error loading config for sidebar:', error)
+      } catch {
+        // no-op
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadConfig()
+    loadConfig();
 
     // Listen for configuration changes
     const handleConfigChange = () => {
-      loadConfig()
-      setHasUnsavedChanges(false)
-    }
+      loadConfig();
+      setHasUnsavedChanges(false);
+    };
 
     // Listen for unsaved changes
     const handleUnsavedChanges = () => {
-      setHasUnsavedChanges(true)
-    }
+      setHasUnsavedChanges(true);
+    };
 
     // Add event listeners
-    window.addEventListener('config-changed', handleConfigChange)
-    window.addEventListener('config-unsaved', handleUnsavedChanges)
+    window.addEventListener('config-changed', handleConfigChange);
+    window.addEventListener('config-unsaved', handleUnsavedChanges);
 
     return () => {
-      window.removeEventListener('config-changed', handleConfigChange)
-      window.removeEventListener('config-unsaved', handleUnsavedChanges)
-    }
-  }, [])
+      window.removeEventListener('config-changed', handleConfigChange);
+      window.removeEventListener('config-unsaved', handleUnsavedChanges);
+    };
+  }, []);
 
   // Base navigation items (always visible)
   const baseNavItems = [
@@ -68,54 +68,54 @@ const Sidebar = ({ currentPath, isConfigured }) => {
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks' },
     { path: '/redirects', icon: Globe, label: 'Redirects' },
     { path: '/tasks', icon: CheckSquare, label: 'Tasks' }
-  ]
+  ];
 
   // Integration navigation items (only if enabled)
   const integrationNavItems = [
-    { 
-      path: '/jira', 
-      icon: GitBranch, 
+    {
+      path: '/jira',
+      icon: GitBranch,
       label: 'Jira',
       enabled: config?.jira?.enabled || false
     },
-    { 
-      path: '/github', 
-      icon: GitPullRequest, 
+    {
+      path: '/github',
+      icon: GitPullRequest,
       label: 'GitHub',
       enabled: config?.github?.enabled || false
     },
-    { 
-      path: '/gitlab', 
-      icon: GitMerge, 
+    {
+      path: '/gitlab',
+      icon: GitMerge,
       label: 'GitLab',
       enabled: config?.gitlab?.enabled || false
     },
-    { 
-      path: '/bitbucket', 
-      icon: Code, 
+    {
+      path: '/bitbucket',
+      icon: Code,
       label: 'Bitbucket',
       enabled: config?.bitbucket?.enabled || false
     },
-    { 
-      path: '/repositories', 
-      icon: Folder, 
+    {
+      path: '/repositories',
+      icon: Folder,
       label: 'Repositories',
       enabled: repositoriesConfig?.enabled || false
     }
-  ]
+  ];
 
   // Configuration item (always visible)
-  const configNavItem = { path: '/config', icon: Settings, label: 'Configuration' }
+  const configNavItem = { path: '/config', icon: Settings, label: 'Configuration' };
 
   // Combine all navigation items
   const navItems = [
     ...baseNavItems,
     ...integrationNavItems.filter(item => item.enabled),
     configNavItem
-  ]
+  ];
 
   return (
-    <aside 
+    <aside
       className="w-64 flex flex-col"
       style={{
         background: 'linear-gradient(to bottom, var(--bg-secondary), var(--bg-primary))',
@@ -123,12 +123,12 @@ const Sidebar = ({ currentPath, isConfigured }) => {
       }}
     >
       {/* Header */}
-      <div 
+      <div
         className="p-6"
         style={{ borderBottom: '1px solid var(--border-primary)' }}
       >
         <div className="flex items-center justify-between">
-          <h1 
+          <h1
             className="text-2xl font-bold flex items-center gap-3"
             style={{ color: 'var(--accent-primary)' }}
           >
@@ -137,10 +137,10 @@ const Sidebar = ({ currentPath, isConfigured }) => {
           </h1>
           <ThemeToggle />
         </div>
-        
+
         {/* Configuration Status */}
         {!isConfigured && (
-          <div 
+          <div
             className="mt-3 p-2 rounded-lg"
             style={{
               backgroundColor: 'rgba(245, 158, 11, 0.1)',
@@ -153,10 +153,10 @@ const Sidebar = ({ currentPath, isConfigured }) => {
             </div>
           </div>
         )}
-        
+
         {/* Unsaved Changes Indicator */}
         {hasUnsavedChanges && (
-          <div 
+          <div
             className="mt-3 p-2 rounded-lg"
             style={{
               backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -175,9 +175,9 @@ const Sidebar = ({ currentPath, isConfigured }) => {
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = currentPath === item.path
-            
+            const Icon = item.icon;
+            const isActive = currentPath === item.path;
+
             return (
               <li key={item.path}>
                 <Link
@@ -191,7 +191,7 @@ const Sidebar = ({ currentPath, isConfigured }) => {
                   )}
                 </Link>
               </li>
-            )
+            );
           })}
         </ul>
 
@@ -222,7 +222,7 @@ const Sidebar = ({ currentPath, isConfigured }) => {
       </nav>
 
       {/* Footer */}
-      <div 
+      <div
         className="p-4"
         style={{ borderTop: '1px solid var(--border-primary)' }}
       >
@@ -238,7 +238,7 @@ const Sidebar = ({ currentPath, isConfigured }) => {
         </div>
       </div>
     </aside>
-  )
-}
+  );
+};
 
-export default Sidebar 
+export default Sidebar;

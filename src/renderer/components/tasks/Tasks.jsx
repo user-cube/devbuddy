@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Filter, Search, Calendar, Tag, Flag, CheckCircle, Circle, Trash2, Edit, MoreHorizontal, FolderPlus, X } from 'lucide-react';
+import { Plus, CheckCircle, FolderPlus, X } from 'lucide-react';
 import TaskModal from './TaskModal';
 import TaskCard from './TaskCard';
 import TaskFilters from './TaskFilters';
@@ -41,8 +41,8 @@ const Tasks = () => {
       setLoading(true);
       const tasksData = await window.electronAPI.getTasks();
       setTasks(tasksData);
-    } catch (error) {
-      console.error('Error loading tasks:', error);
+    } catch {
+      // no-op
     } finally {
       setLoading(false);
     }
@@ -52,8 +52,8 @@ const Tasks = () => {
     try {
       const statsData = await window.electronAPI.getTaskStats();
       setStats(statsData);
-    } catch (error) {
-      console.error('Error loading task stats:', error);
+    } catch {
+      // no-op
     }
   };
 
@@ -61,8 +61,8 @@ const Tasks = () => {
     try {
       const categoriesData = await window.electronAPI.getTaskCategoryDetails();
       setCategories(categoriesData);
-    } catch (error) {
-      console.error('Error loading categories:', error);
+    } catch {
+      // no-op
     }
   };
 
@@ -72,8 +72,8 @@ const Tasks = () => {
       setTasks(prev => [...prev, newTask]);
       await loadStats();
       setShowTaskModal(false);
-    } catch (error) {
-      console.error('Error creating task:', error);
+    } catch {
+      // no-op
     }
   };
 
@@ -84,29 +84,29 @@ const Tasks = () => {
       await loadStats();
       setShowTaskModal(false);
       setEditingTask(null);
-    } catch (error) {
-      console.error('Error updating task:', error);
+    } catch {
+      // no-op
     }
   };
 
   const handleCreateCategory = async (categoryData) => {
     try {
-      const newCategory = await window.electronAPI.createTaskCategory(categoryData);
+      await window.electronAPI.createTaskCategory(categoryData);
       await loadTasks(); // Reload tasks to get updated categories
       setShowCategoryModal(false);
-    } catch (error) {
-      console.error('Error creating category:', error);
+    } catch {
+      // no-op
     }
   };
 
   const handleUpdateCategory = async (id, updates) => {
     try {
-      const updatedCategory = await window.electronAPI.updateTaskCategory(id, updates);
+      await window.electronAPI.updateTaskCategory(id, updates);
       await loadTasks(); // Reload tasks to get updated categories
       setShowCategoryModal(false);
       setEditingCategory(null);
-    } catch (error) {
-      console.error('Error updating category:', error);
+    } catch {
+      // no-op
     }
   };
 
@@ -115,8 +115,8 @@ const Tasks = () => {
       await window.electronAPI.deleteTask(id);
       setTasks(prev => prev.filter(task => task.id !== id));
       await loadStats();
-    } catch (error) {
-      console.error('Error deleting task:', error);
+    } catch {
+      // no-op
     }
   };
 
@@ -125,14 +125,14 @@ const Tasks = () => {
       const updatedTask = await window.electronAPI.toggleTaskComplete(id);
       setTasks(prev => prev.map(task => task.id === id ? updatedTask : task));
       await loadStats();
-    } catch (error) {
-      console.error('Error toggling task completion:', error);
+    } catch {
+      // no-op
     }
   };
 
   const handleEditTask = (task) => {
     setEditingTask(task);
-    setShowModal(true);
+    setShowTaskModal(true);
   };
 
   const handleCloseModal = () => {
@@ -192,7 +192,7 @@ const Tasks = () => {
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* Header */}
-      <div 
+      <div
         className="p-6 border-b"
         style={{ borderColor: 'var(--border-primary)' }}
       >
@@ -204,7 +204,7 @@ const Tasks = () => {
             <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
               Manage your TODO tasks and stay organized
             </p>
-            
+
             {/* Category Filter Indicator */}
             {filters.category !== 'all' && (
               <div className="flex items-center gap-2 mt-2">
@@ -272,8 +272,8 @@ const Tasks = () => {
 
       {/* Filters */}
       <div className="px-6 pb-4">
-        <TaskFilters 
-          filters={filters} 
+        <TaskFilters
+          filters={filters}
           onFiltersChange={setFilters}
           tasks={tasks}
         />
@@ -283,7 +283,7 @@ const Tasks = () => {
       <div className="flex-1 overflow-y-auto px-6 pb-6">
         {sortedTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div 
+            <div
               className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
               style={{ backgroundColor: 'var(--bg-secondary)' }}
             >
@@ -293,11 +293,11 @@ const Tasks = () => {
               {filters.status === 'completed' ? 'No completed tasks' : 'No tasks found'}
             </h3>
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-              {filters.status === 'completed' 
+              {filters.status === 'completed'
                 ? 'Complete some tasks to see them here'
                 : filters.search || filters.category !== 'all' || filters.priority !== 'all'
-                ? 'Try adjusting your filters'
-                : 'Create your first task to get started'
+                  ? 'Try adjusting your filters'
+                  : 'Create your first task to get started'
               }
             </p>
             {!filters.search && filters.category === 'all' && filters.priority === 'all' && filters.status === 'all' && (

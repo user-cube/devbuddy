@@ -1,5 +1,5 @@
-import React from 'react'
-import { Download } from 'lucide-react'
+import React from 'react';
+import { Download } from 'lucide-react';
 
 const ImportExportInfo = () => {
   return (
@@ -36,8 +36,8 @@ const ImportExportInfo = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ImportExportInfo
+export default ImportExportInfo;
 

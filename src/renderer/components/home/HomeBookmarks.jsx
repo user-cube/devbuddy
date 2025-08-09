@@ -1,6 +1,6 @@
-import React from 'react'
-import { Bookmark, Plus } from 'lucide-react'
-import BookmarkCard from '../bookmarks/BookmarkCard'
+import React from 'react';
+import { Bookmark, Plus } from 'lucide-react';
+import BookmarkCard from '../bookmarks/BookmarkCard';
 
 const HomeBookmarks = ({ shortcuts, onBookmarkClick }) => {
   return (
@@ -45,7 +45,7 @@ const HomeBookmarks = ({ shortcuts, onBookmarkClick }) => {
             </button>
           </div>
         </div>
-        
+
         {shortcuts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-fr">
             {shortcuts.slice(0, 8).map((bookmark) => (
@@ -80,7 +80,7 @@ const HomeBookmarks = ({ shortcuts, onBookmarkClick }) => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default HomeBookmarks
+export default HomeBookmarks;

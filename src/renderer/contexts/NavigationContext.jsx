@@ -1,35 +1,35 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useState } from 'react';
 
-const NavigationContext = createContext()
+const NavigationContext = createContext();
 
 export const useNavigation = () => {
-  const context = useContext(NavigationContext)
+  const context = useContext(NavigationContext);
   if (!context) {
-    throw new Error('useNavigation must be used within a NavigationProvider')
+    throw new Error('useNavigation must be used within a NavigationProvider');
   }
-  return context
-}
+  return context;
+};
 
 export const NavigationProvider = ({ children }) => {
-  const [showJiraStatusConfig, setShowJiraStatusConfig] = useState(false)
+  const [showJiraStatusConfig, setShowJiraStatusConfig] = useState(false);
 
   const openJiraStatusConfig = () => {
-    setShowJiraStatusConfig(true)
-  }
+    setShowJiraStatusConfig(true);
+  };
 
   const closeJiraStatusConfig = () => {
-    setShowJiraStatusConfig(false)
-  }
+    setShowJiraStatusConfig(false);
+  };
 
   const value = {
     showJiraStatusConfig,
     openJiraStatusConfig,
     closeJiraStatusConfig
-  }
+  };
 
   return (
     <NavigationContext.Provider value={value}>
       {children}
     </NavigationContext.Provider>
-  )
-} 
+  );
+};

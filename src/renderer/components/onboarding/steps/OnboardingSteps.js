@@ -1,4 +1,4 @@
-import { 
+import {
   Rocket,
   Bookmark,
   GitBranch,
@@ -7,7 +7,7 @@ import {
   Users,
   Code,
   FileText
-} from 'lucide-react'
+} from 'lucide-react';
 
 // Centralized definition of onboarding steps and their content.
 // UI rendering is handled by StepContent component for consistency.
@@ -106,8 +106,7 @@ const steps = [
       'Customize app settings and preferences'
     ]
   }
-]
+];
 
-export default steps
-
+export default steps;
 

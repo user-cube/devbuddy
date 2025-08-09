@@ -1,16 +1,16 @@
-import React from 'react'
+import React from 'react';
 import {
   GitBranch,
   RefreshCw
-} from 'lucide-react'
+} from 'lucide-react';
 
-const RepositoriesFolders = ({ 
-  repositories, 
-  filteredRepositories, 
-  searchQuery, 
-  onFolderClick, 
-  onRefresh, 
-  loading 
+const RepositoriesFolders = ({
+  _repositories,
+  filteredRepositories,
+  searchQuery,
+  onFolderClick,
+  onRefresh,
+  _loading
 }) => {
   if (filteredRepositories.length === 0) {
     return (
@@ -20,14 +20,14 @@ const RepositoriesFolders = ({
           {searchQuery ? 'No Matching Repositories' : 'No Repositories Found'}
         </h3>
         <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-          {searchQuery 
+          {searchQuery
             ? `No repositories match your search for "${searchQuery}"`
-            : `No Git repositories found in this directory`
+            : 'No Git repositories found in this directory'
           }
         </p>
         {searchQuery ? (
           <button
-            onClick={() => setSearchQuery('')}
+            onClick={() => window.location.reload()}
             className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
             style={{
               backgroundColor: 'var(--accent-primary)',
@@ -50,7 +50,7 @@ const RepositoriesFolders = ({
           </button>
         )}
       </div>
-    )
+    );
   }
 
   return (
@@ -66,12 +66,12 @@ const RepositoriesFolders = ({
           }}
           onClick={() => onFolderClick(folder)}
           onMouseEnter={(e) => {
-            e.target.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))'
-            e.target.style.borderColor = 'var(--accent-primary)'
+            e.target.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))';
+            e.target.style.borderColor = 'var(--accent-primary)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.background = 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary))'
-            e.target.style.borderColor = 'var(--border-primary)'
+            e.target.style.background = 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary))';
+            e.target.style.borderColor = 'var(--border-primary)';
           }}
         >
           {/* Repository Icon and Name */}
@@ -116,8 +116,8 @@ const RepositoriesFolders = ({
             </div>
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                onFolderClick(folder)
+                e.stopPropagation();
+                onFolderClick(folder);
               }}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 hover:scale-105"
               style={{
@@ -132,7 +132,7 @@ const RepositoriesFolders = ({
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default RepositoriesFolders
+export default RepositoriesFolders;

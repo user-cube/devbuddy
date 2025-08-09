@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   GitBranch,
   GitPullRequest,
@@ -7,21 +7,21 @@ import {
   Wifi,
   WifiOff,
   AlertCircle
-} from 'lucide-react'
+} from 'lucide-react';
 
 const HomeIntegrationStatus = ({ activeIntegrations, stats, onQuickAction }) => {
   const getIntegrationStatus = (integration) => {
     if (!activeIntegrations[integration]) {
-      return { status: 'disabled', icon: WifiOff, color: 'var(--text-muted)' }
+      return { status: 'disabled', icon: WifiOff, color: 'var(--text-muted)' };
     }
-    
-    const hasData = stats[integration]?.total > 0
+
+    const hasData = stats[integration]?.total > 0;
     return {
       status: hasData ? 'active' : 'no-data',
       icon: hasData ? Wifi : AlertCircle,
       color: hasData ? 'var(--success)' : 'var(--warning)'
-    }
-  }
+    };
+  };
 
   const integrations = [
     { key: 'jira', name: 'Jira', icon: GitBranch, color: '#3b82f6' },
@@ -29,15 +29,15 @@ const HomeIntegrationStatus = ({ activeIntegrations, stats, onQuickAction }) => 
     { key: 'gitlab', name: 'GitLab', icon: GitMerge, color: '#f56565' },
     { key: 'bitbucket', name: 'Bitbucket', icon: GitPullRequest, color: '#0052cc' },
     { key: 'repositories', name: 'Repositories', icon: Folder, color: '#8b5cf6' }
-  ]
+  ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       {integrations.map((integration) => {
-        const status = getIntegrationStatus(integration.key)
-        const StatusIcon = status.icon
-        const IntegrationIcon = integration.icon
-        
+        const status = getIntegrationStatus(integration.key);
+        const StatusIcon = status.icon;
+        const IntegrationIcon = integration.icon;
+
         return (
           <div
             key={integration.key}
@@ -57,19 +57,19 @@ const HomeIntegrationStatus = ({ activeIntegrations, stats, onQuickAction }) => 
                     {integration.name}
                   </p>
                   <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    {status.status === 'disabled' ? 'Disabled' : 
-                     status.status === 'active' ? `${stats[integration.key]?.total || 0} items` : 
-                     'No data'}
+                    {status.status === 'disabled' ? 'Disabled' :
+                      status.status === 'active' ? `${stats[integration.key]?.total || 0} items` :
+                        'No data'}
                   </p>
                 </div>
               </div>
               <StatusIcon className="w-5 h-5" style={{ color: status.color }} />
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
-}
+  );
+};
 
-export default HomeIntegrationStatus
+export default HomeIntegrationStatus;

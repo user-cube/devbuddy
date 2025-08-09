@@ -1,17 +1,17 @@
-import React from 'react'
-import { Clock, RefreshCw, Zap } from 'lucide-react'
+import React from 'react';
+import { Clock, RefreshCw, Zap } from 'lucide-react';
 
-const HomeHeader = ({ 
-  currentTime, 
-  loading, 
-  onRefresh, 
-  lastRefreshNotification, 
-  onDismissNotification 
+const HomeHeader = ({
+  currentTime,
+  loading,
+  onRefresh,
+  lastRefreshNotification,
+  onDismissNotification
 }) => {
   return (
     <div className="text-center mb-12">
       <div className="flex items-center justify-center gap-4 mb-6">
-        <h1 
+        <h1
           className="text-5xl font-bold"
           style={{
             background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
@@ -36,7 +36,7 @@ const HomeHeader = ({
           <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
-      
+
       <div className="flex items-center justify-center gap-6 mb-4">
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
@@ -44,7 +44,7 @@ const HomeHeader = ({
             {currentTime || 'Loading...'}
           </span>
         </div>
-        
+
         {lastRefreshNotification && (
           <div className="flex items-center gap-2">
             <div className="px-3 py-1 rounded-full text-sm animate-pulse" style={{
@@ -66,7 +66,7 @@ const HomeHeader = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default HomeHeader
+export default HomeHeader;

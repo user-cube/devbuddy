@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Clock, AlertTriangle, Calendar, TrendingUp, Folder } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, Calendar, Folder } from 'lucide-react';
 
 const TaskStats = ({ stats }) => {
   const statItems = [
@@ -61,8 +61,8 @@ const TaskStats = ({ stats }) => {
             }}
           >
             <div className="flex items-center justify-center mb-2">
-              <Icon 
-                className="w-5 h-5" 
+              <Icon
+                className="w-5 h-5"
                 style={{ color: item.color }}
               />
             </div>
