@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+## [1.3.1](https://github.com/user-cube/devbuddy/compare/v1.3.0...v1.3.1) (2025-08-09)
+
+
+### Bug Fixes
+
+* ensure tasks are being exported ([#14](https://github.com/user-cube/devbuddy/issues/14)) ([9f7b539](https://github.com/user-cube/devbuddy/commit/9f7b5392b646c9bf33ef75e1dba33f818d174756))
+
 # [1.3.0](https://github.com/user-cube/devbuddy/compare/v1.2.0...v1.3.0) (2025-08-09)
 
 
