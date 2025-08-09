@@ -70,14 +70,36 @@ const JiraIssueCard = ({ issue, onClick }) => {
             
             {issue.fields?.assignee && (
               <div className="flex items-center gap-1">
-                <User className="w-4 h-4" />
+                {issue.fields.assignee.avatarUrls?.['16x16'] && (
+                  <img 
+                    src={issue.fields.assignee.avatarUrls['16x16']} 
+                    alt={issue.fields.assignee.displayName || 'Assignee'}
+                    className="w-4 h-4 rounded-full"
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                      e.target.nextSibling.style.display = 'inline'
+                    }}
+                  />
+                )}
+                <User className="w-4 h-4" style={{ display: issue.fields.assignee.avatarUrls?.['16x16'] ? 'none' : 'inline' }} />
                 <span>{issue.fields.assignee.displayName}</span>
               </div>
             )}
             
             {issue.fields?.reporter && (
               <div className="flex items-center gap-1">
-                <User className="w-4 h-4" />
+                {issue.fields.reporter.avatarUrls?.['16x16'] && (
+                  <img 
+                    src={issue.fields.reporter.avatarUrls['16x16']} 
+                    alt={issue.fields.reporter.displayName || 'Reporter'}
+                    className="w-4 h-4 rounded-full"
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                      e.target.nextSibling.style.display = 'inline'
+                    }}
+                  />
+                )}
+                <User className="w-4 h-4" style={{ display: issue.fields.reporter.avatarUrls?.['16x16'] ? 'none' : 'inline' }} />
                 <span>Reporter: {issue.fields.reporter.displayName}</span>
               </div>
             )}

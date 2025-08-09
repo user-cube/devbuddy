@@ -119,7 +119,7 @@ class JiraService {
         jql = `(${projectFilter}) AND ${jql}`;
       }
 
-      const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${config.maxResults || 50}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog`;
+      const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${config.maxResults || 50}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog&expand=names,schema`;
 
       const response = await this.makeRequest(endpoint);
       const issues = response.issues || [];
@@ -143,7 +143,7 @@ class JiraService {
 
   async getIssueDetails (issueKey) {
     try {
-      const endpoint = `/issue/${issueKey}?fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog,attachment,components,labels`;
+      const endpoint = `/issue/${issueKey}?fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated,description,comment,worklog,attachment,components,labels&expand=names,schema`;
       return await this.makeRequest(endpoint);
     } catch (error) {
       console.error('Error fetching issue details:', error);
@@ -284,7 +284,7 @@ class JiraService {
 
   async searchIssues (jql, maxResults = 50) {
     try {
-      const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${maxResults}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated`;
+      const endpoint = `/search?jql=${encodeURIComponent(jql)}&maxResults=${maxResults}&fields=summary,status,priority,issuetype,project,assignee,reporter,created,updated&expand=names,schema`;
 
       const response = await this.makeRequest(endpoint);
       return response.issues || [];
