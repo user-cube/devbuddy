@@ -1,8 +1,8 @@
-import React from 'react'
+import React from 'react';
 import {
   Globe,
   Plus
-} from 'lucide-react'
+} from 'lucide-react';
 
 const RedirectsEmpty = ({ onAddFirstDomain }) => {
   return (
@@ -23,21 +23,21 @@ const RedirectsEmpty = ({ onAddFirstDomain }) => {
           color: 'var(--accent-primary)'
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.3)'
-          e.target.style.transform = 'translateY(-2px)'
-          e.target.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.2)'
+          e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.2)';
         }}
         onMouseLeave={(e) => {
-          e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
-          e.target.style.transform = 'translateY(0)'
-          e.target.style.boxShadow = 'none'
+          e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.boxShadow = 'none';
         }}
       >
         <Plus className="w-5 h-5" />
         Add Your First Domain
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default RedirectsEmpty
+export default RedirectsEmpty;

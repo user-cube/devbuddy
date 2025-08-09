@@ -1,8 +1,8 @@
-import React from 'react'
+import React from 'react';
 import {
   AlertCircle,
   RefreshCw
-} from 'lucide-react'
+} from 'lucide-react';
 
 const GitLabError = ({ error, onRetry }) => {
   return (
@@ -20,12 +20,12 @@ const GitLabError = ({ error, onRetry }) => {
             color: 'var(--accent-primary)'
           }}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = 'rgba(245, 101, 101, 0.3)'
-            e.target.style.transform = 'translateY(-1px)'
+            e.target.style.backgroundColor = 'rgba(245, 101, 101, 0.3)';
+            e.target.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'rgba(245, 101, 101, 0.2)'
-            e.target.style.transform = 'translateY(0)'
+            e.target.style.backgroundColor = 'rgba(245, 101, 101, 0.2)';
+            e.target.style.transform = 'translateY(0)';
           }}
         >
           <RefreshCw className="w-4 h-4 inline mr-2" />
@@ -33,7 +33,7 @@ const GitLabError = ({ error, onRetry }) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default GitLabError
+export default GitLabError;

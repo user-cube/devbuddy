@@ -1,5 +1,5 @@
-import React from 'react'
-import { GitMerge } from 'lucide-react'
+import React from 'react';
+import { GitMerge } from 'lucide-react';
 
 const GitLabEmpty = ({ searchQuery, filter }) => {
   return (
@@ -9,13 +9,13 @@ const GitLabEmpty = ({ searchQuery, filter }) => {
         {searchQuery || filter !== 'all' ? 'No matching merge requests' : 'No merge requests found'}
       </h3>
       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-        {searchQuery || filter !== 'all' 
-          ? 'Try adjusting your search or filters' 
+        {searchQuery || filter !== 'all'
+          ? 'Try adjusting your search or filters'
           : 'Merge requests assigned to you will appear here'
         }
       </p>
     </div>
-  )
-}
+  );
+};
 
-export default GitLabEmpty
+export default GitLabEmpty;

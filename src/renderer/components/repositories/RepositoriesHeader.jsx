@@ -1,19 +1,19 @@
-import React from 'react'
+import React from 'react';
 import {
   Folder,
   RefreshCw,
   Settings,
   ArrowLeft
-} from 'lucide-react'
+} from 'lucide-react';
 
-const RepositoriesHeader = ({ 
-  title, 
-  subtitle, 
-  cacheStatus, 
-  onRefresh, 
-  onRefreshConfig, 
-  onSettings, 
-  loading, 
+const RepositoriesHeader = ({
+  title,
+  subtitle,
+  cacheStatus,
+  onRefresh,
+  onRefreshConfig,
+  onSettings,
+  loading,
   isRefreshingRepositories,
   onBack
 }) => {
@@ -52,7 +52,7 @@ const RepositoriesHeader = ({
           </p>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-2 sm:gap-3">
         {onRefresh && (
           <button
@@ -69,7 +69,7 @@ const RepositoriesHeader = ({
             <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshingRepositories ? 'animate-spin' : ''}`} />
           </button>
         )}
-        
+
         {onRefreshConfig && (
           <button
             onClick={onRefreshConfig}
@@ -85,7 +85,7 @@ const RepositoriesHeader = ({
             <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
         )}
-        
+
         <button
           onClick={onSettings}
           className="p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-105"
@@ -100,7 +100,7 @@ const RepositoriesHeader = ({
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RepositoriesHeader
+export default RepositoriesHeader;

@@ -1,5 +1,5 @@
-import React from 'react'
-import { Star, Heart } from 'lucide-react'
+import React from 'react';
+import { Star, Heart } from 'lucide-react';
 
 const HomeQuickActions = () => {
   const quickActions = [
@@ -9,7 +9,7 @@ const HomeQuickActions = () => {
     { label: 'GitLab', route: '#/gitlab', color: '#f56565' },
     { label: 'Repositories', route: '#/repositories', color: 'var(--accent-primary)' },
     { label: 'Settings', route: '#/config', color: 'var(--text-secondary)' }
-  ]
+  ];
 
   return (
     <div className="mt-12 p-6 rounded-xl" style={{
@@ -30,13 +30,13 @@ const HomeQuickActions = () => {
                 className="px-3 py-1.5 rounded-lg text-sm transition-all duration-300 hover:scale-105"
                 style={{
                   backgroundColor: action.color === 'var(--success)' ? 'rgba(16, 185, 129, 0.1)' :
-                               action.color === '#f56565' ? 'rgba(245, 101, 101, 0.1)' :
-                               action.color === 'var(--text-secondary)' ? 'rgba(107, 114, 128, 0.1)' :
-                               'rgba(59, 130, 246, 0.1)',
+                    action.color === '#f56565' ? 'rgba(245, 101, 101, 0.1)' :
+                      action.color === 'var(--text-secondary)' ? 'rgba(107, 114, 128, 0.1)' :
+                        'rgba(59, 130, 246, 0.1)',
                   border: action.color === 'var(--success)' ? '1px solid rgba(16, 185, 129, 0.2)' :
-                         action.color === '#f56565' ? '1px solid rgba(245, 101, 101, 0.2)' :
-                         action.color === 'var(--text-secondary)' ? '1px solid rgba(107, 114, 128, 0.2)' :
-                         '1px solid rgba(59, 130, 246, 0.2)',
+                    action.color === '#f56565' ? '1px solid rgba(245, 101, 101, 0.2)' :
+                      action.color === 'var(--text-secondary)' ? '1px solid rgba(107, 114, 128, 0.2)' :
+                        '1px solid rgba(59, 130, 246, 0.2)',
                   color: action.color
                 }}
               >
@@ -53,7 +53,7 @@ const HomeQuickActions = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default HomeQuickActions
+export default HomeQuickActions;

@@ -1,11 +1,11 @@
-import React from 'react'
-import { Search, X } from 'lucide-react'
+import React from 'react';
+import { Search, X } from 'lucide-react';
 
-const BookmarkSearch = ({ 
-  searchQuery, 
-  setSearchQuery, 
-  searchInputRef, 
-  filteredBookmarks 
+const BookmarkSearch = ({
+  searchQuery,
+  setSearchQuery,
+  searchInputRef,
+  filteredBookmarks
 }) => {
   return (
     <div className="mb-6">
@@ -37,11 +37,11 @@ const BookmarkSearch = ({
       </div>
       {searchQuery && (
         <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Found {filteredBookmarks.reduce((total, cat) => total + (cat.bookmarks?.length || 0), 0)} bookmarks matching "{searchQuery}"
+          Found {filteredBookmarks.reduce((total, cat) => total + (cat.bookmarks?.length || 0), 0)} bookmarks matching &quot;{searchQuery}&quot;
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default BookmarkSearch
+export default BookmarkSearch;

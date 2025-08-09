@@ -1,9 +1,9 @@
-import React from 'react'
+import React from 'react';
 
 const JiraHeader = () => {
   return (
     <div className="text-center mb-8">
-      <h1 
+      <h1
         className="text-4xl font-bold mb-2"
         style={{
           background: 'linear-gradient(to right, #3b82f6, #1d4ed8)',
@@ -18,7 +18,7 @@ const JiraHeader = () => {
         Monitor and manage your tasks
       </p>
     </div>
-  )
-}
+  );
+};
 
-export default JiraHeader
+export default JiraHeader;

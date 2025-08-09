@@ -1,8 +1,8 @@
-import React from 'react'
-import Loading from '../layout/Loading'
+import React from 'react';
+import Loading from '../layout/Loading';
 
 const JiraLoading = () => {
-  return <Loading fullScreen message="Loading issues..." />
-}
+  return <Loading fullScreen message="Loading issues..." />;
+};
 
-export default JiraLoading
+export default JiraLoading;

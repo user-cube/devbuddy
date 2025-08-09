@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   Link,
   Globe,
@@ -6,24 +6,24 @@ import {
   ExternalLink,
   Trash2,
   Edit3
-} from 'lucide-react'
+} from 'lucide-react';
 
-const RedirectsPathRow = ({ 
-  domain, 
-  path, 
-  targetUrl, 
-  serverStatus, 
-  editingPaths, 
-  onUpdatePath, 
-  onStartEditingPath, 
-  onFinishEditingPath, 
-  onUpdateEditingPath, 
-  onUpdateTargetUrl, 
-  onTestRedirect, 
-  onRemoveRedirect 
+const RedirectsPathRow = ({
+  domain,
+  path,
+  targetUrl,
+  serverStatus,
+  editingPaths,
+  _onUpdatePath,
+  onStartEditingPath,
+  onFinishEditingPath,
+  onUpdateEditingPath,
+  onUpdateTargetUrl,
+  onTestRedirect,
+  onRemoveRedirect
 }) => {
   return (
-    <div 
+    <div
       className="group relative rounded-lg p-4 transition-all duration-300 hover:scale-[1.02]"
       style={{
         backgroundColor: 'var(--bg-tertiary)',
@@ -47,11 +47,11 @@ const RedirectsPathRow = ({
               onBlur={(e) => onFinishEditingPath(domain, path, e.target.value, targetUrl)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  e.target.blur()
+                  e.target.blur();
                 } else if (e.key === 'Escape') {
                   // Cancel editing
-                  onUpdateEditingPath(domain, path, path)
-                  e.target.blur()
+                  onUpdateEditingPath(domain, path, path);
+                  e.target.blur();
                 }
               }}
               className="w-full rounded-lg px-3 py-2 focus:outline-none text-sm transition-all duration-200"
@@ -106,13 +106,13 @@ const RedirectsPathRow = ({
             }}
             onMouseEnter={(e) => {
               if (!e.target.disabled) {
-                e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)'
-                e.target.style.transform = 'translateY(-1px)'
+                e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+                e.target.style.transform = 'translateY(-1px)';
               }
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'
-              e.target.style.transform = 'translateY(0)'
+              e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+              e.target.style.transform = 'translateY(0)';
             }}
             title="Test redirect"
           >
@@ -127,12 +127,12 @@ const RedirectsPathRow = ({
               color: 'var(--error)'
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
-              e.target.style.transform = 'translateY(-1px)'
+              e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+              e.target.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'
-              e.target.style.transform = 'translateY(0)'
+              e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+              e.target.style.transform = 'translateY(0)';
             }}
             title="Remove redirect"
           >
@@ -141,7 +141,7 @@ const RedirectsPathRow = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RedirectsPathRow
+export default RedirectsPathRow;

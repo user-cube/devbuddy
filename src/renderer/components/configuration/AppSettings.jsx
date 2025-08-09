@@ -1,5 +1,5 @@
-import React from 'react'
-import { Settings } from 'lucide-react'
+import React from 'react';
+import { Settings } from 'lucide-react';
 
 const AppSettings = ({ config, updateConfig, setThemeValue }) => {
   return (
@@ -8,7 +8,7 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
         <Settings className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
         <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>App Settings</h2>
       </div>
-      
+
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -16,8 +16,8 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
             <select
               value={config?.app?.theme || 'dark'}
               onChange={(e) => {
-                updateConfig('app', 'theme', e.target.value)
-                setThemeValue(e.target.value)
+                updateConfig('app', 'theme', e.target.value);
+                setThemeValue(e.target.value);
               }}
               className="w-full rounded-lg px-3 py-2 focus:outline-none"
               style={{
@@ -31,7 +31,7 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
               <option value="auto">Auto</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Default Editor</label>
             <select
@@ -52,7 +52,7 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
             </p>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Redirector Port</label>
@@ -74,7 +74,7 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
             </p>
           </div>
         </div>
-        
+
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
@@ -93,7 +93,7 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <div className="font-medium" style={{ color: 'var(--text-primary)' }}>Notifications</div>
@@ -111,7 +111,7 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <div className="font-medium" style={{ color: 'var(--text-primary)' }}>Background Refresh</div>
@@ -132,8 +132,8 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AppSettings
+export default AppSettings;
 

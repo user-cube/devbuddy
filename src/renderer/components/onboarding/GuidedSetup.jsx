@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { 
-  CheckCircle, 
-  ArrowRight, 
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  CheckCircle,
+  ArrowRight,
   ArrowLeft,
   Settings,
   Bookmark,
   ExternalLink,
   GitBranch,
   Users,
-  Zap,
+
   Globe,
   Code
-} from 'lucide-react'
-import { useTheme } from '../../contexts/ThemeContext'
-import Loading from '../layout/Loading'
+} from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
+import Loading from '../layout/Loading';
 
 const GuidedSetup = () => {
-  const navigate = useNavigate()
-  const { theme, setThemeValue } = useTheme()
-  const [currentStep, setCurrentStep] = useState(0)
-  const [config, setConfig] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const navigate = useNavigate();
+  const { setThemeValue } = useTheme();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const setupSteps = [
     {
@@ -154,25 +154,25 @@ const GuidedSetup = () => {
         { key: 'defaultEditor', type: 'select', label: 'Default Editor', options: ['vscode', 'cursor'], default: 'vscode' }
       ]
     }
-  ]
+  ];
 
   useEffect(() => {
-    loadConfig()
-  }, [])
+    loadConfig();
+  }, []);
 
   const loadConfig = async () => {
     try {
       if (window.electronAPI) {
-        const configData = await window.electronAPI.getConfig()
-        setConfig(configData || {})
+        const configData = await window.electronAPI.getConfig();
+        setConfig(configData || {});
       }
-    } catch (error) {
-      console.error('Error loading config:', error)
-      setConfig({})
+    } catch {
+      // no-op
+      setConfig({});
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const updateConfig = (section, key, value) => {
     setConfig(prev => ({
@@ -181,67 +181,75 @@ const GuidedSetup = () => {
         ...prev[section],
         [key]: value
       }
-    }))
+    }));
 
     // Apply certain settings immediately for better UX
     if (section === 'app' && key === 'theme') {
       try {
-        setThemeValue(value)
-      } catch (e) {
-        console.warn('Failed to apply theme immediately:', e)
+        setThemeValue(value);
+      } catch {
+        // no-op
         try {
-          document.documentElement.setAttribute('data-theme', value)
-        } catch (_) {}
-      }
-    }
-  }
-
-  const saveConfig = async () => {
-    setSaving(true)
-    try {
-      if (window.electronAPI) {
-        const result = await window.electronAPI.saveConfig(config)
-        if (result?.success) {
-          try { window.dispatchEvent(new CustomEvent('config-changed')) } catch {}
-          try { localStorage.setItem('devbuddy-onboarding-seen', 'true') } catch {}
-          try { window.dispatchEvent(new Event('onboarding-completed')) } catch {}
-          // Navigate to home page after successful save
-          navigate('/')
-        } else {
-          throw new Error('Failed to save configuration')
+          document.documentElement.setAttribute('data-theme', value);
+        } catch {
+          // Ignore errors when setting theme
         }
       }
-    } catch (error) {
-      console.error('Error saving config:', error)
+    }
+  };
+
+  const saveConfig = async () => {
+    setSaving(true);
+    try {
+      if (window.electronAPI) {
+        const result = await window.electronAPI.saveConfig(config);
+        if (result?.success) {
+          try { window.dispatchEvent(new CustomEvent('config-changed')); } catch {
+            // Ignore errors when dispatching events
+          }
+          try { localStorage.setItem('devbuddy-onboarding-seen', 'true'); } catch {
+            // Ignore errors when setting localStorage
+          }
+          try { window.dispatchEvent(new Event('onboarding-completed')); } catch {
+            // Ignore errors when dispatching events
+          }
+          // Navigate to home page after successful save
+          navigate('/');
+        } else {
+          throw new Error('Failed to save configuration');
+        }
+      }
+    } catch {
+      // no-op
       // You could show an error message here
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const nextStep = () => {
     if (currentStep < setupSteps.length - 1) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(currentStep + 1);
     } else {
-      saveConfig()
+      saveConfig();
     }
-  }
+  };
 
   const prevStep = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   const skipStep = () => {
-    nextStep()
-  }
+    nextStep();
+  };
 
-  const currentStepData = setupSteps[currentStep]
-  const IconComponent = currentStepData.icon
+  const currentStepData = setupSteps[currentStep];
+  const IconComponent = currentStepData.icon;
 
   if (loading) {
-    return <Loading fullScreen message="Loading configuration..." />
+    return <Loading fullScreen message="Loading configuration..." />;
   }
 
   return (
@@ -260,7 +268,7 @@ const GuidedSetup = () => {
               </span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div 
+              <div
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentStep + 1) / setupSteps.length) * 100}%` }}
               ></div>
@@ -296,7 +304,7 @@ const GuidedSetup = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     {field.label}
                   </label>
-                  
+
                   {field.type === 'toggle' && (
                     <div className="flex items-center">
                       <button
@@ -410,8 +418,8 @@ const GuidedSetup = () => {
                     index === currentStep
                       ? 'bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700'
                       : index < currentStep
-                      ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700'
-                      : 'bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700'
+                        : 'bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                   onClick={() => setCurrentStep(index)}
                 >
@@ -419,8 +427,8 @@ const GuidedSetup = () => {
                     index === currentStep
                       ? 'bg-blue-500 text-white'
                       : index < currentStep
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
                   }`}>
                     {index < currentStep ? (
                       <CheckCircle className="h-4 w-4" />
@@ -433,8 +441,8 @@ const GuidedSetup = () => {
                       index === currentStep
                         ? 'text-blue-900 dark:text-blue-100'
                         : index < currentStep
-                        ? 'text-green-900 dark:text-green-100'
-                        : 'text-gray-700 dark:text-gray-300'
+                          ? 'text-green-900 dark:text-green-100'
+                          : 'text-gray-700 dark:text-gray-300'
                     }`}>
                       {step.title}
                     </p>
@@ -442,8 +450,8 @@ const GuidedSetup = () => {
                       index === currentStep
                         ? 'text-blue-700 dark:text-blue-200'
                         : index < currentStep
-                        ? 'text-green-700 dark:text-green-200'
-                        : 'text-gray-500 dark:text-gray-400'
+                          ? 'text-green-700 dark:text-green-200'
+                          : 'text-gray-500 dark:text-gray-400'
                     }`}>
                       {step.subtitle}
                     </p>
@@ -491,7 +499,7 @@ const GuidedSetup = () => {
                 )}
               </button>
             </div>
-            
+
             <button
               onClick={skipStep}
               className="w-full px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
@@ -502,7 +510,7 @@ const GuidedSetup = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default GuidedSetup
+export default GuidedSetup;

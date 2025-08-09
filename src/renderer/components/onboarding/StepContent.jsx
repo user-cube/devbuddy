@@ -1,7 +1,7 @@
-import React from 'react'
+import React from 'react';
 
 const StepContent = ({ step }) => {
-  const IconComponent = step.icon
+  const IconComponent = step.icon;
 
   return (
     <div className={`p-8 rounded-2xl ${step.bgColor} border border-gray-200 dark:border-gray-700`}>
@@ -75,9 +75,8 @@ const StepContent = ({ step }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default StepContent
-
+export default StepContent;
 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Circle, Flag, Calendar, Tag, Edit, Trash2, MoreHorizontal, Folder } from 'lucide-react';
+import { CheckCircle, Circle, Flag, Calendar, Tag, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 
 const TaskCard = ({ task, onToggleComplete, onEdit, onDelete }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [categoryDetails, setCategoryDetails] = useState(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (task.category && task.category !== 'general') {
@@ -18,38 +19,38 @@ const TaskCard = ({ task, onToggleComplete, onEdit, onDelete }) => {
       if (category) {
         setCategoryDetails(category);
       }
-    } catch (error) {
-      console.error('Error loading category details:', error);
+    } catch {
+      // no-op
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'urgent':
-        return 'text-red-500';
-      case 'high':
-        return 'text-orange-500';
-      case 'medium':
-        return 'text-yellow-500';
-      case 'low':
-        return 'text-green-500';
-      default:
-        return 'text-gray-500';
+    case 'urgent':
+      return 'text-red-500';
+    case 'high':
+      return 'text-orange-500';
+    case 'medium':
+      return 'text-yellow-500';
+    case 'low':
+      return 'text-green-500';
+    default:
+      return 'text-gray-500';
     }
   };
 
   const getPriorityLabel = (priority) => {
     switch (priority) {
-      case 'urgent':
-        return 'Urgent';
-      case 'high':
-        return 'High';
-      case 'medium':
-        return 'Medium';
-      case 'low':
-        return 'Low';
-      default:
-        return 'Medium';
+    case 'urgent':
+      return 'Urgent';
+    case 'high':
+      return 'High';
+    case 'medium':
+      return 'Medium';
+    case 'low':
+      return 'Low';
+    default:
+      return 'Medium';
     }
   };
 
@@ -81,17 +82,20 @@ const TaskCard = ({ task, onToggleComplete, onEdit, onDelete }) => {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      onDelete(task.id);
-    }
+    setShowConfirmDelete(true);
     setShowMenu(false);
   };
 
+  const confirmDelete = () => {
+    onDelete(task.id);
+    setShowConfirmDelete(false);
+  };
+
   return (
-    <div 
+    <div
       className={`p-4 rounded-lg border transition-all duration-200 ${
-        task.completed 
-          ? 'opacity-60' 
+        task.completed
+          ? 'opacity-60'
           : 'hover:shadow-md'
       }`}
       style={{
@@ -116,7 +120,7 @@ const TaskCard = ({ task, onToggleComplete, onEdit, onDelete }) => {
         {/* Task Content */}
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h3 
+          <h3
             className={`font-medium mb-1 ${
               task.completed ? 'line-through' : ''
             }`}
@@ -127,7 +131,7 @@ const TaskCard = ({ task, onToggleComplete, onEdit, onDelete }) => {
 
           {/* Description */}
           {task.description && (
-            <p 
+            <p
               className={`text-sm mb-2 ${
                 task.completed ? 'line-through' : ''
               }`}
@@ -211,13 +215,13 @@ const TaskCard = ({ task, onToggleComplete, onEdit, onDelete }) => {
           {showMenu && (
             <>
               {/* Backdrop */}
-              <div 
+              <div
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
-              
+
               {/* Menu */}
-              <div 
+              <div
                 className="absolute right-0 top-8 z-20 min-w-32 rounded-lg border shadow-lg"
                 style={{
                   backgroundColor: 'var(--bg-primary)',
@@ -248,6 +252,30 @@ const TaskCard = ({ task, onToggleComplete, onEdit, onDelete }) => {
           )}
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      {showConfirmDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Confirm Delete</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to delete this task?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowConfirmDelete(false)}
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

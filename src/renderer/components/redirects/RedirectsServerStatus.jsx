@@ -1,18 +1,18 @@
-import React from 'react'
+import React from 'react';
 import {
   Server,
   Play,
   Square
-} from 'lucide-react'
+} from 'lucide-react';
 
-const RedirectsServerStatus = ({ 
-  serverStatus, 
-  onStartServer, 
-  onStopServer 
+const RedirectsServerStatus = ({
+  serverStatus,
+  onStartServer,
+  onStopServer
 }) => {
   return (
     <div className="card">
-      <div 
+      <div
         className="flex items-center justify-between mb-6 pb-4"
         style={{ borderBottom: '1px solid var(--border-primary)' }}
       >
@@ -26,25 +26,25 @@ const RedirectsServerStatus = ({
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div 
+          <div
             className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
             style={{
-              backgroundColor: serverStatus.running 
-                ? 'rgba(16, 185, 129, 0.1)' 
+              backgroundColor: serverStatus.running
+                ? 'rgba(16, 185, 129, 0.1)'
                 : 'rgba(239, 68, 68, 0.1)',
-              color: serverStatus.running 
-                ? 'var(--success)' 
+              color: serverStatus.running
+                ? 'var(--success)'
                 : 'var(--error)',
-              border: serverStatus.running 
-                ? '1px solid rgba(16, 185, 129, 0.3)' 
+              border: serverStatus.running
+                ? '1px solid rgba(16, 185, 129, 0.3)'
                 : '1px solid rgba(239, 68, 68, 0.3)'
             }}
           >
-            <div 
+            <div
               className={`w-2 h-2 rounded-full transition-all duration-300 ${serverStatus.running ? 'animate-pulse' : ''}`}
               style={{
-                backgroundColor: serverStatus.running 
-                  ? 'var(--success)' 
+                backgroundColor: serverStatus.running
+                  ? 'var(--success)'
                   : 'var(--error)'
               }}
             ></div>
@@ -56,32 +56,32 @@ const RedirectsServerStatus = ({
           </div>
         </div>
       </div>
-      
+
       <div className="flex gap-4">
         <button
           onClick={onStartServer}
           disabled={serverStatus.running}
           className="flex items-center gap-3 px-6 py-3 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            backgroundColor: serverStatus.running 
-              ? 'rgba(16, 185, 129, 0.1)' 
+            backgroundColor: serverStatus.running
+              ? 'rgba(16, 185, 129, 0.1)'
               : 'rgba(16, 185, 129, 0.2)',
             border: '1px solid rgba(16, 185, 129, 0.3)',
             color: 'var(--success)'
           }}
           onMouseEnter={(e) => {
             if (!e.target.disabled) {
-              e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.3)'
-              e.target.style.transform = 'translateY(-2px)'
-              e.target.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.2)'
+              e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.3)';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.2)';
             }
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = serverStatus.running 
-              ? 'rgba(16, 185, 129, 0.1)' 
-              : 'rgba(16, 185, 129, 0.2)'
-            e.target.style.transform = 'translateY(0)'
-            e.target.style.boxShadow = 'none'
+            e.target.style.backgroundColor = serverStatus.running
+              ? 'rgba(16, 185, 129, 0.1)'
+              : 'rgba(16, 185, 129, 0.2)';
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = 'none';
           }}
         >
           <Play className="w-5 h-5" />
@@ -92,25 +92,25 @@ const RedirectsServerStatus = ({
           disabled={!serverStatus.running}
           className="flex items-center gap-3 px-6 py-3 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            backgroundColor: serverStatus.running 
-              ? 'rgba(239, 68, 68, 0.2)' 
+            backgroundColor: serverStatus.running
+              ? 'rgba(239, 68, 68, 0.2)'
               : 'rgba(239, 68, 68, 0.1)',
             border: '1px solid rgba(239, 68, 68, 0.3)',
             color: 'var(--error)'
           }}
           onMouseEnter={(e) => {
             if (!e.target.disabled) {
-              e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
-              e.target.style.transform = 'translateY(-2px)'
-              e.target.style.boxShadow = '0 8px 25px rgba(239, 68, 68, 0.2)'
+              e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.3)';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(239, 68, 68, 0.2)';
             }
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = serverStatus.running 
-              ? 'rgba(239, 68, 68, 0.2)' 
-              : 'rgba(239, 68, 68, 0.1)'
-            e.target.style.transform = 'translateY(0)'
-            e.target.style.boxShadow = 'none'
+            e.target.style.backgroundColor = serverStatus.running
+              ? 'rgba(239, 68, 68, 0.2)'
+              : 'rgba(239, 68, 68, 0.1)';
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = 'none';
           }}
         >
           <Square className="w-5 h-5" />
@@ -119,7 +119,7 @@ const RedirectsServerStatus = ({
       </div>
 
       {serverStatus.running && (
-        <div 
+        <div
           className="mt-4 p-4 rounded-lg"
           style={{
             backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -139,7 +139,7 @@ const RedirectsServerStatus = ({
       )}
 
       {!serverStatus.running && (
-        <div 
+        <div
           className="mt-4 p-4 rounded-lg"
           style={{
             backgroundColor: 'rgba(245, 158, 11, 0.1)',
@@ -147,7 +147,7 @@ const RedirectsServerStatus = ({
           }}
         >
           <h3 className="font-semibold mb-2" style={{ color: 'var(--warning)' }}>⚠️ Server not running</h3>
-          <p className="text-sm mb-3" style={{ color: 'var(--warning)' }}>The redirector server should start automatically. If it's not running, try restarting DevBuddy.</p>
+          <p className="text-sm mb-3" style={{ color: 'var(--warning)' }}>The redirector server should start automatically. If it&apos;s not running, try restarting DevBuddy.</p>
           <ol className="text-sm space-y-1" style={{ color: 'var(--warning)' }}>
             <li>1. Start the redirector server manually (button above)</li>
             <li>2. (Optional) Add to /etc/hosts: <code className="px-1 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>127.0.0.1 devbuddy.local</code></li>
@@ -159,7 +159,7 @@ const RedirectsServerStatus = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default RedirectsServerStatus
+export default RedirectsServerStatus;

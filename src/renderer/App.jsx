@@ -18,6 +18,7 @@ import Tasks from './components/tasks/Tasks';
 import Onboarding from './components/onboarding/Onboarding';
 import GuidedSetup from './components/onboarding/GuidedSetup';
 import { useOnboarding } from './hooks/useOnboarding';
+import { ToastContainer } from './components/layout/Toast';
 
 function App () {
   const [currentTime, setCurrentTime] = useState('');
@@ -234,6 +235,7 @@ function App () {
             </Routes>
           </main>
         </div>
+        <ToastContainer />
       </NavigationProvider>
     </ThemeProvider>
   );

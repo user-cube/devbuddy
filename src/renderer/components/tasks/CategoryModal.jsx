@@ -29,7 +29,7 @@ const CategoryModal = ({ category, onSave, onClose }) => {
       ...prev,
       [field]: value
     }));
-    
+
     // Clear error when user starts typing
     if (field === 'name' && error) {
       setError('');
@@ -38,7 +38,7 @@ const CategoryModal = ({ category, onSave, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       setError('Please enter a category name');
       return;
@@ -52,16 +52,16 @@ const CategoryModal = ({ category, onSave, onClose }) => {
       } else {
         await onSave(formData);
       }
-    } catch (error) {
-      console.error('Error saving category:', error);
-      setError(error.message || 'Error saving category. Please try again.');
+    } catch {
+      // no-op
+      setError('Error saving category. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const predefinedIcons = [
-    '📋', '📁', '📂', '📝', '📌', '🎯', '⚡', '🔥', '💡', '🚀', 
+    '📋', '📁', '📂', '📝', '📌', '🎯', '⚡', '🔥', '💡', '🚀',
     '🏠', '💼', '🎓', '🏥', '🛒', '🍽️', '🏃', '🎨', '🎮', '📚'
   ];
 
@@ -73,13 +73,13 @@ const CategoryModal = ({ category, onSave, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black bg-opacity-50"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
-      <div 
+      <div
         className="relative w-full max-w-md rounded-lg border shadow-xl"
         style={{
           backgroundColor: 'var(--bg-primary)',
@@ -87,7 +87,7 @@ const CategoryModal = ({ category, onSave, onClose }) => {
         }}
       >
         {/* Header */}
-        <div 
+        <div
           className="flex items-center justify-between p-4 border-b"
           style={{ borderColor: 'var(--border-primary)' }}
         >

@@ -1,11 +1,11 @@
-export { default as Repositories } from './Repositories'
-export { default as RepositoriesHeader } from './RepositoriesHeader'
-export { default as RepositoriesDirectories } from './RepositoriesDirectories'
-export { default as RepositoriesSearch } from './RepositoriesSearch'
-export { default as RepositoriesFolders } from './RepositoriesFolders'
-export { default as RepositoriesDetails } from './RepositoriesDetails'
-export { default as RepositoriesLoading } from './RepositoriesLoading'
-export { default as RepositoriesError } from './RepositoriesError'
-export { default as RepositoriesDisabled } from './RepositoriesDisabled'
-export { default as GitGraph } from './GitGraph'
-export * from './RepositoriesUtils'
+export { default as Repositories } from './Repositories';
+export { default as RepositoriesHeader } from './RepositoriesHeader';
+export { default as RepositoriesDirectories } from './RepositoriesDirectories';
+export { default as RepositoriesSearch } from './RepositoriesSearch';
+export { default as RepositoriesFolders } from './RepositoriesFolders';
+export { default as RepositoriesDetails } from './RepositoriesDetails';
+export { default as RepositoriesLoading } from './RepositoriesLoading';
+export { default as RepositoriesError } from './RepositoriesError';
+export { default as RepositoriesDisabled } from './RepositoriesDisabled';
+export { default as GitGraph } from './GitGraph';
+export * from './RepositoriesUtils';

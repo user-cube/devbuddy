@@ -1,7 +1,7 @@
-import React from 'react'
+import React from 'react';
 import {
   Settings
-} from 'lucide-react'
+} from 'lucide-react';
 
 const RepositoriesDisabled = ({ onSettingsClick }) => {
   return (
@@ -25,7 +25,7 @@ const RepositoriesDisabled = ({ onSettingsClick }) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RepositoriesDisabled
+export default RepositoriesDisabled;

@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   GitBranch,
   ExternalLink,
@@ -6,37 +6,37 @@ import {
   Calendar,
   RefreshCw,
   Settings
-} from 'lucide-react'
-import GitGraph from './GitGraph'
+} from 'lucide-react';
+import GitGraph from './GitGraph';
 
-const RepositoriesDetails = ({ 
-  selectedFolder, 
-  selectedDirectory, 
-  appConfig, 
-  repositoryCommits, 
-  onBack, 
-  onRefresh, 
-  onSettings, 
-  onOpenRepository, 
-  onOpenInEditor, 
-  onRefreshCommits, 
-  loading 
+const RepositoriesDetails = ({
+  selectedFolder,
+  _selectedDirectory,
+  appConfig,
+  repositoryCommits,
+  onBack,
+  onRefresh,
+  onSettings,
+  onOpenRepository,
+  onOpenInEditor,
+  onRefreshCommits,
+  loading
 }) => {
   const getStatusIcon = (repo) => {
     if (repo.hasChanges) {
-      return <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'var(--warning)' }}></div>
+      return <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'var(--warning)' }}></div>;
     }
     if (repo.isUpToDate) {
-      return <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'var(--success)' }}></div>
+      return <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'var(--success)' }}></div>;
     }
-    return <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'var(--error)' }}></div>
-  }
+    return <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'var(--error)' }}></div>;
+  };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Unknown'
-    const date = new Date(dateString)
-    return date.toLocaleDateString()
-  }
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
 
   return (
     <div className="min-h-screen p-6">
@@ -57,7 +57,7 @@ const RepositoriesDetails = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          
+
           <div className="flex items-center gap-3">
             <GitBranch className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
             <div>
@@ -69,10 +69,10 @@ const RepositoriesDetails = ({
               </p>
             </div>
           </div>
-          
+
           {getStatusIcon(selectedFolder)}
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button
             onClick={onRefresh}
@@ -87,7 +87,7 @@ const RepositoriesDetails = ({
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          
+
           <button
             onClick={onSettings}
             className="p-3 rounded-lg transition-all duration-300 hover:scale-105"
@@ -174,15 +174,15 @@ const RepositoriesDetails = ({
                   border: '1px solid var(--border-primary)'
                 }}>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-4 h-4 rounded-full" style={{ 
-                      backgroundColor: selectedFolder.hasChanges ? 'var(--warning)' : 
-                                  selectedFolder.isUpToDate ? 'var(--success)' : 'var(--error)' 
+                    <div className="w-4 h-4 rounded-full" style={{
+                      backgroundColor: selectedFolder.hasChanges ? 'var(--warning)' :
+                        selectedFolder.isUpToDate ? 'var(--success)' : 'var(--error)'
                     }}></div>
                     <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Status</span>
                   </div>
                   <p className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {selectedFolder.hasChanges ? 'Has changes' : 
-                     selectedFolder.isUpToDate ? 'Up to date' : 'Behind remote'}
+                    {selectedFolder.hasChanges ? 'Has changes' :
+                      selectedFolder.isUpToDate ? 'Up to date' : 'Behind remote'}
                   </p>
                 </div>
               </div>
@@ -260,14 +260,14 @@ const RepositoriesDetails = ({
               <RefreshCw className="w-5 h-5" />
             </button>
           </div>
-          <GitGraph 
-            commits={repositoryCommits[selectedFolder.path] || []} 
+          <GitGraph
+            commits={repositoryCommits[selectedFolder.path] || []}
             currentBranch={selectedFolder.branch}
           />
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RepositoriesDetails
+export default RepositoriesDetails;

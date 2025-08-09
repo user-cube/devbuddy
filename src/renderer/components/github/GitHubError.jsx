@@ -1,5 +1,5 @@
-import React from 'react'
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import React from 'react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 const GitHubError = ({ error, onRetry }) => {
   return (
@@ -17,12 +17,12 @@ const GitHubError = ({ error, onRetry }) => {
             color: 'var(--accent-primary)'
           }}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.3)'
-            e.target.style.transform = 'translateY(-1px)'
+            e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
+            e.target.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'
-            e.target.style.transform = 'translateY(0)'
+            e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+            e.target.style.transform = 'translateY(0)';
           }}
         >
           <RefreshCw className="w-4 h-4 inline mr-2" />
@@ -30,7 +30,7 @@ const GitHubError = ({ error, onRetry }) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default GitHubError
+export default GitHubError;

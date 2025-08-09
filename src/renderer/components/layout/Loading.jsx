@@ -1,9 +1,9 @@
-import React from 'react'
+import React from 'react';
 
 const Loading = ({ message = 'Loading...', fullScreen = false }) => {
   const containerStyle = fullScreen
     ? { backgroundColor: 'var(--bg-primary)' }
-    : { backgroundColor: 'var(--bg-primary)', minHeight: '60vh', width: '100%' }
+    : { backgroundColor: 'var(--bg-primary)', minHeight: '60vh', width: '100%' };
 
   return (
     <div
@@ -22,9 +22,8 @@ const Loading = ({ message = 'Loading...', fullScreen = false }) => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Loading
-
+export default Loading;
 

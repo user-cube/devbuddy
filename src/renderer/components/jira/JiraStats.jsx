@@ -1,10 +1,10 @@
-import React from 'react'
+import React from 'react';
 import {
   GitBranch,
   User,
   Clock,
   Flag
-} from 'lucide-react'
+} from 'lucide-react';
 
 const JiraStats = ({ stats }) => {
   const statCards = [
@@ -38,14 +38,14 @@ const JiraStats = ({ stats }) => {
       icon: User,
       color: 'var(--accent-primary)'
     }
-  ]
+  ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
       {statCards.map((stat, index) => {
-        const IconComponent = stat.icon
+        const IconComponent = stat.icon;
         return (
-          <div 
+          <div
             key={index}
             className="p-4 rounded-lg transition-all duration-300 hover:scale-105"
             style={{
@@ -62,10 +62,10 @@ const JiraStats = ({ stats }) => {
               <IconComponent className="w-8 h-8" style={{ color: stat.color }} />
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
-}
+  );
+};
 
-export default JiraStats
+export default JiraStats;

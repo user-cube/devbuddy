@@ -1,186 +1,198 @@
-import React, { useState, useEffect } from 'react'
-import { Bookmark, FolderPlus, Search, X } from 'lucide-react'
-import Toast from '../layout/Toast'
-import Loading from '../layout/Loading'
-import BookmarkSearch from './BookmarkSearch'
-import CategoryCard from './CategoryCard'
-import CategoryModal from './CategoryModal'
-import BookmarkModal from './BookmarkModal'
-import { filterBookmarks } from './BookmarkUtils'
+import React, { useState, useEffect } from 'react';
+import { Bookmark, FolderPlus, Search, X } from 'lucide-react';
+import { Toast } from '../../hooks/useToast';
+import ToastComponent from '../layout/Toast';
+import Loading from '../layout/Loading';
+import BookmarkSearch from './BookmarkSearch';
+import CategoryCard from './CategoryCard';
+import CategoryModal from './CategoryModal';
+import BookmarkModal from './BookmarkModal';
+import { filterBookmarks } from './BookmarkUtils';
 
 const Bookmarks = () => {
-  const [bookmarks, setBookmarks] = useState({ categories: [] })
-  const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState({ type: '', text: '' })
-  const [expandedCategories, setExpandedCategories] = useState(new Set())
-  const [editingCategory, setEditingCategory] = useState(null)
-  const [editingBookmark, setEditingBookmark] = useState(null)
-  const [showAddCategory, setShowAddCategory] = useState(false)
-  const [showAddBookmark, setShowAddBookmark] = useState(null) // categoryId
-  const [searchQuery, setSearchQuery] = useState('')
-  const searchInputRef = React.useRef(null)
+  const [bookmarks, setBookmarks] = useState({ categories: [] });
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingBookmark, setEditingBookmark] = useState(null);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showAddBookmark, setShowAddBookmark] = useState(null); // categoryId
+  const [searchQuery, setSearchQuery] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState({ show: false, message: '', onConfirm: null });
+  const searchInputRef = React.useRef(null);
 
   useEffect(() => {
-    loadBookmarks()
-  }, [])
+    loadBookmarks();
+  }, []);
 
   const loadBookmarks = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       if (window.electronAPI) {
-        const data = await window.electronAPI.getBookmarks()
-        setBookmarks(data)
+        const data = await window.electronAPI.getBookmarks();
+        setBookmarks(data);
         // Start with all categories collapsed
-        setExpandedCategories(new Set())
+        setExpandedCategories(new Set());
       }
-    } catch (error) {
-      console.error('Error loading bookmarks:', error)
-      setMessage({ type: 'error', text: 'Error loading bookmarks' })
+    } catch {
+      // no-op
+      setMessage({ type: 'error', text: 'Error loading bookmarks' });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const toggleCategory = (categoryId) => {
-    const newExpanded = new Set(expandedCategories)
+    const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId)
+      newExpanded.delete(categoryId);
     } else {
-      newExpanded.add(categoryId)
+      newExpanded.add(categoryId);
     }
-    setExpandedCategories(newExpanded)
-  }
+    setExpandedCategories(newExpanded);
+  };
 
   const handleOpenBookmark = async (bookmarkId) => {
     try {
       if (window.electronAPI) {
-        const result = await window.electronAPI.openBookmark(bookmarkId)
+        const result = await window.electronAPI.openBookmark(bookmarkId);
         if (result.success) {
-          setMessage({ type: 'success', text: result.message })
+          setMessage({ type: 'success', text: result.message });
         } else {
-          setMessage({ type: 'error', text: result.message })
+          setMessage({ type: 'error', text: result.message });
         }
       }
-    } catch (error) {
-      console.error('Error opening bookmark:', error)
-      setMessage({ type: 'error', text: 'Error opening bookmark' })
+    } catch {
+      // no-op
+      setMessage({ type: 'error', text: 'Error opening bookmark' });
     }
-  }
+  };
 
   const handleAddCategory = async (categoryData) => {
     try {
       if (window.electronAPI) {
-        await window.electronAPI.addBookmarkCategory(categoryData)
-        setMessage({ type: 'success', text: 'Category added successfully!' })
-        await loadBookmarks()
-        setShowAddCategory(false)
+        await window.electronAPI.addBookmarkCategory(categoryData);
+        setMessage({ type: 'success', text: 'Category added successfully!' });
+        await loadBookmarks();
+        setShowAddCategory(false);
       }
-    } catch (error) {
-      console.error('Error adding category:', error)
-      setMessage({ type: 'error', text: 'Error adding category' })
+    } catch {
+      // no-op
+      setMessage({ type: 'error', text: 'Error adding category' });
     }
-  }
+  };
 
   const handleUpdateCategory = async (categoryId, updatedData) => {
     try {
       if (window.electronAPI) {
-        await window.electronAPI.updateBookmarkCategory(categoryId, updatedData)
-        setMessage({ type: 'success', text: 'Category updated successfully!' })
-        await loadBookmarks()
-        setEditingCategory(null)
+        await window.electronAPI.updateBookmarkCategory(categoryId, updatedData);
+        setMessage({ type: 'success', text: 'Category updated successfully!' });
+        await loadBookmarks();
+        setEditingCategory(null);
       }
-    } catch (error) {
-      console.error('Error updating category:', error)
-      setMessage({ type: 'error', text: 'Error updating category' })
+    } catch {
+      // no-op
+      setMessage({ type: 'error', text: 'Error updating category' });
     }
-  }
+  };
 
   const handleDeleteCategory = async (categoryId) => {
-    if (window.confirm('Are you sure you want to delete this category? All bookmarks in this category will also be deleted.')) {
-      try {
-        if (window.electronAPI) {
-          await window.electronAPI.deleteBookmarkCategory(categoryId)
-          setMessage({ type: 'success', text: 'Category deleted successfully!' })
-          await loadBookmarks()
+    setConfirmDialog({
+      show: true,
+      message: 'Are you sure you want to delete this category? All bookmarks in this category will also be deleted.',
+      onConfirm: async () => {
+        try {
+          if (window.electronAPI) {
+            await window.electronAPI.deleteBookmarkCategory(categoryId);
+            setMessage({ type: 'success', text: 'Category deleted successfully!' });
+            await loadBookmarks();
+          }
+        } catch {
+          // no-op
+          setMessage({ type: 'error', text: 'Error deleting category' });
         }
-      } catch (error) {
-        console.error('Error deleting category:', error)
-        setMessage({ type: 'error', text: 'Error deleting category' })
+        setConfirmDialog({ show: false, message: '', onConfirm: null });
       }
-    }
-  }
+    });
+  };
 
   const handleAddBookmark = async (categoryId, bookmarkData) => {
     try {
       if (window.electronAPI) {
-        await window.electronAPI.addBookmark(categoryId, bookmarkData)
-        setMessage({ type: 'success', text: 'Bookmark added successfully!' })
-        await loadBookmarks()
-        setShowAddBookmark(null)
+        await window.electronAPI.addBookmark(categoryId, bookmarkData);
+        setMessage({ type: 'success', text: 'Bookmark added successfully!' });
+        await loadBookmarks();
+        setShowAddBookmark(null);
       }
-    } catch (error) {
-      console.error('Error adding bookmark:', error)
-      setMessage({ type: 'error', text: 'Error adding bookmark' })
+    } catch {
+      // no-op
+      setMessage({ type: 'error', text: 'Error adding bookmark' });
     }
-  }
+  };
 
   const handleUpdateBookmark = async (categoryId, bookmarkId, updatedData) => {
     try {
       if (window.electronAPI) {
-        await window.electronAPI.updateBookmark(categoryId, bookmarkId, updatedData)
-        setMessage({ type: 'success', text: 'Bookmark updated successfully!' })
-        await loadBookmarks()
-        setEditingBookmark(null)
+        await window.electronAPI.updateBookmark(categoryId, bookmarkId, updatedData);
+        setMessage({ type: 'success', text: 'Bookmark updated successfully!' });
+        await loadBookmarks();
+        setEditingBookmark(null);
       }
-    } catch (error) {
-      console.error('Error updating bookmark:', error)
-      setMessage({ type: 'error', text: 'Error updating bookmark' })
+    } catch {
+      // no-op
+      setMessage({ type: 'error', text: 'Error updating bookmark' });
     }
-  }
+  };
 
   const handleDeleteBookmark = async (categoryId, bookmarkId) => {
-    if (window.confirm('Are you sure you want to delete this bookmark?')) {
-      try {
-        if (window.electronAPI) {
-          await window.electronAPI.deleteBookmark(categoryId, bookmarkId)
-          setMessage({ type: 'success', text: 'Bookmark deleted successfully!' })
-          await loadBookmarks()
+    setConfirmDialog({
+      show: true,
+      message: 'Are you sure you want to delete this bookmark?',
+      onConfirm: async () => {
+        try {
+          if (window.electronAPI) {
+            await window.electronAPI.deleteBookmark(categoryId, bookmarkId);
+            setMessage({ type: 'success', text: 'Bookmark deleted successfully!' });
+            await loadBookmarks();
+          }
+        } catch {
+          // no-op
+          setMessage({ type: 'error', text: 'Error deleting bookmark' });
         }
-      } catch (error) {
-        console.error('Error deleting bookmark:', error)
-        setMessage({ type: 'error', text: 'Error deleting bookmark' })
+        setConfirmDialog({ show: false, message: '', onConfirm: null });
       }
-    }
-  }
+    });
+  };
 
-  const filteredBookmarks = filterBookmarks(bookmarks.categories || [], searchQuery)
+  const filteredBookmarks = filterBookmarks(bookmarks.categories || [], searchQuery);
 
   // Auto-expand categories when searching
   useEffect(() => {
     if (searchQuery.trim()) {
-      const categoriesWithResults = filteredBookmarks.map(cat => cat.id)
-      setExpandedCategories(new Set(categoriesWithResults))
+      const categoriesWithResults = filteredBookmarks.map(cat => cat.id);
+      setExpandedCategories(new Set(categoriesWithResults));
     } else {
       // Keep categories collapsed when search is cleared
-      setExpandedCategories(new Set())
+      setExpandedCategories(new Set());
     }
-  }, [searchQuery, filteredBookmarks])
+  }, [searchQuery, filteredBookmarks]);
 
   // Keyboard shortcut for search (Ctrl/Cmd + K)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault()
-        searchInputRef.current?.focus()
+        e.preventDefault();
+        searchInputRef.current?.focus();
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [])
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   if (loading) {
-    return <Loading fullScreen message="Loading bookmarks..." />
+    return <Loading fullScreen message="Loading bookmarks..." />;
   }
 
   return (
@@ -230,7 +242,7 @@ const Bookmarks = () => {
                     No Results Found
                   </h3>
                   <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-                    No bookmarks match your search for "{searchQuery}"
+                    No bookmarks match your search for &quot;{searchQuery}&quot;
                   </p>
                   <button
                     onClick={() => setSearchQuery('')}
@@ -299,11 +311,35 @@ const Bookmarks = () => {
             )}
 
             {/* Toast Notification */}
-            <Toast 
-              message={message} 
+            <ToastComponent
+              message={message}
               onClose={() => setMessage({ type: '', text: '' })}
               duration={4000}
             />
+
+            {/* Confirmation Dialog */}
+            {confirmDialog.show && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4 shadow-xl">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Confirm Action</h3>
+                  <p className="text-gray-700 dark:text-gray-300 mb-6">{confirmDialog.message}</p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setConfirmDialog({ show: false, message: '', onConfirm: null })}
+                      className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmDialog.onConfirm}
+                      className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -329,7 +365,7 @@ const Bookmarks = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Bookmarks 
+export default Bookmarks;

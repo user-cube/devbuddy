@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Tag, Flag, Hash } from 'lucide-react';
+import { X, Calendar, Tag, Hash } from 'lucide-react';
+import { Toast } from '../../hooks/useToast';
 
 const TaskModal = ({ task, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -52,8 +53,8 @@ const TaskModal = ({ task, onSave, onClose }) => {
       ]);
       setCategories(categoriesData);
       setPriorities(prioritiesData);
-    } catch (error) {
-      console.error('Error loading options:', error);
+    } catch {
+      // no-op
     }
   };
 
@@ -90,9 +91,9 @@ const TaskModal = ({ task, onSave, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.title.trim()) {
-      alert('Please enter a task title');
+      Toast.error('Please enter a task title');
       return;
     }
 
@@ -110,39 +111,24 @@ const TaskModal = ({ task, onSave, onClose }) => {
       } else {
         await onSave(taskData);
       }
-    } catch (error) {
-      console.error('Error saving task:', error);
-      alert('Error saving task. Please try again.');
+    } catch {
+      // no-op
+      Toast.error('Error saving task. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'urgent':
-        return 'text-red-500';
-      case 'high':
-        return 'text-orange-500';
-      case 'medium':
-        return 'text-yellow-500';
-      case 'low':
-        return 'text-green-500';
-      default:
-        return 'text-gray-500';
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black bg-opacity-50"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
-      <div 
+      <div
         className="relative w-full max-w-md rounded-lg border shadow-xl"
         style={{
           backgroundColor: 'var(--bg-primary)',
@@ -150,7 +136,7 @@ const TaskModal = ({ task, onSave, onClose }) => {
         }}
       >
         {/* Header */}
-        <div 
+        <div
           className="flex items-center justify-between p-4 border-b"
           style={{ borderColor: 'var(--border-primary)' }}
         >

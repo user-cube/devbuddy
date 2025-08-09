@@ -1,31 +1,31 @@
-import React from 'react'
+import React from 'react';
 import {
   Server,
   Plus
-} from 'lucide-react'
-import RedirectsPathRow from './RedirectsPathRow'
+} from 'lucide-react';
+import RedirectsPathRow from './RedirectsPathRow';
 
-const RedirectsDomainCard = ({ 
-  domain, 
-  paths, 
-  serverStatus, 
-  editingPaths, 
-  editingDomains, 
-  onUpdateDomain, 
-  onStartEditingDomain, 
-  onFinishEditingDomain, 
-  onUpdateEditingDomain, 
-  onUpdatePath, 
-  onStartEditingPath, 
-  onFinishEditingPath, 
-  onUpdateEditingPath, 
-  onUpdateTargetUrl, 
-  onTestRedirect, 
-  onRemoveRedirect, 
-  onAddRedirect 
+const RedirectsDomainCard = ({
+  domain,
+  paths,
+  serverStatus,
+  editingPaths,
+  editingDomains,
+  _onUpdateDomain,
+  onStartEditingDomain,
+  onFinishEditingDomain,
+  onUpdateEditingDomain,
+  onUpdatePath,
+  onStartEditingPath,
+  onFinishEditingPath,
+  onUpdateEditingPath,
+  onUpdateTargetUrl,
+  onTestRedirect,
+  onRemoveRedirect,
+  onAddRedirect
 }) => {
   return (
-    <div 
+    <div
       className="rounded-xl p-6 transition-all duration-300 hover:shadow-lg"
       style={{
         border: '1px solid var(--border-primary)',
@@ -44,11 +44,11 @@ const RedirectsDomainCard = ({
             onBlur={(e) => onFinishEditingDomain(domain, e.target.value, paths)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                e.target.blur()
+                e.target.blur();
               } else if (e.key === 'Escape') {
                 // Cancel editing
-                onUpdateEditingDomain(domain, domain)
-                e.target.blur()
+                onUpdateEditingDomain(domain, domain);
+                e.target.blur();
               }
             }}
             className="text-xl font-semibold bg-transparent border-none outline-none transition-colors duration-200"
@@ -57,7 +57,7 @@ const RedirectsDomainCard = ({
           />
         </div>
         <div className="flex items-center gap-2 ml-auto">
-          <span 
+          <span
             className="px-2 py-1 text-xs font-medium rounded-full"
             style={{
               backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -87,7 +87,7 @@ const RedirectsDomainCard = ({
             onRemoveRedirect={onRemoveRedirect}
           />
         ))}
-        
+
         {/* Add new redirect for this domain */}
         <button
           onClick={() => onAddRedirect(domain)}
@@ -98,14 +98,14 @@ const RedirectsDomainCard = ({
             color: 'var(--accent-primary)'
           }}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'
-            e.target.style.borderColor = 'rgba(59, 130, 246, 0.5)'
-            e.target.style.transform = 'translateY(-1px)'
+            e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+            e.target.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+            e.target.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.05)'
-            e.target.style.borderColor = 'rgba(59, 130, 246, 0.3)'
-            e.target.style.transform = 'translateY(0)'
+            e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+            e.target.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+            e.target.style.transform = 'translateY(0)';
           }}
         >
           <div className="p-1 rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
@@ -115,7 +115,7 @@ const RedirectsDomainCard = ({
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RedirectsDomainCard
+export default RedirectsDomainCard;

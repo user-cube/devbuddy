@@ -1,10 +1,10 @@
-export { default as Home } from './Home'
-export { default as HomeHeader } from './HomeHeader'
-export { default as HomeStats } from './HomeStats'
-export { default as HomeIntegrationStatus } from './HomeIntegrationStatus'
-export { default as HomeBookmarks } from './HomeBookmarks'
-export { default as HomeRecentActivity } from './HomeRecentActivity'
-export { default as HomeQuickActions } from './HomeQuickActions'
-export { default as HomeLoading } from './HomeLoading'
-export { default as HomeError } from './HomeError'
-export * from './HomeUtils'
+export { default as Home } from './Home';
+export { default as HomeHeader } from './HomeHeader';
+export { default as HomeStats } from './HomeStats';
+export { default as HomeIntegrationStatus } from './HomeIntegrationStatus';
+export { default as HomeBookmarks } from './HomeBookmarks';
+export { default as HomeRecentActivity } from './HomeRecentActivity';
+export { default as HomeQuickActions } from './HomeQuickActions';
+export { default as HomeLoading } from './HomeLoading';
+export { default as HomeError } from './HomeError';
+export * from './HomeUtils';

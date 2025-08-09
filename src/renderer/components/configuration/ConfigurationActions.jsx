@@ -1,19 +1,19 @@
-import React from 'react'
-import { 
-  Filter, 
-  RefreshCw, 
-  Download, 
-  Upload, 
-  Save 
-} from 'lucide-react'
+import React from 'react';
+import {
+  Filter,
+  RefreshCw,
+  Download,
+  Upload,
+  Save
+} from 'lucide-react';
 
-const ConfigurationActions = ({ 
-  saving, 
-  onClearCache, 
-  onTriggerBackgroundRefresh, 
-  onExportConfig, 
-  onImportConfig, 
-  onSaveConfig 
+const ConfigurationActions = ({
+  saving,
+  onClearCache,
+  onTriggerBackgroundRefresh,
+  onExportConfig,
+  onImportConfig,
+  onSaveConfig
 }) => {
   return (
     <div className="border-t p-6" style={{ borderColor: 'var(--border-primary)' }}>
@@ -31,7 +31,7 @@ const ConfigurationActions = ({
             <Filter className="w-4 h-4 inline mr-2" />
             Clear Cache
           </button>
-          
+
           <button
             onClick={onTriggerBackgroundRefresh}
             className="px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105"
@@ -45,7 +45,7 @@ const ConfigurationActions = ({
             Refresh Data
           </button>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <button
             onClick={onExportConfig}
@@ -59,7 +59,7 @@ const ConfigurationActions = ({
             <Download className="w-4 h-4 inline mr-2" />
             Export
           </button>
-          
+
           <button
             onClick={onImportConfig}
             className="px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105"
@@ -72,7 +72,7 @@ const ConfigurationActions = ({
             <Upload className="w-4 h-4 inline mr-2" />
             Import
           </button>
-          
+
           <button
             onClick={onSaveConfig}
             disabled={saving}
@@ -97,8 +97,8 @@ const ConfigurationActions = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ConfigurationActions
+export default ConfigurationActions;
 

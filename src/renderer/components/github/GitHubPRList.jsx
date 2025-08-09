@@ -1,6 +1,6 @@
-import React from 'react'
-import { GitPullRequest } from 'lucide-react'
-import GitHubPRCard from './GitHubPRCard'
+import React from 'react';
+import { GitPullRequest } from 'lucide-react';
+import GitHubPRCard from './GitHubPRCard';
 
 const GitHubPRList = ({ pullRequests, searchQuery, filter, onPRClick }) => {
   if (pullRequests.length === 0) {
@@ -11,13 +11,13 @@ const GitHubPRList = ({ pullRequests, searchQuery, filter, onPRClick }) => {
           {searchQuery || filter !== 'all' ? 'No matching pull requests' : 'No pull requests found'}
         </h3>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {searchQuery || filter !== 'all' 
-            ? 'Try adjusting your search or filters' 
+          {searchQuery || filter !== 'all'
+            ? 'Try adjusting your search or filters'
             : 'Pull requests assigned to you will appear here'
           }
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -30,7 +30,7 @@ const GitHubPRList = ({ pullRequests, searchQuery, filter, onPRClick }) => {
         />
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default GitHubPRList
+export default GitHubPRList;

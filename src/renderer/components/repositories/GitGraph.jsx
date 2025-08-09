@@ -1,10 +1,10 @@
-import React from 'react'
+import React from 'react';
 import {
   GitCommit,
   User,
   Calendar
-} from 'lucide-react'
-import { formatCommitDate, getCommitColor } from './RepositoriesUtils'
+} from 'lucide-react';
+import { formatCommitDate, getCommitColor } from './RepositoriesUtils';
 
 const GitGraph = ({ commits, currentBranch }) => {
   if (!commits || commits.length === 0) {
@@ -13,7 +13,7 @@ const GitGraph = ({ commits, currentBranch }) => {
         <GitCommit className="w-12 h-12 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>No commits found</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -23,21 +23,21 @@ const GitGraph = ({ commits, currentBranch }) => {
           <div className="flex items-start gap-4">
             {/* Commit line */}
             <div className="flex flex-col items-center">
-              <div 
+              <div
                 className="w-4 h-4 rounded-full border-2 transition-all duration-300 group-hover:scale-110"
-                style={{ 
+                style={{
                   backgroundColor: getCommitColor(commit, currentBranch),
                   borderColor: getCommitColor(commit, currentBranch)
                 }}
               />
               {index < commits.length - 1 && (
-                <div 
+                <div
                   className="w-0.5 h-12 mt-2"
                   style={{ backgroundColor: 'var(--border-primary)' }}
                 />
               )}
             </div>
-            
+
             {/* Commit card */}
             <div className="flex-1 min-w-0">
               <div className="p-4 rounded-lg transition-all duration-300 group-hover:scale-[1.02]" style={{
@@ -79,7 +79,7 @@ const GitGraph = ({ commits, currentBranch }) => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default GitGraph
+export default GitGraph;

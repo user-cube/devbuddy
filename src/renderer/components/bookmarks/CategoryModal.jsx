@@ -1,30 +1,30 @@
-import React, { useState } from 'react'
-import { Save } from 'lucide-react'
-import IconSelector from '../common/IconSelector'
+import React, { useState } from 'react';
+import { Save } from 'lucide-react';
+import IconSelector from '../common/IconSelector';
 
 const CategoryModal = ({ category, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: category?.name || '',
     icon: category?.icon || 'folder',
     color: category?.color || '#3b82f6'
-  })
+  });
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (formData.name.trim()) {
-      onSave(formData)
+      onSave(formData);
     }
-  }
+  };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center z-50"
       style={{
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         backdropFilter: 'blur(2px)'
       }}
     >
-      <div 
+      <div
         className="rounded-lg p-6 w-full max-w-md mx-4"
         style={{
           backgroundColor: 'var(--bg-secondary)',
@@ -93,7 +93,7 @@ const CategoryModal = ({ category, onSave, onCancel }) => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CategoryModal
+export default CategoryModal;

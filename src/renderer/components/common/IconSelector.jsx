@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { ChevronDown, Search } from 'lucide-react'
+import React, { useState } from 'react';
+import { ChevronDown, Search } from 'lucide-react';
 
-const IconSelector = ({ value, onChange, placeholder = "Select an icon" }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
+const IconSelector = ({ value, onChange, placeholder = 'Select an icon' }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Ícones úteis para bookmarks/favoritos
   const icons = [
@@ -33,20 +33,20 @@ const IconSelector = ({ value, onChange, placeholder = "Select an icon" }) => {
     { name: 'fire', icon: 'fas fa-fire', label: 'Hot' },
     { name: 'bolt', icon: 'fas fa-bolt', label: 'Fast' },
     { name: 'rocket', icon: 'fas fa-rocket', label: 'Rocket' }
-  ]
+  ];
 
-  const filteredIcons = icons.filter(icon => 
+  const filteredIcons = icons.filter(icon =>
     icon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     icon.label.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
-  const selectedIcon = icons.find(icon => icon.name === value)
+  const selectedIcon = icons.find(icon => icon.name === value);
 
   const handleIconSelect = (iconName) => {
-    onChange(iconName)
-    setIsOpen(false)
-    setSearchTerm('')
-  }
+    onChange(iconName);
+    setIsOpen(false);
+    setSearchTerm('');
+  };
 
   return (
     <div className="relative">
@@ -74,7 +74,7 @@ const IconSelector = ({ value, onChange, placeholder = "Select an icon" }) => {
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="absolute top-full left-0 right-0 mt-1 rounded-lg border z-50 max-h-64 overflow-y-auto"
           style={{
             backgroundColor: 'var(--bg-secondary)',
@@ -129,16 +129,16 @@ const IconSelector = ({ value, onChange, placeholder = "Select an icon" }) => {
 
       {/* Click outside to close */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => {
-            setIsOpen(false)
-            setSearchTerm('')
+            setIsOpen(false);
+            setSearchTerm('');
           }}
         />
       )}
     </div>
-  )
-}
+  );
+};
 
-export default IconSelector 
+export default IconSelector;
