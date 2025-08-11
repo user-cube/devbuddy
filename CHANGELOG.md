@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+## [1.4.2](https://github.com/user-cube/devbuddy/compare/v1.4.1...v1.4.2) (2025-08-11)
+
+
+### Bug Fixes
+
+* update release process ([#17](https://github.com/user-cube/devbuddy/issues/17)) ([4823ef7](https://github.com/user-cube/devbuddy/commit/4823ef75d95318c4473f2df5e705cc99de7b3d15))
+
 ## [1.4.1](https://github.com/user-cube/devbuddy/compare/v1.4.0...v1.4.1) (2025-08-09)
 
 
