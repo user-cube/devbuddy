@@ -18,6 +18,12 @@ jobs:
     name: Attempt fast sync (merge) main -> staging
     runs-on: ubuntu-latest
     steps:
+    - name: Create GitHub App token
+      id: app
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ secrets.DEVOPS_BUDDY_APP_ID }}
+        private-key: ${{ secrets.DEVOPS_BUDDY_PRIVATE_KEY }}
     - name: Merge main into staging
       id: merge
       uses: devmasx/merge-branch@v1.4.0
@@ -25,7 +31,7 @@ jobs:
         type: now
         from_branch: main
         target_branch: staging
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ steps.app.outputs.token }}
 
   open-pr-on-conflict:
     name: Open PR if merge cannot be applied cleanly
@@ -34,10 +40,16 @@ jobs:
     # If the previous job failed (e.g., conflicts), create a PR instead
     if: ${{ needs.auto-merge.result == 'failure' }}
     steps:
+    - name: Create GitHub App token
+      id: app
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ secrets.DEVOPS_BUDDY_APP_ID }}
+        private-key: ${{ secrets.DEVOPS_BUDDY_PRIVATE_KEY }}
     - name: Create PR main -> staging
       uses: repo-sync/pull-request@v2
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ steps.app.outputs.token }}
       with:
         source_branch: main
         destination_branch: staging
