@@ -5,6 +5,35 @@ const path = require('path');
 const os = require('os');
 const yaml = require('js-yaml');
 
+// Escape text for safe insertion into HTML contexts (text and attributes)
+function escapeHtml (value) {
+  const stringValue = String(value ?? '');
+  return stringValue.replace(/[&<>"'`]/g, (ch) => {
+    switch (ch) {
+    case '&': return '&amp;';
+    case '<': return '&lt;';
+    case '>': return '&gt;';
+    case '"': return '&quot;';
+    case "'": return '&#39;';
+    case '`': return '&#96;';
+    default: return ch;
+    }
+  });
+}
+
+function isSafeHttpUrl (maybeUrl) {
+  try {
+    const parsed = new URL(String(maybeUrl));
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeUrl (maybeUrl) {
+  return isSafeHttpUrl(maybeUrl) ? String(maybeUrl) : '#';
+}
+
 class RedirectorService {
   constructor () {
     this.configDir = path.join(os.homedir(), '.devbuddy');
@@ -144,11 +173,13 @@ class RedirectorService {
 
         if (redirects[domain] && redirects[domain][pathname]) {
           const targetUrl = redirects[domain][pathname];
+          const safeTargetUrl = sanitizeUrl(targetUrl);
+          const safeTargetUrlHtml = escapeHtml(safeTargetUrl);
           console.log(`Redirecting ${host}${req.url} to ${targetUrl}`);
 
           res.writeHead(302, {
-            'Location': targetUrl,
-            'Content-Type': 'text/html'
+            'Location': safeTargetUrl,
+            'Content-Type': 'text/html; charset=utf-8'
           });
           res.end(`
             <!DOCTYPE html>
@@ -267,9 +298,9 @@ class RedirectorService {
                 <div class="redirect-message">
                   You are being redirected to the target URL
                 </div>
-                <a href="${targetUrl}" class="target-link">
+                <a href="${safeTargetUrlHtml}" class="target-link" rel="noopener noreferrer" target="_top">
                   <span class="spinner"></span>
-                  ${targetUrl}
+                  ${safeTargetUrlHtml}
                 </a>
                 <div class="auto-redirect">
                   If you are not redirected automatically, click the link above
@@ -279,14 +310,14 @@ class RedirectorService {
               <script>
                 // Auto-redirect after 2 seconds
                 setTimeout(() => {
-                  window.location.href = '${targetUrl}';
+                  window.location.href = ${JSON.stringify(safeTargetUrl)};
                 }, 2000);
               </script>
             </body>
             </html>
           `);
         } else {
-          res.writeHead(404, { 'Content-Type': 'text/html' });
+          res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
 
           // Generate HTML for all available redirects across all domains
           let allRedirectsHtml = '';
@@ -295,23 +326,32 @@ class RedirectorService {
           Object.entries(redirects).forEach(([redirectDomain, paths]) => {
             if (Object.keys(paths).length > 0) {
               hasRedirects = true;
-              allRedirectsHtml += `
-                <div class="domain-section">
-                  <h3 class="domain-title">${redirectDomain}</h3>
-                  <div class="redirects-grid">
-                    ${Object.entries(paths).map(([path, url]) => `
+              const safeDomain = escapeHtml(redirectDomain);
+              const itemsHtml = Object.entries(paths).map(([pathKey, target]) => {
+                const safePath = escapeHtml(pathKey);
+                const encodedPathForHref = encodeURIComponent(pathKey);
+                const testHref = `http://${redirectDomain}:${this.port}/${encodedPathForHref}`;
+                const safeTestHref = escapeHtml(testHref);
+                const safeTarget = escapeHtml(target);
+                return `
                       <div class="redirect-item">
                         <div class="redirect-source">
-                          <span class="domain">${redirectDomain}</span>
-                          <span class="path">/${path}</span>
+                          <span class="domain">${safeDomain}</span>
+                          <span class="path">/${safePath}</span>
                         </div>
                         <div class="redirect-arrow">→</div>
                         <div class="redirect-target">
-                          <a href="http://${redirectDomain}:${this.port}/${path}" class="test-link">Test</a>
-                          <span class="target-url">${url}</span>
+                          <a href="${safeTestHref}" class="test-link" rel="noopener noreferrer" target="_top">Test</a>
+                          <span class="target-url">${safeTarget}</span>
                         </div>
-                      </div>
-                    `).join('')}
+                      </div>`;
+              }).join('');
+
+              allRedirectsHtml += `
+                <div class="domain-section">
+                  <h3 class="domain-title">${safeDomain}</h3>
+                  <div class="redirects-grid">
+                    ${itemsHtml}
                   </div>
                 </div>
               `;
@@ -586,7 +626,7 @@ class RedirectorService {
                   <div class="logo">🚀 DevBuddy</div>
                   <div class="error-code">404</div>
                   <div class="error-message">Redirect Not Found</div>
-                  <div class="requested-url">${host}${req.url}</div>
+                  <div class="requested-url">${escapeHtml(host)}${escapeHtml(req.url)}</div>
                 </div>
                 
                 <div class="help-section">
@@ -594,7 +634,7 @@ class RedirectorService {
                   <ol class="help-steps">
                     <li>Open the DevBuddy application</li>
                     <li>Go to the "Redirects" page</li>
-                    <li>Add a new redirect for "${pathname}"</li>
+                    <li>Add a new redirect for "${escapeHtml(pathname)}"</li>
                     <li>Save your configuration</li>
                     <li>Try accessing the URL again</li>
                   </ol>

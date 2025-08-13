@@ -25,6 +25,13 @@ const Home = ({ currentTime }) => {
   });
   const [lastRefreshNotification, setLastRefreshNotification] = useState(null);
 
+  // Bottom extras: redirects, tasks, notes
+  const [extras, setExtras] = useState({
+    redirects: { domains: 0, count: 0, running: false, port: null },
+    tasks: { total: 0, pending: 0, dueToday: 0, overdue: 0, completionRate: 0 },
+    notes: { notebooks: 0, notes: 0 }
+  });
+
   const [activeIntegrations, setActiveIntegrations] = useState({
     jira: false,
     github: false,
@@ -65,6 +72,7 @@ const Home = ({ currentTime }) => {
         window.electronAPI.removeBackgroundRefreshCompletedListener(handleBackgroundRefreshCompleted);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -90,11 +98,15 @@ const Home = ({ currentTime }) => {
           bitbucket: configData?.bitbucket?.enabled || false,
           repositories: repositoriesConfig?.enabled || false
         });
+
+        // Using standard view only
       }
     } catch {
       // no-op
     }
   };
+
+  // Compact mode disabled; keeping state for potential future use
 
   const loadDashboardData = async () => {
     try {
@@ -125,7 +137,10 @@ const Home = ({ currentTime }) => {
         loadRepositoriesData().catch(_err => {
           // no-op
           return null;
-        })
+        }),
+        loadRedirectsData().catch(_err => null),
+        loadTasksData().catch(_err => null),
+        loadNotesData().catch(_err => null)
       ];
 
       const timeoutPromise = new Promise((_, reject) => {
@@ -277,6 +292,63 @@ const Home = ({ currentTime }) => {
     }
   };
 
+  const loadRedirectsData = async () => {
+    try {
+      const status = await window.electronAPI.getRedirectorStatus();
+      const redirects = status?.redirects || {};
+      const domains = Object.keys(redirects).length;
+      const count = Object.values(redirects).reduce((acc, paths) => acc + Object.keys(paths || {}).length, 0);
+      setExtras(prev => ({
+        ...prev,
+        redirects: { domains, count, running: !!status?.running, port: status?.port || null }
+      }));
+    } catch {
+      // no-op
+    }
+  };
+
+  const loadTasksData = async () => {
+    try {
+      const statsData = await window.electronAPI.getTaskStats();
+      const tasks = await window.electronAPI.getTasks();
+      const total = statsData?.total || (tasks ? tasks.length : 0);
+      const pending = statsData?.pending ?? (tasks ? tasks.filter(t => !t.completed).length : 0);
+      setExtras(prev => ({
+        ...prev,
+        tasks: {
+          total,
+          pending,
+          dueToday: statsData?.dueToday || 0,
+          overdue: statsData?.overdue || 0,
+          completionRate: statsData?.completionRate || (total > 0 ? Math.round(((total - pending) / total) * 100) : 0)
+        }
+      }));
+    } catch {
+      // no-op
+    }
+  };
+
+  const loadNotesData = async () => {
+    try {
+      const notebooks = await window.electronAPI.getNotebooks();
+      let totalNotes = 0;
+      for (const nb of (notebooks || [])) {
+        try {
+          const notes = await window.electronAPI.getNotes(nb.id);
+          totalNotes += (notes || []).length;
+        } catch {
+          // per-notebook no-op
+        }
+      }
+      setExtras(prev => ({
+        ...prev,
+        notes: { notebooks: (notebooks || []).length, notes: totalNotes }
+      }));
+    } catch {
+      // no-op
+    }
+  };
+
   const handleBookmarkClick = async (bookmarkId) => {
     if (window.electronAPI) {
       try {
@@ -364,15 +436,24 @@ const Home = ({ currentTime }) => {
         activeIntegrations={activeIntegrations}
         stats={stats}
         onQuickAction={handleQuickAction}
+        extras={extras}
       />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <HomeBookmarks shortcuts={shortcuts} onBookmarkClick={handleBookmarkClick} />
+      {/* Recent activity first */}
+      <div className="mb-8">
         <HomeRecentActivity
           activeIntegrations={activeIntegrations}
           recentItems={recentItems}
           onOpenItem={openItem}
+        />
+      </div>
+
+      {/* Bookmarks as a single horizontal row under recent activity */}
+      <div className="mb-4">
+        <HomeBookmarks
+          shortcuts={shortcuts}
+          onBookmarkClick={handleBookmarkClick}
+          variant="row"
         />
       </div>
 

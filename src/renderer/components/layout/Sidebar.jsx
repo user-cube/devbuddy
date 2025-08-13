@@ -5,6 +5,7 @@ import {
   Bookmark,
   Globe,
   CheckSquare,
+  BookOpen,
   GitBranch,
   GitPullRequest,
   GitMerge,
@@ -67,7 +68,8 @@ const Sidebar = ({ currentPath, isConfigured }) => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks' },
     { path: '/redirects', icon: Globe, label: 'Redirects' },
-    { path: '/tasks', icon: CheckSquare, label: 'Tasks' }
+    { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
+    { path: '/notes', icon: BookOpen, label: 'Notes' }
   ];
 
   // Integration navigation items (only if enabled)

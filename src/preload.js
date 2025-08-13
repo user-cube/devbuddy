@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getAppConfig: () => ipcRenderer.invoke('get-app-config'),
   updateAppConfig: (config) => ipcRenderer.invoke('update-app-config', config),
+  configureAutoLaunch: (enabled) => ipcRenderer.invoke('configure-auto-launch', enabled),
 
   // Jira service
   getJiraIssues: () => ipcRenderer.invoke('get-jira-issues'),
@@ -198,6 +199,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createTaskCategory: (categoryData) => ipcRenderer.invoke('create-task-category', categoryData),
   updateTaskCategory: (categoryId, updates) => ipcRenderer.invoke('update-task-category', categoryId, updates),
   deleteTaskCategory: (categoryId) => ipcRenderer.invoke('delete-task-category', categoryId),
-  getTasksByCategory: (categoryId) => ipcRenderer.invoke('get-tasks-by-category', categoryId)
+  getTasksByCategory: (categoryId) => ipcRenderer.invoke('get-tasks-by-category', categoryId),
+
+  // Notes service
+  getNotebooks: () => ipcRenderer.invoke('get-notebooks'),
+  createNotebook: (data) => ipcRenderer.invoke('create-notebook', data),
+  updateNotebook: (id, updates) => ipcRenderer.invoke('update-notebook', id, updates),
+  deleteNotebook: (id) => ipcRenderer.invoke('delete-notebook', id),
+  getNotes: (notebookId) => ipcRenderer.invoke('get-notes', notebookId),
+  getNote: (notebookId, noteId) => ipcRenderer.invoke('get-note', notebookId, noteId),
+  createNote: (notebookId, noteData) => ipcRenderer.invoke('create-note', notebookId, noteData),
+  updateNote: (notebookId, noteId, updates) => ipcRenderer.invoke('update-note', notebookId, noteId, updates),
+  deleteNote: (notebookId, noteId) => ipcRenderer.invoke('delete-note', notebookId, noteId),
+  searchNotes: (query) => ipcRenderer.invoke('search-notes', query)
+  ,
+  saveNoteAsset: (notebookId, buffer, ext) => ipcRenderer.invoke('save-note-asset', notebookId, buffer, ext)
+  ,
+  fileToDataUrl: (filePath) => ipcRenderer.invoke('file-to-data-url', filePath)
+  ,
+  importNoteAsset: (notebookId, sourcePath) => ipcRenderer.invoke('import-note-asset', notebookId, sourcePath)
 
 });

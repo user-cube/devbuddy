@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -11,8 +11,11 @@ const BitbucketService = require('./services/bitbucket.js');
 const JiraService = require('./services/jira.js');
 const RepositoriesService = require('./services/repositories.js');
 const TasksService = require('./services/tasks.js');
+const NotesService = require('./services/notes.js');
 
 let mainWindow;
+let tray = null;
+let isQuiting = false;
 const configService = new ConfigService();
 const bookmarksService = new BookmarksService();
 const redirectorService = new RedirectorService();
@@ -22,6 +25,7 @@ const bitbucketService = new BitbucketService();
 const jiraService = new JiraService();
 const repositoriesService = RepositoriesService;
 const tasksService = TasksService;
+const notesService = NotesService;
 
 // Global state for app initialization
 let appInitialized = false;
@@ -30,6 +34,49 @@ let initializationPromise = null;
 // Background refresh system
 let backgroundRefreshInterval = null;
 let lastRefreshTime = Date.now();
+// Auto-launch configuration
+function configureAutoLaunch (enabled) {
+  try {
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+      app.setLoginItemSettings({
+        openAtLogin: !!enabled,
+        openAsHidden: true
+      });
+    } else {
+      // Linux: create/remove autostart .desktop entry
+      const autostartDir = path.join(os.homedir(), '.config', 'autostart');
+      const desktopFile = path.join(autostartDir, 'devbuddy.desktop');
+      const fsPromises = require('fs').promises;
+      const execPath = process.execPath;
+      if (enabled) {
+        fsPromises.mkdir(autostartDir, { recursive: true }).then(() => {
+          const content = [
+            '[Desktop Entry]',
+            'Type=Application',
+            'Name=DevBuddy',
+            `Exec=${execPath}`,
+            'X-GNOME-Autostart-enabled=true',
+            'Hidden=false'
+          ].join('\n');
+          return fsPromises.writeFile(desktopFile, content, 'utf8');
+        }).catch(() => {});
+      } else {
+        fsPromises.unlink(desktopFile).catch(() => {});
+      }
+    }
+  } catch (error) {
+    console.warn('Auto-launch configuration failed:', error.message);
+  }
+}
+
+function updateAutoLaunchFromConfig () {
+  try {
+    const cfg = configService.loadConfig();
+    configureAutoLaunch(cfg?.app?.autoStart === true);
+  } catch {
+    // no-op
+  }
+}
 
 // Start background refresh system
 function startBackgroundRefresh () {
@@ -297,7 +344,12 @@ function createWindow () {
       preload: preloadPath
     },
     icon: path.join(__dirname, 'assets/devbuddy.icns'),
-    titleBarStyle: 'default',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    titleBarOverlay: process.platform === 'darwin' ? {
+      color: '#0b1220', // matches app dark bg
+      symbolColor: '#ffffff',
+      height: 36
+    } : false,
     show: false
   });
 
@@ -317,21 +369,101 @@ function createWindow () {
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+    const configServiceInstance = configService.loadConfig();
+    const shouldStartMinimized = configServiceInstance?.app?.startMinimized === true;
+    if (shouldStartMinimized) {
+      mainWindow.hide();
+    } else {
+      mainWindow.show();
+    }
 
     // Start data initialization after window is shown
     initializeAppData();
   });
 
   // Handle window closed
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  mainWindow.on('close', (e) => {
+    const cfg = configService.loadConfig();
+    const minimizeToTray = cfg?.app?.minimizeToTray !== false; // default true
+    if (!isQuiting && minimizeToTray) {
+      e.preventDefault();
+      mainWindow.hide();
+      return false;
+    }
+    return undefined;
   });
+}
+
+function getTrayIconPath () {
+  // __dirname already points to src/, so assets are in src/assets
+  if (process.platform === 'darwin') {
+    return path.join(__dirname, 'assets/macos/icon_16x16.png');
+  }
+  if (process.platform === 'win32') {
+    return path.join(__dirname, 'assets/windows/icon_16x16.png');
+  }
+  return path.join(__dirname, 'assets/linux/icon_16x16.png');
+}
+
+function createTray () {
+  try {
+    if (tray) return;
+    let iconPath = getTrayIconPath();
+    // Fallback to main icon if specific not found
+    if (!require('fs').existsSync(iconPath)) {
+      iconPath = process.platform === 'darwin'
+        ? path.join(__dirname, 'assets/macos/icon_16x16.png')
+        : path.join(__dirname, 'assets/icon.png');
+    }
+    let image = nativeImage.createFromPath(iconPath);
+    if (process.platform === 'darwin') {
+      image = image.resize({ width: 18, height: 18 });
+    }
+    tray = new Tray(image.isEmpty() ? undefined : image);
+
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Show/Hide DevBuddy',
+        click: () => {
+          if (!mainWindow) return;
+          if (mainWindow.isVisible()) mainWindow.hide(); else mainWindow.show();
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Trigger Background Refresh',
+        click: async () => {
+          try { await performBackgroundRefresh(); } catch {
+            // no-op
+          }
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        click: () => {
+          isQuiting = true;
+          app.quit();
+        }
+      }
+    ]);
+
+    tray.setToolTip('DevBuddy');
+    tray.setContextMenu(contextMenu);
+    tray.on('click', () => {
+      if (!mainWindow) return;
+      if (mainWindow.isVisible()) mainWindow.hide(); else mainWindow.show();
+    });
+  } catch (error) {
+    console.error('Failed to create tray:', error);
+  }
 }
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
   createWindow();
+  createTray();
+  updateAutoLaunchFromConfig();
 
   // Start the redirector server automatically
   try {
@@ -362,11 +494,14 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  } else if (mainWindow) {
+    mainWindow.show();
   }
 });
 
 // Handle app quit to ensure redirector server is stopped
 app.on('before-quit', () => {
+  isQuiting = true;
   redirectorService.stopServer().then(() => {
     console.log('Redirector server stopped on app quit');
   }).catch((error) => {
@@ -578,7 +713,25 @@ ipcMain.handle('get-app-config', () => {
 });
 
 ipcMain.handle('update-app-config', async (_event, appConfig) => {
-  return configService.updateAppConfig(appConfig);
+  const res = configService.updateAppConfig(appConfig);
+  try {
+    if (typeof appConfig.autoStart !== 'undefined') {
+      configureAutoLaunch(appConfig.autoStart);
+    }
+  } catch {
+    // no-op
+  }
+  return res;
+});
+
+// Allow renderer to request auto-launch reconfiguration
+ipcMain.handle('configure-auto-launch', async (_event, enabled) => {
+  try {
+    configureAutoLaunch(enabled);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 
 // Service data (future implementation)
@@ -1911,5 +2064,173 @@ ipcMain.handle('get-tasks-by-category', async (event, categoryId) => {
   } catch (error) {
     console.error('Error getting tasks by category:', error);
     return [];
+  }
+});
+
+// Notes handlers
+ipcMain.handle('get-notebooks', async () => {
+  try {
+    return await notesService.getNotebooks();
+  } catch (error) {
+    console.error('Error getting notebooks:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('create-notebook', async (_event, data) => {
+  try {
+    return await notesService.createNotebook(data);
+  } catch (error) {
+    console.error('Error creating notebook:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-notebook', async (_event, id, updates) => {
+  try {
+    return await notesService.updateNotebook(id, updates);
+  } catch (error) {
+    console.error('Error updating notebook:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-notebook', async (_event, id) => {
+  try {
+    return await notesService.deleteNotebook(id);
+  } catch (error) {
+    console.error('Error deleting notebook:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-notes', async (_event, notebookId) => {
+  try {
+    return await notesService.getNotes(notebookId);
+  } catch (error) {
+    console.error('Error getting notes:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-note', async (_event, notebookId, noteId) => {
+  try {
+    return await notesService.getNote(notebookId, noteId);
+  } catch (error) {
+    console.error('Error getting note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('create-note', async (_event, notebookId, noteData) => {
+  try {
+    return await notesService.createNote(notebookId, noteData);
+  } catch (error) {
+    console.error('Error creating note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-note', async (_event, notebookId, noteId, updates) => {
+  try {
+    return await notesService.updateNote(notebookId, noteId, updates);
+  } catch (error) {
+    console.error('Error updating note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-note', async (_event, notebookId, noteId) => {
+  try {
+    return await notesService.deleteNote(notebookId, noteId);
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('search-notes', async (_event, query) => {
+  try {
+    return await notesService.searchNotes(query);
+  } catch (error) {
+    console.error('Error searching notes:', error);
+    return [];
+  }
+});
+
+// Save clipboard asset into notebook assets directory and return a file:// URL
+ipcMain.handle('save-note-asset', async (_event, notebookId, buffer, ext) => {
+  try {
+    const filePath = await notesService.saveAsset(notebookId, Buffer.from(buffer), ext);
+    // Build file URL
+    const url = `file://${filePath}`;
+    return { success: true, filePath, url };
+  } catch (error) {
+    console.error('Error saving note asset:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Convert a local file path to data URL for safe rendering in dev server
+ipcMain.handle('file-to-data-url', async (_event, filePath) => {
+  try {
+    const fsPromises = require('fs').promises;
+    const pathModule = require('path');
+    let resolvedPath = filePath;
+    if (resolvedPath.startsWith('file://')) {
+      resolvedPath = resolvedPath.replace('file://', '');
+    }
+    // Decode URI-encoded paths like spaces (%20)
+    resolvedPath = decodeURI(resolvedPath);
+    const buffer = await fsPromises.readFile(resolvedPath);
+    const ext = (pathModule.extname(resolvedPath) || '').toLowerCase();
+    let mime = 'application/octet-stream';
+    if (ext === '.png') mime = 'image/png';
+    else if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
+    else if (ext === '.gif') mime = 'image/gif';
+    else if (ext === '.webp') mime = 'image/webp';
+    else if (ext === '.svg') mime = 'image/svg+xml';
+    else if (ext === '.mp4') mime = 'video/mp4';
+    else if (ext === '.mov') mime = 'video/quicktime';
+    const base64 = buffer.toString('base64');
+    return `data:${mime};base64,${base64}`;
+  } catch (error) {
+    console.error('Error converting file to data URL:', error);
+    return null;
+  }
+});
+
+// Import an existing local file into the notebook assets directory
+ipcMain.handle('import-note-asset', async (_event, notebookId, sourcePath) => {
+  try {
+    const fs = require('fs');
+    const pathModule = require('path');
+    let resolvedPath = sourcePath;
+    if (resolvedPath.startsWith('file://')) {
+      resolvedPath = resolvedPath.replace('file://', '');
+    }
+    resolvedPath = decodeURI(resolvedPath);
+    const buffer = fs.readFileSync(resolvedPath);
+    const ext = (pathModule.extname(resolvedPath) || '.bin').slice(1);
+    const storedPath = await notesService.saveAsset(notebookId, buffer, ext);
+    const fileUrl = `file://${storedPath}`;
+    // Also return data URL for immediate preview if needed
+    const fsPromises = require('fs').promises;
+    const savedBuffer = await fsPromises.readFile(storedPath);
+    let mime = 'application/octet-stream';
+    const lowerExt = (pathModule.extname(storedPath) || '').toLowerCase();
+    if (lowerExt === '.png') mime = 'image/png';
+    else if (lowerExt === '.jpg' || lowerExt === '.jpeg') mime = 'image/jpeg';
+    else if (lowerExt === '.gif') mime = 'image/gif';
+    else if (lowerExt === '.webp') mime = 'image/webp';
+    else if (lowerExt === '.svg') mime = 'image/svg+xml';
+    else if (lowerExt === '.mp4') mime = 'video/mp4';
+    else if (lowerExt === '.mov') mime = 'video/quicktime';
+    const base64 = savedBuffer.toString('base64');
+    const dataUrl = `data:${mime};base64,${base64}`;
+    return { success: true, filePath: storedPath, fileUrl, dataUrl };
+  } catch (error) {
+    console.error('Error importing note asset:', error);
+    return { success: false, error: error.message };
   }
 });
