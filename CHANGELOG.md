@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+# [1.5.0](https://github.com/user-cube/devbuddy/compare/v1.4.2...v1.5.0) (2025-08-13)
+
+
+### Features
+
+* Add support for notes; System tray; Rework home page ([#18](https://github.com/user-cube/devbuddy/issues/18)) ([433a1fb](https://github.com/user-cube/devbuddy/commit/433a1fb5d39f3107200b91f788b1e3e6dce58b56))
+
 ## [1.4.2](https://github.com/user-cube/devbuddy/compare/v1.4.1...v1.4.2) (2025-08-11)
 
 
