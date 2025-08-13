@@ -65,7 +65,7 @@ const Home = ({ currentTime }) => {
         window.electronAPI.removeBackgroundRefreshCompletedListener(handleBackgroundRefreshCompleted);
       }
     };
-  }, []);
+  }, [loadDashboardData]);
 
   useEffect(() => {
     const handleConfigChange = () => {

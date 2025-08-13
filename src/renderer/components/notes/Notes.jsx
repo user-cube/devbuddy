@@ -1,8 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, FolderPlus, Search, Trash2, Save, X, Tag, BookOpen } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
+import { Plus, X, Tag, BookOpen } from 'lucide-react';
 import Loading from '../layout/Loading';
 import { Toast } from '../../hooks/useToast';
 import { NotesHeader, NotesSidebar, NotesEditor } from './index.js';
@@ -75,7 +72,7 @@ const Notes = () => {
       fix();
       return () => { isMounted = false; };
     }, [originalSrc]);
-    return <img {...rest} src={src} style={{ maxWidth: '100%', borderRadius: '0.5rem', ...(rest.style || {}) }} />;
+    return <img {...rest} src={src} alt={rest.alt || ''} style={{ maxWidth: '100%', borderRadius: '0.5rem', ...(rest.style || {}) }} />;
   };
 
   const SafeVideo = (props) => {
@@ -249,7 +246,7 @@ const Notes = () => {
       setEditingNote(updated);
       setLastOpenedNoteId(activeNotebookId, updated.id);
       Toast.success('Note saved');
-    } catch (e) {
+    } catch {
       Toast.error('Failed to save note');
     }
   };
@@ -281,22 +278,7 @@ const Notes = () => {
     }
   };
 
-  const toFileUrl = (absPath) => {
-    if (!absPath) return '';
-    const encoded = encodeURI(absPath);
-    return `file://${encoded}`;
-  };
-
-  // Best-effort: convert file:// or absolute path URL to data URL for dev server security restrictions
-  const fileUrlToDataUrl = async (url) => {
-    try {
-      if (!(url.startsWith('file://') || url.startsWith('/'))) return url;
-      const dataUrl = await window.electronAPI.fileToDataUrl(url);
-      return dataUrl || url;
-    } catch {
-      return url;
-    }
-  };
+  // (helpers removed as unused)
 
   const handleInsertImage = async () => {
     const res = await window.electronAPI.selectFile();
@@ -377,8 +359,6 @@ const Notes = () => {
   if (loading && notebooks.length === 0 && notes.length === 0) {
     return <Loading message="Loading notes..." />;
   }
-
-  const activeNotebook = notebooks.find(n => n.id === activeNotebookId);
 
   return (
     <div className="h-full flex" style={{ backgroundColor: 'var(--bg-primary)' }}>

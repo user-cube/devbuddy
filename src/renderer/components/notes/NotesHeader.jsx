@@ -24,4 +24,3 @@ const NotesHeader = ({ onSave, onCancel, showActions }) => {
 
 export default NotesHeader;
 
-

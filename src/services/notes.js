@@ -203,7 +203,9 @@ class NotesService {
     if (!maybeUrl) return '';
     let p = maybeUrl;
     if (p.startsWith('file://')) p = p.replace('file://', '');
-    try { p = decodeURI(p); } catch {}
+    try { p = decodeURI(p); } catch {
+      // no-op
+    }
     // Ensure it belongs to this notebook's assets
     const assetsDir = this.getAssetsDir(notebookId);
     if (p.startsWith(assetsDir)) return p;
@@ -229,7 +231,7 @@ class NotesService {
         if (normalized) results.add(normalized);
       }
       return Array.from(results);
-    } catch (e) {
+    } catch {
       return [];
     }
   }
@@ -242,7 +244,9 @@ class NotesService {
         const paths = this.extractAssetPathsFromContent(notebookId, note.content || '');
         if (paths.includes(assetPath)) return true;
       }
-    } catch {}
+    } catch {
+      // no-op
+    }
     return false;
   }
 
@@ -282,7 +286,9 @@ class NotesService {
         if (!this.isAssetReferencedElsewhere(notebookId, p, noteId) && fs.existsSync(p)) {
           fs.unlinkSync(p);
         }
-      } catch {}
+      } catch {
+        // no-op
+      }
     });
     return updated;
   }
@@ -302,9 +308,13 @@ class NotesService {
           if (!this.isAssetReferencedElsewhere(notebookId, p, noteId) && fs.existsSync(p)) {
             fs.unlinkSync(p);
           }
-        } catch {}
+        } catch {
+          // no-op
+        }
       });
-    } catch {}
+    } catch {
+      // no-op
+    }
     fs.unlinkSync(filePath);
     return true;
   }

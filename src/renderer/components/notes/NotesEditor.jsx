@@ -63,4 +63,3 @@ const NotesEditor = ({
 
 export default NotesEditor;
 
-

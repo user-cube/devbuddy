@@ -139,4 +139,3 @@ const NotesSidebar = ({
 
 export default NotesSidebar;
 
-
