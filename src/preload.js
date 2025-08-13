@@ -139,6 +139,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onBackgroundRefreshCompleted: (callback) => ipcRenderer.on('background-refresh-completed', callback),
   removeBackgroundRefreshCompletedListener: (callback) => ipcRenderer.removeListener('background-refresh-completed', callback),
 
+  // Notifications debug/testing
+  testNotification: () => ipcRenderer.invoke('test-notification'),
+  debugRemindersSnapshot: () => ipcRenderer.invoke('debug-reminders-snapshot'),
+  runReminderCheckNow: () => ipcRenderer.invoke('run-reminder-check-now'),
+
   // Cache management
   clearCache: () => ipcRenderer.invoke('clear-cache'),
   clearGithubCache: () => ipcRenderer.invoke('clear-github-cache'),
@@ -218,5 +223,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fileToDataUrl: (filePath) => ipcRenderer.invoke('file-to-data-url', filePath)
   ,
   importNoteAsset: (notebookId, sourcePath) => ipcRenderer.invoke('import-note-asset', notebookId, sourcePath)
+  ,
+  onToggleCommandPalette: (callback) => ipcRenderer.on('toggle-command-palette', callback),
+  removeToggleCommandPaletteListener: (callback) => ipcRenderer.removeListener('toggle-command-palette', callback)
 
 });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import ToastComponent from '../layout/Toast';
 import RepositoriesHeader from './RepositoriesHeader';
 import RepositoriesDirectories from './RepositoriesDirectories';
@@ -28,6 +29,9 @@ const Repositories = () => {
   const [cacheStatus, setCacheStatus] = useState(null);
   const [isRefreshingRepositories, setIsRefreshingRepositories] = useState(false);
   const searchInputRef = React.useRef(null);
+  const location = useLocation();
+  const [pendingDeepLink, setPendingDeepLink] = useState(null);
+  const [deepLinkProcessed, setDeepLinkProcessed] = useState(false);
 
   useEffect(() => {
     loadConfig();
@@ -42,6 +46,35 @@ const Repositories = () => {
     window.addEventListener('config-changed', handleConfigChange);
     return () => window.removeEventListener('config-changed', handleConfigChange);
   }, []);
+
+  // Handle deep link to a specific repository via query: ?repoPath=...
+  useEffect(() => {
+    try {
+      if (deepLinkProcessed) return;
+      if (!config?.directories || config.directories.length === 0) return;
+      const params = new URLSearchParams(location.search || '');
+      const repoPath = params.get('repoPath');
+      if (!repoPath) return;
+      const dir = config.directories.find(d => repoPath.startsWith(d.path));
+      if (dir) {
+        // Load directory folders then open repo details when ready
+        loadFoldersForDirectory(dir);
+        setPendingDeepLink({ repoPath, dir });
+        setDeepLinkProcessed(true);
+      }
+    } catch {
+      // no-op
+    }
+  }, [location.search, config, deepLinkProcessed]);
+
+  // When directory selection is ready, open the repository details
+  useEffect(() => {
+    if (!pendingDeepLink) return;
+    if (!selectedDirectory) return;
+    if (selectedDirectory.path !== pendingDeepLink.dir.path) return;
+    loadRepositoryInfo(pendingDeepLink.repoPath, pendingDeepLink.dir.tag);
+    setPendingDeepLink(null);
+  }, [pendingDeepLink, selectedDirectory]);
 
   useEffect(() => {
     if (config?.enabled) {

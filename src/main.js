@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage, globalShortcut, Notification, powerMonitor } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -34,6 +34,13 @@ let initializationPromise = null;
 // Background refresh system
 let backgroundRefreshInterval = null;
 let lastRefreshTime = Date.now();
+// Task reminders
+let tasksReminderInterval = null;
+const notifiedTaskIds = new Set();
+const overdueLastNotified = new Map();
+const TASK_REMINDER_INTERVAL_MS = 15000; // 15s for better reliability
+const TASK_GRACE_WINDOW_MS = 30000; // 30s grace to avoid missing ticks
+const TASK_MAX_LATENESS_MS = 60 * 60 * 1000; // still notify up to 1h after due
 // Auto-launch configuration
 function configureAutoLaunch (enabled) {
   try {
@@ -73,6 +80,140 @@ function updateAutoLaunchFromConfig () {
   try {
     const cfg = configService.loadConfig();
     configureAutoLaunch(cfg?.app?.autoStart === true);
+  } catch {
+    // no-op
+  }
+}
+
+function updateTaskRemindersFromConfig () {
+  try {
+    const cfg = configService.loadConfig();
+    const enabled = cfg?.app?.tasksNotificationsEnabled === true && cfg?.app?.notifications !== false;
+    if (enabled) startTaskReminders(); else stopTaskReminders();
+  } catch {
+    // no-op
+  }
+}
+
+async function checkTaskRemindersOnce () {
+  try {
+    const cfg = configService.loadConfig();
+    if (cfg?.app?.tasksNotificationsEnabled !== true || cfg?.app?.notifications === false) return;
+    const tasks = await tasksService.getAllTasks();
+    const now = Date.now();
+    const toMs = (d) => {
+      try {
+        if (d == null) return NaN;
+        if (typeof d === 'number') return d;
+        if (d instanceof Date) return d.getTime();
+        if (typeof d === 'string') {
+          const p = Date.parse(d);
+          if (!Number.isNaN(p)) return p;
+        }
+        // Fallback: try new Date(d)
+        const any = new Date(d).getTime();
+        return Number.isNaN(any) ? NaN : any;
+      } catch {
+        return NaN;
+      }
+    };
+    for (const task of tasks) {
+      if (!task || task.completed) continue;
+      if (!task.dueDate) continue;
+      const due = toMs(task.dueDate);
+      if (Number.isNaN(due)) continue;
+
+      // Pre-reminders
+      const reminderMinutes = Array.isArray(task.reminders) ? task.reminders : [];
+      for (const mins of reminderMinutes) {
+        const t = due - mins * 60000;
+        const key = `${task.id}@${mins}`;
+        if ((now >= t && now - t <= TASK_GRACE_WINDOW_MS) && !notifiedTaskIds.has(key)) {
+          const n = new Notification({
+            title: 'Upcoming task',
+            body: `${task.title || 'Task'} in ${mins < 60 ? `${mins} min` : mins < 1440 ? `${Math.round(mins / 60)} h` : `${Math.round(mins / 1440)} d`}`,
+            silent: false
+          });
+          n.on('click', () => { try { if (mainWindow && !mainWindow.isDestroyed()) { mainWindow.show(); mainWindow.focus(); } } catch {
+            // no-op
+          } });
+          try { n.show(); } catch {
+            // no-op
+          }
+          notifiedTaskIds.add(key);
+        }
+      }
+
+      // Due-time reminder
+      if ((now >= due && now - due <= TASK_MAX_LATENESS_MS) && !notifiedTaskIds.has(task.id)) {
+        const n = new Notification({
+          title: 'Task due',
+          body: task.title || 'Task reminder',
+          urgency: 'critical',
+          silent: false
+        });
+        n.on('click', () => { try { if (mainWindow && !mainWindow.isDestroyed()) { mainWindow.show(); mainWindow.focus(); } } catch {
+          // no-op
+        } });
+        try { n.show(); } catch {
+          // no-op
+        }
+        notifiedTaskIds.add(task.id);
+      }
+
+      // Overdue repeat reminders (beyond initial 1h window)
+      try {
+        const overdueEnabled = cfg?.app?.overdueNotificationsEnabled === true;
+        const repeatMinutes = Math.max(0, Number(cfg?.app?.overdueRepeatMinutes || 240));
+        if (overdueEnabled && repeatMinutes > 0 && now > due + TASK_MAX_LATENESS_MS) {
+          const last = overdueLastNotified.get(task.id) || 0;
+          // Next reminder should be every repeatMinutes after the last notification or after due window end
+          const baseline = Math.max(due + TASK_MAX_LATENESS_MS, last);
+          if (now - baseline >= repeatMinutes * 60000) {
+            const minsOver = Math.round((now - due) / 60000);
+            const human = minsOver < 60 ? `${minsOver} min overdue` : minsOver < 1440 ? `${Math.round(minsOver / 60)} h overdue` : `${Math.round(minsOver / 1440)} d overdue`;
+            const nOver = new Notification({
+              title: 'Task overdue',
+              body: `${task.title || 'Task'} — ${human}`,
+              silent: false
+            });
+            nOver.on('click', () => { try { if (mainWindow && !mainWindow.isDestroyed()) { mainWindow.show(); mainWindow.focus(); } } catch {
+              // no-op
+            } });
+            try { nOver.show(); } catch {
+              // no-op
+            }
+            overdueLastNotified.set(task.id, now);
+          }
+        }
+      } catch {
+        // no-op
+      }
+    }
+  } catch {
+    // no-op
+  }
+}
+
+function startTaskReminders () {
+  try {
+    stopTaskReminders();
+    const cfg = configService.loadConfig();
+    if (cfg?.app?.tasksNotificationsEnabled !== true) return;
+    // Immediate check, then interval
+    checkTaskRemindersOnce();
+    tasksReminderInterval = setInterval(checkTaskRemindersOnce, TASK_REMINDER_INTERVAL_MS);
+  } catch {
+    // no-op
+  }
+}
+
+function stopTaskReminders () {
+  try {
+    if (tasksReminderInterval) {
+      clearInterval(tasksReminderInterval);
+      tasksReminderInterval = null;
+    }
   } catch {
     // no-op
   }
@@ -464,6 +605,18 @@ app.whenReady().then(async () => {
   createWindow();
   createTray();
   updateAutoLaunchFromConfig();
+  updateTaskRemindersFromConfig();
+  try {
+    powerMonitor.on('resume', () => {
+      // Run an immediate check after wake
+      setTimeout(checkTaskRemindersOnce, 2000);
+    });
+    powerMonitor.on('unlock-screen', () => {
+      setTimeout(checkTaskRemindersOnce, 2000);
+    });
+  } catch {
+    // no-op
+  }
 
   // Start the redirector server automatically
   try {
@@ -472,6 +625,26 @@ app.whenReady().then(async () => {
     console.log('Redirector server started automatically');
   } catch (error) {
     console.error('Failed to start redirector server automatically:', error);
+  }
+
+  // Register global shortcut to toggle command palette
+  try {
+    const ok = globalShortcut.register('CommandOrControl+Shift+K', () => {
+      try {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          if (!mainWindow.isVisible()) mainWindow.show();
+          mainWindow.focus();
+          mainWindow.webContents.send('toggle-command-palette');
+        }
+      } catch (e) {
+        console.error('Error toggling command palette:', e);
+      }
+    });
+    if (!ok) {
+      console.warn('Failed to register global shortcut CommandOrControl+Shift+K');
+    }
+  } catch (e) {
+    console.warn('Global shortcut registration failed:', e.message);
   }
 });
 
@@ -508,6 +681,10 @@ app.on('before-quit', () => {
     console.error('Error stopping redirector server on quit:', error);
   });
   stopBackgroundRefresh();
+  stopTaskReminders();
+  try { globalShortcut.unregisterAll(); } catch {
+    // no-op
+  }
 });
 
 // IPC handlers for communication between main and renderer processes
@@ -532,6 +709,19 @@ ipcMain.handle('save-config', async (event, config) => {
 
     const success = configService.saveConfig(config);
     if (success) {
+      // Apply side-effects that normally happen on update-app-config
+      try {
+        if (typeof config?.app?.autoStart !== 'undefined') {
+          configureAutoLaunch(config.app.autoStart);
+        }
+      } catch {
+        // no-op
+      }
+      try {
+        updateTaskRemindersFromConfig();
+      } catch {
+        // no-op
+      }
       return { success: true, message: 'Configuration saved successfully' };
     } else {
       throw new Error('Failed to save configuration');
@@ -718,6 +908,9 @@ ipcMain.handle('update-app-config', async (_event, appConfig) => {
     if (typeof appConfig.autoStart !== 'undefined') {
       configureAutoLaunch(appConfig.autoStart);
     }
+    if (typeof appConfig.tasksNotificationsEnabled !== 'undefined') {
+      updateTaskRemindersFromConfig();
+    }
   } catch {
     // no-op
   }
@@ -731,6 +924,15 @@ ipcMain.handle('configure-auto-launch', async (_event, enabled) => {
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('run-reminder-check-now', async () => {
+  try {
+    await checkTaskRemindersOnce();
+    return { success: true };
+  } catch (e) {
+    return { success: false, message: e?.message || 'Unknown error' };
   }
 });
 
@@ -1924,7 +2126,19 @@ ipcMain.handle('create-task', async (event, taskData) => {
 
 ipcMain.handle('update-task', async (event, id, updates) => {
   try {
-    return await tasksService.updateTask(id, updates);
+    const updated = await tasksService.updateTask(id, updates);
+    // Reset notifications for this task (in case dueDate/reminders changed)
+    try {
+      for (const key of Array.from(notifiedTaskIds)) {
+        if (key === id || (typeof key === 'string' && key.startsWith(`${id}@`))) {
+          notifiedTaskIds.delete(key);
+        }
+      }
+      overdueLastNotified.delete(id);
+    } catch {
+      // no-op
+    }
+    return updated;
   } catch (error) {
     console.error('Error updating task:', error);
     throw error;

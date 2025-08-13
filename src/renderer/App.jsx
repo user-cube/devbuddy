@@ -8,6 +8,7 @@ import ProtectedRoute from './components/layout/ProtectedRoute';
 import Home from './components/home/Home';
 import { useOnboarding } from './hooks/useOnboarding';
 import { ToastContainer } from './components/layout/Toast';
+import CommandPalette from './components/search/CommandPalette';
 const Jira = lazy(() => import('./components/jira/Jira'));
 const GitHub = lazy(() => import('./components/github/GitHub'));
 const GitLab = lazy(() => import('./components/gitlab/GitLab'));
@@ -26,6 +27,7 @@ function App () {
   const [isConfigured, setIsConfigured] = useState(false);
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState(null);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const onboardingHook = useOnboarding();
@@ -106,14 +108,17 @@ function App () {
       // App initialization completed
       // You can add additional logic here if needed
     };
+    const handleTogglePalette = () => setIsPaletteOpen(o => !o);
 
     if (window.electronAPI) {
       window.electronAPI.onAppInitialized(handleAppInitialized);
+      window.electronAPI.onToggleCommandPalette(handleTogglePalette);
     }
 
     return () => {
       if (window.electronAPI) {
         window.electronAPI.removeAppInitializedListener(handleAppInitialized);
+        window.electronAPI.removeToggleCommandPaletteListener(handleTogglePalette);
       }
     };
   }, []);
@@ -141,6 +146,13 @@ function App () {
   // Dynamic keyboard shortcuts based on enabled integrations
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Cmd/Ctrl+K toggles palette
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setIsPaletteOpen(o => !o);
+        return;
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '7') {
         e.preventDefault();
 
@@ -162,13 +174,17 @@ function App () {
       }
 
       if (e.key === 'Escape') {
-        navigate('/');
+        if (isPaletteOpen) {
+          setIsPaletteOpen(false);
+        } else {
+          navigate('/');
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [navigate, config]);
+  }, [navigate, config, isPaletteOpen]);
 
   // Redirect to onboarding if it's the first run and user hasn't seen it
   useEffect(() => {
@@ -242,6 +258,7 @@ function App () {
               </Routes>
             </Suspense>
           </main>
+          <CommandPalette open={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
         </div>
         <ToastContainer />
       </NavigationProvider>
