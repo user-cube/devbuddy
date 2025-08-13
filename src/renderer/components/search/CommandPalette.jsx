@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function CommandPalette ({ open, onClose }) {
+function CommandPalette ({ open, onClose, initialQuery = '', showScopes = true }) {
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const listRef = useRef(null);
@@ -36,7 +36,7 @@ function CommandPalette ({ open, onClose }) {
     notes: []
   });
 
-  // Focus input when opened
+  // Sync query from external input and focus when opened
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current && inputRef.current.focus(), 0);
@@ -45,6 +45,15 @@ function CommandPalette ({ open, onClose }) {
       setQuery('');
     }
   }, [open]);
+
+  // Mirror external query into palette when provided
+  useEffect(() => {
+    if (!open) return;
+    if (typeof initialQuery === 'string' && initialQuery !== query) {
+      setQuery(initialQuery);
+      setSelectionIndex(0);
+    }
+  }, [initialQuery, open]);
 
   // Load static-ish sources once when opened (cached by main services)
   useEffect(() => {
@@ -263,18 +272,20 @@ function CommandPalette ({ open, onClose }) {
             autoFocus
           />
         </div>
-        <div className="px-3 py-2 border-b flex flex-wrap gap-2" style={{ borderColor: 'var(--border-primary)' }}>
-          {SCOPES.map(s => (
-            <button
-              key={s.id}
-              onClick={() => { setScope(s.id); setSelectionIndex(0); }}
-              className={`px-2.5 py-1.5 rounded-md text-sm border ${scope === s.id ? 'bg-blue-500/10' : ''}`}
-              style={{ borderColor: 'var(--border-primary)', color: scope === s.id ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        {showScopes ? (
+          <div className="px-3 py-2 border-b flex flex-wrap gap-2" style={{ borderColor: 'var(--border-primary)' }}>
+            {SCOPES.map(s => (
+              <button
+                key={s.id}
+                onClick={() => { setScope(s.id); setSelectionIndex(0); }}
+                className={`px-2.5 py-1.5 rounded-md text-sm border ${scope === s.id ? 'bg-blue-500/10' : ''}`}
+                style={{ borderColor: 'var(--border-primary)', color: scope === s.id ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="max-h-96 overflow-y-auto" ref={listRef}>
           {isLoading && results.length === 0 ? (
             <div className="px-4 py-6 text-center" style={{ color: 'var(--text-secondary)' }}>Loading…</div>

@@ -1,0 +1,61 @@
+name: Sync main to staging
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+concurrency:
+  group: sync-main-to-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Attempt fast sync (merge) main -> staging
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create GitHub App token
+      id: app
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ secrets.DEVOPS_BUDDY_APP_ID }}
+        private-key: ${{ secrets.DEVOPS_BUDDY_PRIVATE_KEY }}
+    - name: Merge main into staging
+      id: merge
+      uses: devmasx/merge-branch@v1.4.0
+      with:
+        type: now
+        from_branch: main
+        target_branch: staging
+        github_token: ${{ steps.app.outputs.token }}
+
+  open-pr-on-conflict:
+    name: Open PR if merge cannot be applied cleanly
+    runs-on: ubuntu-latest
+    needs: auto-merge
+    # If the previous job failed (e.g., conflicts), create a PR instead
+    if: ${{ needs.auto-merge.result == 'failure' }}
+    steps:
+    - name: Create GitHub App token
+      id: app
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ secrets.DEVOPS_BUDDY_APP_ID }}
+        private-key: ${{ secrets.DEVOPS_BUDDY_PRIVATE_KEY }}
+    - name: Create PR main -> staging
+      uses: repo-sync/pull-request@v2
+      env:
+        GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+      with:
+        source_branch: main
+        destination_branch: staging
+        pr_title: "chore(sync): main → staging"
+        pr_body: |
+          Automated sync from main to staging.
+          This PR was created because an automatic merge could not be applied cleanly.
+        pr_label: auto-sync
+        pr_draft: false

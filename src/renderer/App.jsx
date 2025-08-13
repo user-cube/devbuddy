@@ -9,6 +9,7 @@ import Home from './components/home/Home';
 import { useOnboarding } from './hooks/useOnboarding';
 import { ToastContainer } from './components/layout/Toast';
 import CommandPalette from './components/search/CommandPalette';
+import TitleSearch from './components/search/TitleSearch';
 const Jira = lazy(() => import('./components/jira/Jira'));
 const GitHub = lazy(() => import('./components/github/GitHub'));
 const GitLab = lazy(() => import('./components/gitlab/GitLab'));
@@ -28,6 +29,7 @@ function App () {
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState(null);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [pendingQuery, setPendingQuery] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const onboardingHook = useOnboarding();
@@ -217,7 +219,31 @@ function App () {
       <NavigationProvider>
         <div className="flex h-screen app-with-titlebar" style={{ backgroundColor: 'var(--bg-primary)' }}>
           {/* Custom titlebar overlay */}
-          <div className="app-titlebar"><span className="title">DevBuddy</span></div>
+          <div className="app-titlebar">
+            <div className="no-drag flex items-center justify-center gap-3" style={{ height: '100%' }}>
+              <div className="hidden md:flex items-center gap-2 text-sm" style={{ width: 480 }}>
+                <input
+                  type="text"
+                  value={pendingQuery}
+                  onChange={(e) => setPendingQuery(e.target.value)}
+                  placeholder="Search everywhere…"
+                  className="w-full no-drag top-search"
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 10
+                  }}
+                />
+                <span style={{
+                  fontSize: 12,
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border-primary)',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-secondary)'
+                }}>⌘K</span>
+              </div>
+            </div>
+          </div>
           <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
 
           <main className="flex-1 overflow-y-auto">
@@ -258,6 +284,7 @@ function App () {
               </Routes>
             </Suspense>
           </main>
+          <TitleSearch query={pendingQuery} onClose={() => setPendingQuery('')} focused={true} setQuery={setPendingQuery} />
           <CommandPalette open={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
         </div>
         <ToastContainer />
