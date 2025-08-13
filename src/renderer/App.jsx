@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NavigationProvider } from './contexts/NavigationContext';
@@ -6,20 +6,20 @@ import Loading from './components/layout/Loading';
 import Sidebar from './components/layout/Sidebar';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import Home from './components/home/Home';
-import Jira from './components/jira/Jira';
-import GitHub from './components/github/GitHub';
-import GitLab from './components/gitlab/GitLab';
-import Bitbucket from './components/bitbucket/Bitbucket';
-import Configuration from './components/configuration/Configuration';
-import Bookmarks from './components/bookmarks/Bookmarks';
-import Redirects from './components/redirects/Redirects';
-import Repositories from './components/repositories/Repositories';
-import Tasks from './components/tasks/Tasks';
-import Notes from './components/notes/Notes';
-import Onboarding from './components/onboarding/Onboarding';
-import GuidedSetup from './components/onboarding/GuidedSetup';
 import { useOnboarding } from './hooks/useOnboarding';
 import { ToastContainer } from './components/layout/Toast';
+const Jira = lazy(() => import('./components/jira/Jira'));
+const GitHub = lazy(() => import('./components/github/GitHub'));
+const GitLab = lazy(() => import('./components/gitlab/GitLab'));
+const Bitbucket = lazy(() => import('./components/bitbucket/Bitbucket'));
+const Configuration = lazy(() => import('./components/configuration/Configuration'));
+const Bookmarks = lazy(() => import('./components/bookmarks/Bookmarks'));
+const Redirects = lazy(() => import('./components/redirects/Redirects'));
+const Repositories = lazy(() => import('./components/repositories/Repositories'));
+const Tasks = lazy(() => import('./components/tasks/Tasks'));
+const Notes = lazy(() => import('./components/notes/Notes'));
+const Onboarding = lazy(() => import('./components/onboarding/Onboarding'));
+const GuidedSetup = lazy(() => import('./components/onboarding/GuidedSetup'));
 
 function App () {
   const [currentTime, setCurrentTime] = useState('');
@@ -189,7 +189,9 @@ function App () {
   if (location.pathname === '/onboarding') {
     return (
       <ThemeProvider>
-        <Onboarding />
+        <Suspense fallback={<Loading fullScreen message="Loading..." />}> 
+          <Onboarding />
+        </Suspense>
       </ThemeProvider>
     );
   }
@@ -203,6 +205,7 @@ function App () {
           <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
 
           <main className="flex-1 overflow-y-auto">
+            <Suspense fallback={<Loading message="Loading..." />}> 
             <Routes>
               <Route path="/" element={<Home currentTime={currentTime} />} />
               <Route path="/bookmarks" element={<Bookmarks />} />
@@ -237,6 +240,7 @@ function App () {
               <Route path="/config" element={<Configuration />} />
               <Route path="/guided-setup" element={<GuidedSetup />} />
             </Routes>
+            </Suspense>
           </main>
         </div>
         <ToastContainer />

@@ -65,7 +65,7 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
 
       <div className="space-y-4">
         {integrations.map((integration) => {
-          if (!integration.enabled || integration.items.length === 0) return null;
+          if (!integration.enabled || !integration.items || integration.items.length === 0) return null;
 
           const IntegrationIcon = integration.icon;
 
@@ -78,10 +78,12 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
                 </span>
               </div>
               <div className="space-y-2">
-                {integration.items.slice(0, 2).map((item) => (
+                {integration.items.slice(0, 2).map((item, idx) => {
+                  const stableKey = `${integration.key}-${item.id ?? item.key ?? item.iid ?? item.number ?? item.name ?? item.path ?? idx}`;
+                  return (
                   <div
-                    key={item.id}
-                    className="p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                    key={stableKey}
+                    className="p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.02] animate-[fadeIn_300ms_ease-out]"
                     style={{
                       backgroundColor: 'var(--bg-tertiary)',
                       border: '1px solid var(--border-primary)'
@@ -109,7 +111,7 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
                       <ExternalLink className="w-3 h-3 opacity-50 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                     </div>
                   </div>
-                ))}
+                );})}
               </div>
             </div>
           );
