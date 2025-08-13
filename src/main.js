@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -473,6 +473,26 @@ app.whenReady().then(async () => {
   } catch (error) {
     console.error('Failed to start redirector server automatically:', error);
   }
+
+  // Register global shortcut to toggle command palette
+  try {
+    const ok = globalShortcut.register('CommandOrControl+Shift+K', () => {
+      try {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          if (!mainWindow.isVisible()) mainWindow.show();
+          mainWindow.focus();
+          mainWindow.webContents.send('toggle-command-palette');
+        }
+      } catch (e) {
+        console.error('Error toggling command palette:', e);
+      }
+    });
+    if (!ok) {
+      console.warn('Failed to register global shortcut CommandOrControl+Shift+K');
+    }
+  } catch (e) {
+    console.warn('Global shortcut registration failed:', e.message);
+  }
 });
 
 // Quit when all windows are closed
@@ -508,6 +528,7 @@ app.on('before-quit', () => {
     console.error('Error stopping redirector server on quit:', error);
   });
   stopBackgroundRefresh();
+  try { globalShortcut.unregisterAll(); } catch {}
 });
 
 // IPC handlers for communication between main and renderer processes

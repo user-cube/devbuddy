@@ -218,5 +218,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fileToDataUrl: (filePath) => ipcRenderer.invoke('file-to-data-url', filePath)
   ,
   importNoteAsset: (notebookId, sourcePath) => ipcRenderer.invoke('import-note-asset', notebookId, sourcePath)
+  ,
+  onToggleCommandPalette: (callback) => ipcRenderer.on('toggle-command-palette', callback),
+  removeToggleCommandPaletteListener: (callback) => ipcRenderer.removeListener('toggle-command-palette', callback)
 
 });
