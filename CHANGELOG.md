@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+# [1.6.0](https://github.com/user-cube/devbuddy/compare/v1.5.0...v1.6.0) (2025-08-13)
+
+
+### Features
+
+* Fuzzy finder; Task notifications ([#19](https://github.com/user-cube/devbuddy/issues/19)) ([d2d21dc](https://github.com/user-cube/devbuddy/commit/d2d21dcb965ee0ee5fb81c5bce84c3f3bdea4efd)), closes [#20](https://github.com/user-cube/devbuddy/issues/20)
+
 # [1.5.0](https://github.com/user-cube/devbuddy/compare/v1.4.2...v1.5.0) (2025-08-13)
 
 
