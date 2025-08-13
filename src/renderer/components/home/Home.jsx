@@ -12,7 +12,6 @@ const Home = ({ currentTime }) => {
   const [shortcuts, setShortcuts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [compactMode, setCompactMode] = useState(false);
   const [stats, setStats] = useState({
     jira: { total: 0, assigned: 0, inProgress: 0, highPriority: 0 },
     github: { total: 0, assigned: 0, reviewing: 0, draft: 0 },
@@ -100,8 +99,7 @@ const Home = ({ currentTime }) => {
           repositories: repositoriesConfig?.enabled || false
         });
 
-        // Ignore compact mode preference (reverted to standard view)
-        setCompactMode(false);
+        // Using standard view only
       }
     } catch {
       // no-op
@@ -432,7 +430,7 @@ const Home = ({ currentTime }) => {
         onDismissNotification={() => setLastRefreshNotification(null)}
       />
 
-      <HomeStats stats={stats} onQuickAction={handleQuickAction} extras={extras} />
+      <HomeStats stats={stats} onQuickAction={handleQuickAction} />
 
       <HomeIntegrationStatus
         activeIntegrations={activeIntegrations}

@@ -77,4 +77,3 @@ const HomeBottom = ({ extras }) => {
 
 export default HomeBottom;
 
-

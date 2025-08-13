@@ -5,7 +5,6 @@ import {
   GitMerge,
   Folder,
   Wifi,
-  WifiOff,
   AlertCircle,
   Lock,
   LinkIcon,

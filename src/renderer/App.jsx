@@ -189,7 +189,7 @@ function App () {
   if (location.pathname === '/onboarding') {
     return (
       <ThemeProvider>
-        <Suspense fallback={<Loading fullScreen message="Loading..." />}> 
+        <Suspense fallback={<Loading fullScreen message="Loading..." />}>
           <Onboarding />
         </Suspense>
       </ThemeProvider>
@@ -205,41 +205,41 @@ function App () {
           <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
 
           <main className="flex-1 overflow-y-auto">
-            <Suspense fallback={<Loading message="Loading..." />}> 
-            <Routes>
-              <Route path="/" element={<Home currentTime={currentTime} />} />
-              <Route path="/bookmarks" element={<Bookmarks />} />
-              <Route path="/redirects" element={<Redirects />} />
-              <Route path="/tasks" element={<Tasks />} />
-              <Route path="/notes" element={<Notes />} />
-              <Route path="/jira" element={
-                <ProtectedRoute integration="jira">
-                  <Jira />
-                </ProtectedRoute>
-              } />
-              <Route path="/github" element={
-                <ProtectedRoute integration="github">
-                  <GitHub />
-                </ProtectedRoute>
-              } />
-              <Route path="/gitlab" element={
-                <ProtectedRoute integration="gitlab">
-                  <GitLab />
-                </ProtectedRoute>
-              } />
-              <Route path="/bitbucket" element={
-                <ProtectedRoute integration="bitbucket">
-                  <Bitbucket />
-                </ProtectedRoute>
-              } />
-              <Route path="/repositories" element={
-                <ProtectedRoute integration="repositories">
-                  <Repositories />
-                </ProtectedRoute>
-              } />
-              <Route path="/config" element={<Configuration />} />
-              <Route path="/guided-setup" element={<GuidedSetup />} />
-            </Routes>
+            <Suspense fallback={<Loading message="Loading..." />}>
+              <Routes>
+                <Route path="/" element={<Home currentTime={currentTime} />} />
+                <Route path="/bookmarks" element={<Bookmarks />} />
+                <Route path="/redirects" element={<Redirects />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/notes" element={<Notes />} />
+                <Route path="/jira" element={
+                  <ProtectedRoute integration="jira">
+                    <Jira />
+                  </ProtectedRoute>
+                } />
+                <Route path="/github" element={
+                  <ProtectedRoute integration="github">
+                    <GitHub />
+                  </ProtectedRoute>
+                } />
+                <Route path="/gitlab" element={
+                  <ProtectedRoute integration="gitlab">
+                    <GitLab />
+                  </ProtectedRoute>
+                } />
+                <Route path="/bitbucket" element={
+                  <ProtectedRoute integration="bitbucket">
+                    <Bitbucket />
+                  </ProtectedRoute>
+                } />
+                <Route path="/repositories" element={
+                  <ProtectedRoute integration="repositories">
+                    <Repositories />
+                  </ProtectedRoute>
+                } />
+                <Route path="/config" element={<Configuration />} />
+                <Route path="/guided-setup" element={<GuidedSetup />} />
+              </Routes>
             </Suspense>
           </main>
         </div>

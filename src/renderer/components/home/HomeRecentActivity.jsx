@@ -81,37 +81,37 @@ const HomeRecentActivity = ({ activeIntegrations, recentItems, onOpenItem }) => 
                 {integration.items.slice(0, 2).map((item, idx) => {
                   const stableKey = `${integration.key}-${item.id ?? item.key ?? item.iid ?? item.number ?? item.name ?? item.path ?? idx}`;
                   return (
-                  <div
-                    key={stableKey}
-                    className="p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.02] animate-[fadeIn_300ms_ease-out]"
-                    style={{
-                      backgroundColor: 'var(--bg-tertiary)',
-                      border: '1px solid var(--border-primary)'
-                    }}
-                    onClick={() => onOpenItem(item, integration.key)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          {getStatusIcon(item, integration.key)}
-                          <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                            {integration.key === 'jira' ? item.key :
-                              integration.key === 'github' ? `#${item.number}` :
-                                integration.key === 'gitlab' ? `!${item.iid}` :
-                                  integration.key === 'bitbucket' ? `#${item.id}` :
-                                    item.name}
-                          </span>
+                    <div
+                      key={stableKey}
+                      className="p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.02] animate-[fadeIn_300ms_ease-out]"
+                      style={{
+                        backgroundColor: 'var(--bg-tertiary)',
+                        border: '1px solid var(--border-primary)'
+                      }}
+                      onClick={() => onOpenItem(item, integration.key)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            {getStatusIcon(item, integration.key)}
+                            <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                              {integration.key === 'jira' ? item.key :
+                                integration.key === 'github' ? `#${item.number}` :
+                                  integration.key === 'gitlab' ? `!${item.iid}` :
+                                    integration.key === 'bitbucket' ? `#${item.id}` :
+                                      item.name}
+                            </span>
+                          </div>
+                          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                            {integration.key === 'jira' ? item.fields?.summary :
+                              integration.key === 'github' || integration.key === 'gitlab' || integration.key === 'bitbucket' ? item.title :
+                                item.path}
+                          </p>
                         </div>
-                        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                          {integration.key === 'jira' ? item.fields?.summary :
-                            integration.key === 'github' || integration.key === 'gitlab' || integration.key === 'bitbucket' ? item.title :
-                              item.path}
-                        </p>
+                        <ExternalLink className="w-3 h-3 opacity-50 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                       </div>
-                      <ExternalLink className="w-3 h-3 opacity-50 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                     </div>
-                  </div>
-                );})}
+                  );})}
               </div>
             </div>
           );
