@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getAppConfig: () => ipcRenderer.invoke('get-app-config'),
   updateAppConfig: (config) => ipcRenderer.invoke('update-app-config', config),
+  configureAutoLaunch: (enabled) => ipcRenderer.invoke('configure-auto-launch', enabled),
 
   // Jira service
   getJiraIssues: () => ipcRenderer.invoke('get-jira-issues'),

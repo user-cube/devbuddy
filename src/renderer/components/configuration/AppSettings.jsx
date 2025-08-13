@@ -87,7 +87,12 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
               <input
                 type="checkbox"
                 checked={config?.app?.autoStart || false}
-                onChange={(e) => updateConfig('app', 'autoStart', e.target.checked)}
+                onChange={async (e) => {
+                  updateConfig('app', 'autoStart', e.target.checked);
+                  try { await window.electronAPI.configureAutoLaunch(e.target.checked); } catch {
+                    // no-op
+                  }
+                }}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -124,6 +129,42 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
                 type="checkbox"
                 checked={config?.app?.backgroundRefresh || true}
                 onChange={(e) => updateConfig('app', 'backgroundRefresh', e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium" style={{ color: 'var(--text-primary)' }}>Minimize to Tray on Close</div>
+              <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Hide the window to system tray instead of quitting when closing
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={config?.app?.minimizeToTray ?? true}
+                onChange={(e) => updateConfig('app', 'minimizeToTray', e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium" style={{ color: 'var(--text-primary)' }}>Start Minimized to Tray</div>
+              <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Launch DevBuddy hidden in the tray on startup
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={config?.app?.startMinimized ?? false}
+                onChange={(e) => updateConfig('app', 'startMinimized', e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>

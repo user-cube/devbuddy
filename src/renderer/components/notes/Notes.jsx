@@ -118,7 +118,9 @@ const Notes = () => {
 
   // Persist active notebook selection
   useEffect(() => {
-    try { localStorage.setItem(LAST_NOTEBOOK_KEY, activeNotebookId); } catch {}
+    try { localStorage.setItem(LAST_NOTEBOOK_KEY, activeNotebookId); } catch {
+      // no-op
+    }
   }, [activeNotebookId]);
 
   const loadNotebooks = async () => {

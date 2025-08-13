@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -14,6 +14,8 @@ const TasksService = require('./services/tasks.js');
 const NotesService = require('./services/notes.js');
 
 let mainWindow;
+let tray = null;
+let isQuiting = false;
 const configService = new ConfigService();
 const bookmarksService = new BookmarksService();
 const redirectorService = new RedirectorService();
@@ -32,6 +34,49 @@ let initializationPromise = null;
 // Background refresh system
 let backgroundRefreshInterval = null;
 let lastRefreshTime = Date.now();
+// Auto-launch configuration
+function configureAutoLaunch (enabled) {
+  try {
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+      app.setLoginItemSettings({
+        openAtLogin: !!enabled,
+        openAsHidden: true
+      });
+    } else {
+      // Linux: create/remove autostart .desktop entry
+      const autostartDir = path.join(os.homedir(), '.config', 'autostart');
+      const desktopFile = path.join(autostartDir, 'devbuddy.desktop');
+      const fsPromises = require('fs').promises;
+      const execPath = process.execPath;
+      if (enabled) {
+        fsPromises.mkdir(autostartDir, { recursive: true }).then(() => {
+          const content = [
+            '[Desktop Entry]',
+            'Type=Application',
+            'Name=DevBuddy',
+            `Exec=${execPath}`,
+            'X-GNOME-Autostart-enabled=true',
+            'Hidden=false'
+          ].join('\n');
+          return fsPromises.writeFile(desktopFile, content, 'utf8');
+        }).catch(() => {});
+      } else {
+        fsPromises.unlink(desktopFile).catch(() => {});
+      }
+    }
+  } catch (error) {
+    console.warn('Auto-launch configuration failed:', error.message);
+  }
+}
+
+function updateAutoLaunchFromConfig () {
+  try {
+    const cfg = configService.loadConfig();
+    configureAutoLaunch(cfg?.app?.autoStart === true);
+  } catch {
+    // no-op
+  }
+}
 
 // Start background refresh system
 function startBackgroundRefresh () {
@@ -324,21 +369,101 @@ function createWindow () {
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+    const configServiceInstance = configService.loadConfig();
+    const shouldStartMinimized = configServiceInstance?.app?.startMinimized === true;
+    if (shouldStartMinimized) {
+      mainWindow.hide();
+    } else {
+      mainWindow.show();
+    }
 
     // Start data initialization after window is shown
     initializeAppData();
   });
 
   // Handle window closed
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  mainWindow.on('close', (e) => {
+    const cfg = configService.loadConfig();
+    const minimizeToTray = cfg?.app?.minimizeToTray !== false; // default true
+    if (!isQuiting && minimizeToTray) {
+      e.preventDefault();
+      mainWindow.hide();
+      return false;
+    }
+    return undefined;
   });
+}
+
+function getTrayIconPath () {
+  // __dirname already points to src/, so assets are in src/assets
+  if (process.platform === 'darwin') {
+    return path.join(__dirname, 'assets/macos/icon_16x16.png');
+  }
+  if (process.platform === 'win32') {
+    return path.join(__dirname, 'assets/windows/icon_16x16.png');
+  }
+  return path.join(__dirname, 'assets/linux/icon_16x16.png');
+}
+
+function createTray () {
+  try {
+    if (tray) return;
+    let iconPath = getTrayIconPath();
+    // Fallback to main icon if specific not found
+    if (!require('fs').existsSync(iconPath)) {
+      iconPath = process.platform === 'darwin'
+        ? path.join(__dirname, 'assets/macos/icon_16x16.png')
+        : path.join(__dirname, 'assets/icon.png');
+    }
+    let image = nativeImage.createFromPath(iconPath);
+    if (process.platform === 'darwin') {
+      image = image.resize({ width: 18, height: 18 });
+    }
+    tray = new Tray(image.isEmpty() ? undefined : image);
+
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Show/Hide DevBuddy',
+        click: () => {
+          if (!mainWindow) return;
+          if (mainWindow.isVisible()) mainWindow.hide(); else mainWindow.show();
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Trigger Background Refresh',
+        click: async () => {
+          try { await performBackgroundRefresh(); } catch {
+            // no-op
+          }
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        click: () => {
+          isQuiting = true;
+          app.quit();
+        }
+      }
+    ]);
+
+    tray.setToolTip('DevBuddy');
+    tray.setContextMenu(contextMenu);
+    tray.on('click', () => {
+      if (!mainWindow) return;
+      if (mainWindow.isVisible()) mainWindow.hide(); else mainWindow.show();
+    });
+  } catch (error) {
+    console.error('Failed to create tray:', error);
+  }
 }
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
   createWindow();
+  createTray();
+  updateAutoLaunchFromConfig();
 
   // Start the redirector server automatically
   try {
@@ -369,11 +494,14 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  } else if (mainWindow) {
+    mainWindow.show();
   }
 });
 
 // Handle app quit to ensure redirector server is stopped
 app.on('before-quit', () => {
+  isQuiting = true;
   redirectorService.stopServer().then(() => {
     console.log('Redirector server stopped on app quit');
   }).catch((error) => {
@@ -585,7 +713,25 @@ ipcMain.handle('get-app-config', () => {
 });
 
 ipcMain.handle('update-app-config', async (_event, appConfig) => {
-  return configService.updateAppConfig(appConfig);
+  const res = configService.updateAppConfig(appConfig);
+  try {
+    if (typeof appConfig.autoStart !== 'undefined') {
+      configureAutoLaunch(appConfig.autoStart);
+    }
+  } catch {
+    // no-op
+  }
+  return res;
+});
+
+// Allow renderer to request auto-launch reconfiguration
+ipcMain.handle('configure-auto-launch', async (_event, enabled) => {
+  try {
+    configureAutoLaunch(enabled);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 
 // Service data (future implementation)
