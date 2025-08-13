@@ -72,6 +72,7 @@ class TasksService {
         priority: 'high',
         category: 'general',
         dueDate: null,
+        reminders: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         tags: ['welcome']
@@ -108,6 +109,7 @@ class TasksService {
       priority: taskData.priority || 'medium',
       category: categoryId,
       dueDate: taskData.dueDate || null,
+      reminders: Array.isArray(taskData.reminders) ? taskData.reminders : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       tags: taskData.tags || []
@@ -288,6 +290,7 @@ class TasksService {
         priority: task.priority || 'medium',
         category: categoryId,
         dueDate: task.dueDate || null,
+        reminders: Array.isArray(task.reminders) ? task.reminders : [],
         createdAt: task.createdAt || new Date().toISOString(),
         updatedAt: task.updatedAt || new Date().toISOString(),
         tags: task.tags || []

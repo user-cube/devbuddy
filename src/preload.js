@@ -139,6 +139,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onBackgroundRefreshCompleted: (callback) => ipcRenderer.on('background-refresh-completed', callback),
   removeBackgroundRefreshCompletedListener: (callback) => ipcRenderer.removeListener('background-refresh-completed', callback),
 
+  // Notifications debug/testing
+  testNotification: () => ipcRenderer.invoke('test-notification'),
+  debugRemindersSnapshot: () => ipcRenderer.invoke('debug-reminders-snapshot'),
+  runReminderCheckNow: () => ipcRenderer.invoke('run-reminder-check-now'),
+
   // Cache management
   clearCache: () => ipcRenderer.invoke('clear-cache'),
   clearGithubCache: () => ipcRenderer.invoke('clear-github-cache'),

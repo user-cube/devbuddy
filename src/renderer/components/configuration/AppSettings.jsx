@@ -119,6 +119,64 @@ const AppSettings = ({ config, updateConfig, setThemeValue }) => {
 
           <div className="flex items-center justify-between">
             <div>
+              <div className="font-medium" style={{ color: 'var(--text-primary)' }}>Task Notifications</div>
+              <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Remind me when tasks are due or approaching due time
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={config?.app?.tasksNotificationsEnabled ?? false}
+                onChange={(e) => updateConfig('app', 'tasksNotificationsEnabled', e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium" style={{ color: 'var(--text-primary)' }}>Repeat Overdue Reminders</div>
+                <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  Keep reminding for overdue tasks at the selected interval
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={config?.app?.overdueNotificationsEnabled ?? true}
+                  onChange={(e) => updateConfig('app', 'overdueNotificationsEnabled', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Overdue Repeat Interval</label>
+              <select
+                value={config?.app?.overdueRepeatMinutes ?? 240}
+                onChange={(e) => updateConfig('app', 'overdueRepeatMinutes', parseInt(e.target.value) || 240)}
+                className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <option value={30}>Every 30 minutes</option>
+                <option value={60}>Every 1 hour</option>
+                <option value={120}>Every 2 hours</option>
+                <option value={240}>Every 4 hours</option>
+                <option value={720}>Every 12 hours</option>
+                <option value={1440}>Every day</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
               <div className="font-medium" style={{ color: 'var(--text-primary)' }}>Background Refresh</div>
               <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 Automatically refresh data in the background

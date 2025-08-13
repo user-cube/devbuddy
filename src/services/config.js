@@ -77,7 +77,11 @@ class ConfigService {
         redirectorPort: 10000, // Port for local redirector server
         defaultEditor: 'vscode', // Default editor: 'vscode' or 'cursor'
         minimizeToTray: true,
-        startMinimized: false
+        startMinimized: false,
+        // Task notifications
+        tasksNotificationsEnabled: false,
+        overdueNotificationsEnabled: true,
+        overdueRepeatMinutes: 240
       },
       repositories: {
         enabled: false,
