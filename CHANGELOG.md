@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+## [1.7.1](https://github.com/user-cube/devbuddy/compare/v1.7.0...v1.7.1) (2025-08-13)
+
+
+### Bug Fixes
+
+* sync main and staging ([#25](https://github.com/user-cube/devbuddy/issues/25)) ([366ae54](https://github.com/user-cube/devbuddy/commit/366ae54c6ce6595c9e0b0991be70406dfbf2d5db)), closes [#20](https://github.com/user-cube/devbuddy/issues/20) [#21](https://github.com/user-cube/devbuddy/issues/21) [#21](https://github.com/user-cube/devbuddy/issues/21) [#24](https://github.com/user-cube/devbuddy/issues/24)
+
 # [1.7.0](https://github.com/user-cube/devbuddy/compare/v1.6.0...v1.7.0) (2025-08-13)
 
 
