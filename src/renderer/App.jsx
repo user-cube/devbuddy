@@ -15,6 +15,7 @@ import Bookmarks from './components/bookmarks/Bookmarks';
 import Redirects from './components/redirects/Redirects';
 import Repositories from './components/repositories/Repositories';
 import Tasks from './components/tasks/Tasks';
+import Notes from './components/notes/Notes';
 import Onboarding from './components/onboarding/Onboarding';
 import GuidedSetup from './components/onboarding/GuidedSetup';
 import { useOnboarding } from './hooks/useOnboarding';
@@ -205,6 +206,7 @@ function App () {
               <Route path="/bookmarks" element={<Bookmarks />} />
               <Route path="/redirects" element={<Redirects />} />
               <Route path="/tasks" element={<Tasks />} />
+              <Route path="/notes" element={<Notes />} />
               <Route path="/jira" element={
                 <ProtectedRoute integration="jira">
                   <Jira />

@@ -11,6 +11,7 @@ const BitbucketService = require('./services/bitbucket.js');
 const JiraService = require('./services/jira.js');
 const RepositoriesService = require('./services/repositories.js');
 const TasksService = require('./services/tasks.js');
+const NotesService = require('./services/notes.js');
 
 let mainWindow;
 const configService = new ConfigService();
@@ -22,6 +23,7 @@ const bitbucketService = new BitbucketService();
 const jiraService = new JiraService();
 const repositoriesService = RepositoriesService;
 const tasksService = TasksService;
+const notesService = NotesService;
 
 // Global state for app initialization
 let appInitialized = false;
@@ -1911,5 +1913,173 @@ ipcMain.handle('get-tasks-by-category', async (event, categoryId) => {
   } catch (error) {
     console.error('Error getting tasks by category:', error);
     return [];
+  }
+});
+
+// Notes handlers
+ipcMain.handle('get-notebooks', async () => {
+  try {
+    return await notesService.getNotebooks();
+  } catch (error) {
+    console.error('Error getting notebooks:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('create-notebook', async (_event, data) => {
+  try {
+    return await notesService.createNotebook(data);
+  } catch (error) {
+    console.error('Error creating notebook:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-notebook', async (_event, id, updates) => {
+  try {
+    return await notesService.updateNotebook(id, updates);
+  } catch (error) {
+    console.error('Error updating notebook:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-notebook', async (_event, id) => {
+  try {
+    return await notesService.deleteNotebook(id);
+  } catch (error) {
+    console.error('Error deleting notebook:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-notes', async (_event, notebookId) => {
+  try {
+    return await notesService.getNotes(notebookId);
+  } catch (error) {
+    console.error('Error getting notes:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('get-note', async (_event, notebookId, noteId) => {
+  try {
+    return await notesService.getNote(notebookId, noteId);
+  } catch (error) {
+    console.error('Error getting note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('create-note', async (_event, notebookId, noteData) => {
+  try {
+    return await notesService.createNote(notebookId, noteData);
+  } catch (error) {
+    console.error('Error creating note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-note', async (_event, notebookId, noteId, updates) => {
+  try {
+    return await notesService.updateNote(notebookId, noteId, updates);
+  } catch (error) {
+    console.error('Error updating note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-note', async (_event, notebookId, noteId) => {
+  try {
+    return await notesService.deleteNote(notebookId, noteId);
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('search-notes', async (_event, query) => {
+  try {
+    return await notesService.searchNotes(query);
+  } catch (error) {
+    console.error('Error searching notes:', error);
+    return [];
+  }
+});
+
+// Save clipboard asset into notebook assets directory and return a file:// URL
+ipcMain.handle('save-note-asset', async (_event, notebookId, buffer, ext) => {
+  try {
+    const filePath = await notesService.saveAsset(notebookId, Buffer.from(buffer), ext);
+    // Build file URL
+    const url = `file://${filePath}`;
+    return { success: true, filePath, url };
+  } catch (error) {
+    console.error('Error saving note asset:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Convert a local file path to data URL for safe rendering in dev server
+ipcMain.handle('file-to-data-url', async (_event, filePath) => {
+  try {
+    const fsPromises = require('fs').promises;
+    const pathModule = require('path');
+    let resolvedPath = filePath;
+    if (resolvedPath.startsWith('file://')) {
+      resolvedPath = resolvedPath.replace('file://', '');
+    }
+    // Decode URI-encoded paths like spaces (%20)
+    resolvedPath = decodeURI(resolvedPath);
+    const buffer = await fsPromises.readFile(resolvedPath);
+    const ext = (pathModule.extname(resolvedPath) || '').toLowerCase();
+    let mime = 'application/octet-stream';
+    if (ext === '.png') mime = 'image/png';
+    else if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
+    else if (ext === '.gif') mime = 'image/gif';
+    else if (ext === '.webp') mime = 'image/webp';
+    else if (ext === '.svg') mime = 'image/svg+xml';
+    else if (ext === '.mp4') mime = 'video/mp4';
+    else if (ext === '.mov') mime = 'video/quicktime';
+    const base64 = buffer.toString('base64');
+    return `data:${mime};base64,${base64}`;
+  } catch (error) {
+    console.error('Error converting file to data URL:', error);
+    return null;
+  }
+});
+
+// Import an existing local file into the notebook assets directory
+ipcMain.handle('import-note-asset', async (_event, notebookId, sourcePath) => {
+  try {
+    const fs = require('fs');
+    const pathModule = require('path');
+    let resolvedPath = sourcePath;
+    if (resolvedPath.startsWith('file://')) {
+      resolvedPath = resolvedPath.replace('file://', '');
+    }
+    resolvedPath = decodeURI(resolvedPath);
+    const buffer = fs.readFileSync(resolvedPath);
+    const ext = (pathModule.extname(resolvedPath) || '.bin').slice(1);
+    const storedPath = await notesService.saveAsset(notebookId, buffer, ext);
+    const fileUrl = `file://${storedPath}`;
+    // Also return data URL for immediate preview if needed
+    const fsPromises = require('fs').promises;
+    const savedBuffer = await fsPromises.readFile(storedPath);
+    let mime = 'application/octet-stream';
+    const lowerExt = (pathModule.extname(storedPath) || '').toLowerCase();
+    if (lowerExt === '.png') mime = 'image/png';
+    else if (lowerExt === '.jpg' || lowerExt === '.jpeg') mime = 'image/jpeg';
+    else if (lowerExt === '.gif') mime = 'image/gif';
+    else if (lowerExt === '.webp') mime = 'image/webp';
+    else if (lowerExt === '.svg') mime = 'image/svg+xml';
+    else if (lowerExt === '.mp4') mime = 'video/mp4';
+    else if (lowerExt === '.mov') mime = 'video/quicktime';
+    const base64 = savedBuffer.toString('base64');
+    const dataUrl = `data:${mime};base64,${base64}`;
+    return { success: true, filePath: storedPath, fileUrl, dataUrl };
+  } catch (error) {
+    console.error('Error importing note asset:', error);
+    return { success: false, error: error.message };
   }
 });
