@@ -977,11 +977,7 @@ ipcMain.handle('pomodoro-notify', async (_event, title, body) => {
 // Update dock/tray/title indicator with remaining time text
 ipcMain.handle('pomodoro-set-indicator', async (_event, text) => {
   try {
-    if (process.platform === 'darwin') {
-      try { app.dock.setBadge(text || ''); } catch {
-        // no-op
-      }
-    }
+    // Remove dock badge usage per request; keep only tray + window title
     if (mainWindow && !mainWindow.isDestroyed()) {
       try { mainWindow.setTitle(text ? `DevBuddy — ${text}` : 'DevBuddy'); } catch {
         // no-op
