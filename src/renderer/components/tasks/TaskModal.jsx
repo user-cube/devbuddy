@@ -9,6 +9,8 @@ const TaskModal = ({ task, onSave, onClose }) => {
     priority: 'medium',
     category: 'general',
     dueDate: '',
+    dueTime: '',
+    reminders: [],
     tags: []
   });
   const [newTag, setNewTag] = useState('');
@@ -30,7 +32,9 @@ const TaskModal = ({ task, onSave, onClose }) => {
         description: task.description || '',
         priority: task.priority || 'medium',
         category: task.category || 'general',
-        dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+        dueDate: task.dueDate ? (typeof task.dueDate === 'string' ? task.dueDate.split('T')[0] : '') : '',
+        dueTime: task.dueDate && typeof task.dueDate === 'string' && task.dueDate.includes('T') ? (task.dueDate.split('T')[1] || '').slice(0,5) : '',
+        reminders: Array.isArray(task.reminders) ? task.reminders : [],
         tags: task.tags || []
       });
     } else {
@@ -40,6 +44,8 @@ const TaskModal = ({ task, onSave, onClose }) => {
         priority: 'medium',
         category: 'general',
         dueDate: '',
+        dueTime: '',
+        reminders: [],
         tags: []
       });
     }
@@ -99,11 +105,15 @@ const TaskModal = ({ task, onSave, onClose }) => {
 
     setLoading(true);
     try {
+      const dueCombined = formData.dueDate
+        ? (formData.dueTime ? `${formData.dueDate}T${formData.dueTime}` : formData.dueDate)
+        : null;
       const taskData = {
         ...formData,
         title: formData.title.trim(),
         description: formData.description.trim(),
-        dueDate: formData.dueDate || null
+        dueDate: dueCombined,
+        reminders: Array.isArray(formData.reminders) ? formData.reminders : []
       };
 
       if (isEditing) {
@@ -251,20 +261,77 @@ const TaskModal = ({ task, onSave, onClose }) => {
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Due Date
             </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={formData.dueDate}
-                onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2"
-                style={{
-                  backgroundColor: 'var(--bg-secondary)',
-                  borderColor: 'var(--border-primary)',
-                  color: 'var(--text-primary)',
-                  '--tw-ring-color': 'var(--accent-primary)'
-                }}
-              />
-              <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={(e) => handleInputChange('dueDate', e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2"
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderColor: 'var(--border-primary)',
+                    color: 'var(--text-primary)',
+                    '--tw-ring-color': 'var(--accent-primary)'
+                  }}
+                />
+                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <div>
+                <input
+                  type="time"
+                  value={formData.dueTime}
+                  onChange={(e) => handleInputChange('dueTime', e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2"
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderColor: 'var(--border-primary)',
+                    color: 'var(--text-primary)',
+                    '--tw-ring-color': 'var(--accent-primary)'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Reminders */}
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+              Reminders
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: '5m', value: 5 },
+                { label: '10m', value: 10 },
+                { label: '15m', value: 15 },
+                { label: '30m', value: 30 },
+                { label: '1h', value: 60 },
+                { label: '1d', value: 1440 }
+              ].map(opt => {
+                const active = formData.reminders.includes(opt.value);
+                return (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        reminders: active
+                          ? prev.reminders.filter(v => v !== opt.value)
+                          : [...prev.reminders, opt.value].sort((a, b) => a - b)
+                      }));
+                    }}
+                    className="px-2 py-1 rounded border text-xs"
+                    style={{
+                      backgroundColor: active ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                      color: active ? 'white' : 'var(--text-primary)',
+                      borderColor: 'var(--border-primary)'
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

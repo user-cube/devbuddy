@@ -49,7 +49,7 @@ function CommandPalette ({ open, onClose }) {
   // Load static-ish sources once when opened (cached by main services)
   useEffect(() => {
     let cancelled = false;
-    async function loadInitial() {
+    async function loadInitial () {
       if (!open) return;
       setIsLoading(true);
       try {
@@ -89,7 +89,7 @@ function CommandPalette ({ open, onClose }) {
   // Live search notes via IPC for better performance
   useEffect(() => {
     let cancelled = false;
-    async function searchNotes() {
+    async function searchNotes () {
       if (!open) return;
       if (!query) {
         setData(prev => ({ ...prev, notes: [] }));
@@ -311,5 +311,4 @@ function CommandPalette ({ open, onClose }) {
 }
 
 export default CommandPalette;
-
 
