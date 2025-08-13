@@ -1,6 +1,6 @@
 {
   "name": "devbuddy",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Development helper app with shortcuts, Jira tasks, and PR management",
   "main": "src/main.js",
   "scripts": {

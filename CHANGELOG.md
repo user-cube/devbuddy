@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
+# [1.7.0](https://github.com/user-cube/devbuddy/compare/v1.6.0...v1.7.0) (2025-08-13)
+
+
+### Features
+
+* Pomodoro; Search bar ([#23](https://github.com/user-cube/devbuddy/issues/23)) ([aa785e0](https://github.com/user-cube/devbuddy/commit/aa785e09c540a8da8d9fad5a1ecb22d9e0169b38)), closes [#20](https://github.com/user-cube/devbuddy/issues/20) [#21](https://github.com/user-cube/devbuddy/issues/21) [#21](https://github.com/user-cube/devbuddy/issues/21) [#24](https://github.com/user-cube/devbuddy/issues/24)
+
 # [1.6.0](https://github.com/user-cube/devbuddy/compare/v1.5.0...v1.6.0) (2025-08-13)
 
 
