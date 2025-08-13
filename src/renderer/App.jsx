@@ -18,7 +18,6 @@ const Bookmarks = lazy(() => import('./components/bookmarks/Bookmarks'));
 const Redirects = lazy(() => import('./components/redirects/Redirects'));
 const Repositories = lazy(() => import('./components/repositories/Repositories'));
 const Tasks = lazy(() => import('./components/tasks/Tasks'));
-const Pomodoro = lazy(() => import('./components/pomodoro/Pomodoro'));
 const Notes = lazy(() => import('./components/notes/Notes'));
 const Onboarding = lazy(() => import('./components/onboarding/Onboarding'));
 const GuidedSetup = lazy(() => import('./components/onboarding/GuidedSetup'));
@@ -228,7 +227,6 @@ function App () {
                 <Route path="/bookmarks" element={<Bookmarks />} />
                 <Route path="/redirects" element={<Redirects />} />
                 <Route path="/tasks" element={<Tasks />} />
-                <Route path="/pomodoro" element={<Pomodoro />} />
                 <Route path="/notes" element={<Notes />} />
                 <Route path="/jira" element={
                   <ProtectedRoute integration="jira">

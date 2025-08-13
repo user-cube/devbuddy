@@ -81,15 +81,7 @@ class ConfigService {
         // Task notifications
         tasksNotificationsEnabled: false,
         overdueNotificationsEnabled: true,
-        overdueRepeatMinutes: 240,
-        // Pomodoro defaults
-        pomodoro: {
-          workMinutes: 25,
-          shortBreakMinutes: 5,
-          longBreakMinutes: 15,
-          sessionsBeforeLongBreak: 4,
-          autoStartNext: true
-        }
+        overdueRepeatMinutes: 240
       },
       repositories: {
         enabled: false,

@@ -618,25 +618,6 @@ app.whenReady().then(async () => {
     // no-op
   }
 
-  // Register a global shortcut for Pomodoro start/pause toggle
-  try {
-    const ok = globalShortcut.register('CommandOrControl+Shift+P', () => {
-      try {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          if (!mainWindow.isVisible()) mainWindow.show();
-          mainWindow.webContents.send('pomodoro-toggle-start-pause');
-        }
-      } catch (e) {
-        console.error('Error toggling pomodoro:', e);
-      }
-    });
-    if (!ok) {
-      console.warn('Failed to register global shortcut CommandOrControl+Shift+P');
-    }
-  } catch (e) {
-    console.warn('Global shortcut registration failed for Pomodoro:', e.message);
-  }
-
   // Start the redirector server automatically
   try {
     console.log('Attempting to start redirector server automatically...');
@@ -934,69 +915,6 @@ ipcMain.handle('update-app-config', async (_event, appConfig) => {
     // no-op
   }
   return res;
-});
-
-// Pomodoro config and notification helpers
-ipcMain.handle('get-pomodoro-config', () => {
-  try {
-    const cfg = configService.loadConfig();
-    return cfg?.app?.pomodoro || {};
-  } catch {
-    return {};
-  }
-});
-
-ipcMain.handle('update-pomodoro-config', async (_event, pomodoroCfg) => {
-  try {
-    const cfg = configService.loadConfig();
-    const updated = { ...cfg, app: { ...cfg.app, pomodoro: { ...cfg.app?.pomodoro, ...pomodoroCfg } } };
-    configService.saveConfig(updated);
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: e?.message || 'Failed to update pomodoro config' };
-  }
-});
-
-ipcMain.handle('pomodoro-notify', async (_event, title, body) => {
-  try {
-    const cfg = configService.loadConfig();
-    if (cfg?.app?.notifications === false) return { success: false };
-    const n = new Notification({ title: title || 'DevBuddy', body: body || '' });
-    n.on('click', () => { try { if (mainWindow && !mainWindow.isDestroyed()) { mainWindow.show(); mainWindow.focus(); } } catch {
-      // no-op
-    } });
-    try { n.show(); } catch {
-      // no-op
-    }
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: e?.message || 'notify failed' };
-  }
-});
-
-// Update dock/tray/title indicator with remaining time text
-ipcMain.handle('pomodoro-set-indicator', async (_event, text) => {
-  try {
-    // Remove dock badge usage per request; keep only tray + window title
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      try { mainWindow.setTitle(text ? `DevBuddy — ${text}` : 'DevBuddy'); } catch {
-        // no-op
-      }
-    }
-    if (tray) {
-      try { tray.setToolTip(text ? `DevBuddy — ${text}` : 'DevBuddy'); } catch {
-        // no-op
-      }
-      if (process.platform === 'darwin') {
-        try { tray.setTitle(text || ''); } catch {
-          // no-op
-        }
-      }
-    }
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: e?.message || 'indicator failed' };
-  }
 });
 
 // Allow renderer to request auto-launch reconfiguration

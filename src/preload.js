@@ -224,14 +224,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ,
   importNoteAsset: (notebookId, sourcePath) => ipcRenderer.invoke('import-note-asset', notebookId, sourcePath)
   ,
-  // Pomodoro
-  getPomodoroConfig: () => ipcRenderer.invoke('get-pomodoro-config'),
-  updatePomodoroConfig: (cfg) => ipcRenderer.invoke('update-pomodoro-config', cfg),
-  pomodoroNotify: (title, body) => ipcRenderer.invoke('pomodoro-notify', title, body),
-  pomodoroSetIndicator: (text) => ipcRenderer.invoke('pomodoro-set-indicator', text),
-  onPomodoroToggleStartPause: (cb) => ipcRenderer.on('pomodoro-toggle-start-pause', cb),
-  removePomodoroToggleStartPauseListener: (cb) => ipcRenderer.removeListener('pomodoro-toggle-start-pause', cb),
-
   onToggleCommandPalette: (callback) => ipcRenderer.on('toggle-command-palette', callback),
   removeToggleCommandPaletteListener: (callback) => ipcRenderer.removeListener('toggle-command-palette', callback)
 
