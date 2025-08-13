@@ -197,7 +197,9 @@ function App () {
   return (
     <ThemeProvider>
       <NavigationProvider>
-        <div className="flex h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <div className="flex h-screen app-with-titlebar" style={{ backgroundColor: 'var(--bg-primary)' }}>
+          {/* Custom titlebar overlay */}
+          <div className="app-titlebar"><span className="title">DevBuddy</span></div>
           <Sidebar currentPath={location.pathname} isConfigured={isConfigured} />
 
           <main className="flex-1 overflow-y-auto">

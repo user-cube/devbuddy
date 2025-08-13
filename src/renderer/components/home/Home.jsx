@@ -65,7 +65,8 @@ const Home = ({ currentTime }) => {
         window.electronAPI.removeBackgroundRefreshCompletedListener(handleBackgroundRefreshCompleted);
       }
     };
-  }, [loadDashboardData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const handleConfigChange = () => {

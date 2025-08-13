@@ -19,6 +19,12 @@
     --success: #10b981;
     --warning: #f59e0b;
     --error: #ef4444;
+
+    /* Titlebar theming (light) */
+    --titlebar-bg-start: rgba(248, 250, 252, 0.9); /* slate-50 */
+    --titlebar-bg-end: rgba(241, 245, 249, 0.8); /* slate-100 */
+    --titlebar-border: rgba(0, 0, 0, 0.06);
+    --titlebar-text: #334155;
   }
 
   [data-theme="dark"] {
@@ -37,6 +43,12 @@
     --success: #10b981;
     --warning: #f59e0b;
     --error: #ef4444;
+
+    /* Titlebar theming (dark) */
+    --titlebar-bg-start: rgba(15, 23, 42, 0.95);
+    --titlebar-bg-end: rgba(15, 23, 42, 0.75);
+    --titlebar-border: rgba(255, 255, 255, 0.06);
+    --titlebar-text: #cbd5e1;
   }
 
   body {
@@ -47,11 +59,47 @@
   }
 
   * {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease,
+      border-color 0.3s ease;
   }
 }
 
 @layer components {
+  /* Titlebar overlay styles (macOS hiddenInset) */
+  .titlebar-spacer {
+    height: 36px;
+  }
+  .app-titlebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    -webkit-app-region: drag;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+      180deg,
+      var(--titlebar-bg-start) 0%,
+      var(--titlebar-bg-end) 100%
+    );
+    border-bottom: 1px solid var(--titlebar-border);
+    z-index: 40;
+  }
+  .app-titlebar .title {
+    color: var(--titlebar-text);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+  .app-with-titlebar {
+    padding-top: 36px;
+  }
+
   .sidebar-link {
     display: flex;
     align-items: center;
@@ -61,19 +109,23 @@
     border-radius: 0 9999px 9999px 0;
     transition: all 0.3s ease;
   }
-  
+
   .sidebar-link:hover {
     color: var(--accent-primary);
     background-color: rgba(59, 130, 246, 0.1);
     transform: translateX(0.25rem);
   }
-  
+
   .sidebar-link.active {
-    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+    background: linear-gradient(
+      to right,
+      var(--accent-primary),
+      var(--accent-secondary)
+    );
     color: white;
     box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
   }
-  
+
   .card {
     background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
     border-radius: 0.75rem;
@@ -82,27 +134,35 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
   }
-  
+
   .card:hover {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     transform: translateY(-0.25rem);
     border-color: var(--accent-primary);
   }
-  
+
   .btn-primary {
-    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+    background: linear-gradient(
+      to right,
+      var(--accent-primary),
+      var(--accent-secondary)
+    );
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
-  
+
   .btn-primary:hover {
-    background: linear-gradient(to right, var(--accent-secondary), var(--accent-primary));
+    background: linear-gradient(
+      to right,
+      var(--accent-secondary),
+      var(--accent-primary)
+    );
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   }
-  
+
   .btn-secondary {
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
@@ -111,58 +171,58 @@
     transition: all 0.2s ease;
     border: 1px solid var(--border-primary);
   }
-  
+
   .btn-secondary:hover {
     background-color: var(--bg-secondary);
   }
-  
+
   /* Modal improvements */
   .modal-overlay {
     backdrop-filter: blur(2px);
   }
-  
+
   /* Input improvements for light mode */
-  input[type="text"], 
-  input[type="url"], 
-  input[type="email"], 
+  input[type="text"],
+  input[type="url"],
+  input[type="email"],
   input[type="password"],
   textarea {
     background-color: var(--bg-tertiary) !important;
     border: 1px solid var(--border-primary) !important;
     color: var(--text-primary) !important;
   }
-  
-  input[type="text"]:focus, 
-  input[type="url"]:focus, 
-  input[type="email"]:focus, 
+
+  input[type="text"]:focus,
+  input[type="url"]:focus,
+  input[type="email"]:focus,
   input[type="password"]:focus,
   textarea:focus {
     outline: none !important;
     border-color: var(--accent-primary) !important;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
   }
-  
+
   /* Color picker improvements */
   input[type="color"] {
     cursor: pointer;
     border: 1px solid var(--border-primary) !important;
     background-color: var(--bg-tertiary) !important;
   }
-  
+
   input[type="color"]:hover {
     border-color: var(--accent-primary) !important;
   }
-  
+
   /* Sticky footer improvements */
   .sticky-footer {
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Ensure proper spacing for sticky footer */
   .content-with-sticky-footer {
     padding-bottom: 6rem;
   }
-  
+
   /* Line clamp utilities */
   .line-clamp-2 {
     display: -webkit-box;
@@ -170,4 +230,4 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-} 
+}

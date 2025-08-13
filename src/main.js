@@ -299,7 +299,12 @@ function createWindow () {
       preload: preloadPath
     },
     icon: path.join(__dirname, 'assets/devbuddy.icns'),
-    titleBarStyle: 'default',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    titleBarOverlay: process.platform === 'darwin' ? {
+      color: '#0b1220', // matches app dark bg
+      symbolColor: '#ffffff',
+      height: 36
+    } : false,
     show: false
   });
 
