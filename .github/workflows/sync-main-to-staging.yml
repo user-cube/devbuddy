@@ -4,6 +4,10 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch: {}
+  # Ensure sync runs even when release commit contains [skip ci]
+  workflow_run:
+    workflows: [ "release" ]
+    types: [ completed ]
 
 concurrency:
   group: sync-main-to-staging
@@ -17,6 +21,11 @@ jobs:
   auto-merge:
     name: Attempt fast sync (merge) main -> staging
     runs-on: ubuntu-latest
+    # Run for push/workflow_dispatch, or when the release workflow completed successfully
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     steps:
     - name: Create GitHub App token
       id: app
@@ -24,6 +33,25 @@ jobs:
       with:
         app-id: ${{ secrets.DEVOPS_BUDDY_APP_ID }}
         private-key: ${{ secrets.DEVOPS_BUDDY_PRIVATE_KEY }}
+    - name: Checkout for diff check
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ steps.app.outputs.token }}
+    - name: Compute main vs staging difference
+      id: diff
+      shell: bash
+      run: |
+        git fetch --no-tags --prune origin +refs/heads/main:refs/remotes/origin/main +refs/heads/staging:refs/remotes/origin/staging
+        MAIN=$(git rev-parse remotes/origin/main)
+        STAGING=$(git rev-parse remotes/origin/staging)
+        echo "main=$MAIN" >> $GITHUB_OUTPUT
+        echo "staging=$STAGING" >> $GITHUB_OUTPUT
+        if [ "$MAIN" = "$STAGING" ]; then
+          echo "changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+        fi
     - name: Merge main into staging
       id: merge
       uses: devmasx/merge-branch@v1.4.0
@@ -32,6 +60,7 @@ jobs:
         from_branch: main
         target_branch: staging
         github_token: ${{ steps.app.outputs.token }}
+      if: steps.diff.outputs.changed == 'true'
 
   open-pr-on-conflict:
     name: Open PR if merge cannot be applied cleanly
