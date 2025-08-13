@@ -69,7 +69,6 @@ const Sidebar = ({ currentPath, isConfigured }) => {
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks' },
     { path: '/redirects', icon: Globe, label: 'Redirects' },
     { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
-    { path: '/pomodoro', icon: AlertCircle, label: 'Pomodoro' },
     { path: '/notes', icon: BookOpen, label: 'Notes' }
   ];
 
