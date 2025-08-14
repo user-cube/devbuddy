@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, CheckCircle, FolderPlus, X } from 'lucide-react';
+import KanbanBoard from './KanbanBoard';
 import TaskModal from './TaskModal';
 import TaskCard from './TaskCard';
 import TaskFilters from './TaskFilters';
@@ -29,6 +30,8 @@ const Tasks = () => {
     dueToday: 0,
     completionRate: 0
   });
+  const [viewMode, setViewMode] = useState('kanban'); // 'list' | 'kanban'
+  const [kanbanGroupBy, setKanbanGroupBy] = useState('priority'); // 'category' | 'priority'
 
   useEffect(() => {
     loadTasks();
@@ -261,6 +264,39 @@ const Tasks = () => {
               <FolderPlus className="w-4 h-4" />
               New Category
             </button>
+
+            {/* View Mode */}
+            <div className="ml-2 flex items-center gap-2">
+              <select
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value)}
+                className="px-3 py-2 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderColor: 'var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <option value="list">List</option>
+                <option value="kanban">Kanban</option>
+              </select>
+
+              {viewMode === 'kanban' && (
+                <select
+                  value={kanbanGroupBy}
+                  onChange={(e) => setKanbanGroupBy(e.target.value)}
+                  className="px-3 py-2 rounded-lg border text-sm"
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderColor: 'var(--border-primary)',
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  <option value="category">Group by Category</option>
+                  <option value="priority">Group by Priority</option>
+                </select>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -279,53 +315,87 @@ const Tasks = () => {
         />
       </div>
 
-      {/* Tasks List */}
+      {/* Tasks Content */}
       <div className="flex-1 overflow-y-auto px-6 pb-6">
-        {sortedTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-              style={{ backgroundColor: 'var(--bg-secondary)' }}
-            >
-              <CheckCircle className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
-            </div>
-            <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              {filters.status === 'completed' ? 'No completed tasks' : 'No tasks found'}
-            </h3>
-            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-              {filters.status === 'completed'
-                ? 'Complete some tasks to see them here'
-                : filters.search || filters.category !== 'all' || filters.priority !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'Create your first task to get started'
-              }
-            </p>
-            {!filters.search && filters.category === 'all' && filters.priority === 'all' && filters.status === 'all' && (
-              <button
-                onClick={() => setShowTaskModal(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--accent-primary)',
-                  color: 'white'
-                }}
+        {viewMode === 'kanban' ? (
+          filteredTasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                style={{ backgroundColor: 'var(--bg-secondary)' }}
               >
-                <Plus className="w-4 h-4" />
-                Create First Task
-              </button>
-            )}
-          </div>
+                <CheckCircle className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                {filters.status === 'completed' ? 'No completed tasks' : 'No tasks found'}
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+                {filters.status === 'completed'
+                  ? 'Complete some tasks to see them here'
+                  : filters.search || filters.category !== 'all' || filters.priority !== 'all'
+                    ? 'Try adjusting your filters'
+                    : 'Create your first task to get started'
+                }
+              </p>
+            </div>
+          ) : (
+            <KanbanBoard
+              tasks={filteredTasks}
+              categories={categories}
+              groupBy={kanbanGroupBy}
+              onToggleComplete={handleToggleComplete}
+              onEdit={handleEditTask}
+              onDelete={handleDeleteTask}
+              onUpdateTask={handleUpdateTask}
+            />
+          )
         ) : (
-          <div className="space-y-3">
-            {sortedTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onToggleComplete={handleToggleComplete}
-                onEdit={handleEditTask}
-                onDelete={handleDeleteTask}
-              />
-            ))}
-          </div>
+          sortedTasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                style={{ backgroundColor: 'var(--bg-secondary)' }}
+              >
+                <CheckCircle className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                {filters.status === 'completed' ? 'No completed tasks' : 'No tasks found'}
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+                {filters.status === 'completed'
+                  ? 'Complete some tasks to see them here'
+                  : filters.search || filters.category !== 'all' || filters.priority !== 'all'
+                    ? 'Try adjusting your filters'
+                    : 'Create your first task to get started'
+                }
+              </p>
+              {!filters.search && filters.category === 'all' && filters.priority === 'all' && filters.status === 'all' && (
+                <button
+                  onClick={() => setShowTaskModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+                  style={{
+                    backgroundColor: 'var(--accent-primary)',
+                    color: 'white'
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                  Create First Task
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sortedTasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onToggleComplete={handleToggleComplete}
+                  onEdit={handleEditTask}
+                  onDelete={handleDeleteTask}
+                />
+              ))}
+            </div>
+          )
         )}
       </div>
 

@@ -122,28 +122,51 @@ class TasksService {
 
   updateTask (id, updates) {
     const allTasks = this.loadTasks();
-    const task = allTasks.find(t => t.id === id);
+    const existingTask = allTasks.find(t => t.id === id);
 
-    if (!task) {
+    if (!existingTask) {
       throw new Error('Task not found');
     }
 
-    const categoryId = task.category;
-    const tasks = this.loadTasksFromCategory(categoryId);
-    const taskIndex = tasks.findIndex(t => t.id === id);
+    const currentCategoryId = existingTask.category || 'general';
+    const targetCategoryRequested = updates && updates.category ? updates.category : currentCategoryId;
 
-    if (taskIndex === -1) {
-      throw new Error('Task not found in category');
+    // If category does not change, update in-place within the same category file
+    if (targetCategoryRequested === currentCategoryId) {
+      const tasksInCategory = this.loadTasksFromCategory(currentCategoryId);
+      const taskIndex = tasksInCategory.findIndex(t => t.id === id);
+      if (taskIndex === -1) {
+        throw new Error('Task not found in category');
+      }
+      tasksInCategory[taskIndex] = {
+        ...tasksInCategory[taskIndex],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      this.saveTasksToCategory(currentCategoryId, tasksInCategory);
+      return tasksInCategory[taskIndex];
     }
 
-    tasks[taskIndex] = {
-      ...tasks[taskIndex],
+    // Category changed: move task between category files
+    const categories = this.loadCategories();
+    const isValidTarget = categories.some(cat => cat.id === targetCategoryRequested);
+    const targetCategoryId = isValidTarget ? targetCategoryRequested : 'general';
+
+    // Remove from old category
+    const oldList = this.loadTasksFromCategory(currentCategoryId).filter(t => t.id !== id);
+    this.saveTasksToCategory(currentCategoryId, oldList);
+
+    // Add to new category
+    const newList = this.loadTasksFromCategory(targetCategoryId);
+    const updatedTask = {
+      ...existingTask,
       ...updates,
+      category: targetCategoryId,
       updatedAt: new Date().toISOString()
     };
-
-    this.saveTasksToCategory(categoryId, tasks);
-    return tasks[taskIndex];
+    newList.push(updatedTask);
+    this.saveTasksToCategory(targetCategoryId, newList);
+    return updatedTask;
   }
 
   deleteTask (id) {
